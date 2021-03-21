@@ -1,3 +1,13 @@
+-- user roles (Users)
+-- 0 - superuser
+-- 1 - user
+-- 2 - guest
+--
+-- permission types (SurveyPermissions, ReportPermissions)
+-- 0 - owner/read/write
+-- 1 - read/write
+-- 2 - read only
+
 CREATE TABLE Users(
 	Id           INTEGER PRIMARY KEY,
 	Login        TEXT UNIQUE NOT NULL,
@@ -5,7 +15,7 @@ CREATE TABLE Users(
 	PasswordSalt TEXT NOT NULL,
 	CasLogin     TEXT,
 	CasPassword  TEXT,
-	Role         INTEGER DEFAULT 3 NOT NULL
+	Role         INTEGER DEFAULT 2 NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Groups(
@@ -62,7 +72,7 @@ CREATE TABLE IF NOT EXISTS ReportGroups(
 CREATE TABLE IF NOT EXISTS SurveyPermissions(
 	SurveyId INTEGER,
 	UserId   INTEGER,
-	Type     INTEGER DEFAULT 3 NOT NULL,
+	Type     INTEGER DEFAULT 2 NOT NULL,
 
 	PRIMARY KEY (SurveyId, UserId),
 	FOREIGN KEY (SurveyId) REFERENCES Surveys(Id)
@@ -74,7 +84,7 @@ CREATE TABLE IF NOT EXISTS SurveyPermissions(
 CREATE TABLE IF NOT EXISTS ReportPermissions(
 	UserId   INTEGER,
 	ReportId INTEGER,
-	Type     INTEGER DEFAULT 3 NOT NULL,
+	Type     INTEGER DEFAULT 2 NOT NULL,
 
 	PRIMARY KEY (UserId, ReportId),
 	FOREIGN KEY (UserId) REFERENCES Users(Id)
