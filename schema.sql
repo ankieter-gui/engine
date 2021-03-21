@@ -5,7 +5,7 @@ CREATE TABLE Users(
 	PasswordSalt TEXT NOT NULL,
 	CasLogin     TEXT UNIQUE,
 	CasPassword  TEXT,
-	Role         INTEGER NOT NULL
+	Role         INTEGER DEFAULT 3 NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Groups(
