@@ -3,7 +3,7 @@ CREATE TABLE Users(
 	Login        TEXT UNIQUE NOT NULL,
 	PasswordHash TEXT NOT NULL,
 	PasswordSalt TEXT NOT NULL,
-	CasLogin     TEXT UNIQUE,
+	CasLogin     TEXT,
 	CasPassword  TEXT,
 	Role         INTEGER DEFAULT 3 NOT NULL
 );
