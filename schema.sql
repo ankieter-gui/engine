@@ -8,7 +8,7 @@
 -- 1 - read/write
 -- 2 - read only
 
-CREATE TABLE Users(
+CREATE TABLE IF NOT EXISTS Users(
 	Id           INTEGER PRIMARY KEY,
 	Login        TEXT UNIQUE NOT NULL,
 	PasswordHash TEXT NOT NULL,
