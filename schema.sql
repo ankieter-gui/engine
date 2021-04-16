@@ -8,14 +8,13 @@
 -- 1 - read/write
 -- 2 - read only
 
+-- user groups zdefiniowane dwukrotnie
+
 CREATE TABLE IF NOT EXISTS Users(
 	Id           INTEGER PRIMARY KEY,
-	Login        TEXT UNIQUE NOT NULL,
-	PasswordHash TEXT NOT NULL,
-	PasswordSalt TEXT NOT NULL,
-	CasLogin     TEXT,
-	CasPassword  TEXT,
+	CasLogin     TEXT NOT NULL,
 	Role         INTEGER DEFAULT 2 NOT NULL
+	-- opcjonalne hasło "zapasowe"?
 );
 
 CREATE TABLE IF NOT EXISTS Groups(
@@ -90,16 +89,5 @@ CREATE TABLE IF NOT EXISTS ReportPermissions(
 	FOREIGN KEY (UserId) REFERENCES Users(Id)
 		ON DELETE CASCADE,
 	FOREIGN KEY (ReportId) REFERENCES Reports(Id)
-		ON DELETE CASCADE
-);
-
-CREATE TABLE IF NOT EXISTS UserGroups(
-	GroupId INTEGER,
-	UserId  INTEGER,
-
-	PRIMARY KEY (GroupId, UserId),
-	FOREIGN KEY (GroupId) REFERENCES Groups(Id)
-		ON DELETE CASCADE,
-	FOREIGN KEY (UserId) REFERENCES Users(Id)
 		ON DELETE CASCADE
 );

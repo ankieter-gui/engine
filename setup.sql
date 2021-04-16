@@ -92,3 +92,7 @@ CREATE TABLE IF NOT EXISTS ReportPermissions(
 	FOREIGN KEY (ReportId) REFERENCES Reports(Id)
 		ON DELETE CASCADE
 );
+
+INSERT INTO Users(CasLogin, Role) VALUES
+	("admin", 0),
+	("guest", 2);
