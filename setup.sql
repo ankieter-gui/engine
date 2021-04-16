@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS Users(
 --	PasswordSalt TEXT NOT NULL,
 	CasLogin     TEXT NOT NULL,
 --	CasPassword  TEXT,
+	FetchData    BOOLEAN DEFAULT FALSE NOT NULL,
 	Role         INTEGER DEFAULT 2 NOT NULL
 );
 
