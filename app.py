@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, request, session, g
+from flask import redirect, url_for, request, session, g
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
@@ -44,5 +44,4 @@ def login():
 
 
 if __name__ == '__main__':
-
     app.run()

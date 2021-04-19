@@ -64,5 +64,6 @@ class ReportPermission(db.Model):
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
     Type = db.Column(db.Integer, default=2, nullable=False)
 
+
 if __name__ == "__main__":
     db.create_all()
