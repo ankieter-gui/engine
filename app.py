@@ -9,14 +9,19 @@ import sys
 
 app = Flask(__name__)
 
-app.secret_key = 'sTzMzxFX8BcJt3wuvNvDeQ'
-app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
-
+app.config.from_mapping(
+    SECRET_KEY='sTzMzxFX8BcJt3wuvNvDeQ',
+    FLASK_ADMIN_SWATCH='cerulean',
+    SQLALCHEMY_DATABASE_URI='sqlite:///master.db',
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    DEBUG=True
+)
 DATABASE = SQLAlchemy(app)
 admin = Admin(app, name='Ankieter', template_mode='bootstrap3')
 admin.add_view(ModelView(User, DATABASE.session))
-#DATABASE = './master.db'
+
+
+# DATABASE = './master.db'
 
 @app.route('/')
 def index():
