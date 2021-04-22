@@ -3,7 +3,7 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 from cas import CASClient
-from models import *
+from setup import *
 import sqlite3
 import sys
 
