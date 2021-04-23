@@ -19,7 +19,13 @@ app.config.from_mapping(
 DATABASE = SQLAlchemy(app)
 admin = Admin(app, name='Ankieter', template_mode='bootstrap3')
 admin.add_view(ModelView(User, DATABASE.session))
+cas_url = 'https://cas.amu.edu.pl/cas'
 
+cas_client = CASClient(
+    version=2,
+    service_url='http://localhost:5000/login',
+    server_url='https://cas.amu.edu.pl/cas/'
+)
 
 # DATABASE = './master.db'
 
@@ -33,19 +39,19 @@ def index():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        session['username'] = request.form['uname']
-        return redirect(url_for('index'))
-    return '''
-    <form action="{}" method="post">
-     <div>
-      <label for="uname"><b>Username</b></label>
-      <input type="text" placeholder="Enter Username" name="uname" required></br>
-      <label for="psw"><b>Password</b></label>
-      <input type="password" placeholder="Enter Password" name="psw" required>
-      <br><button type="submit">Login</button>
-     </div>
-    </form>'''.format(url_for('login'))
+    ticket = request.args.get('ticket')
+    if not ticket:
+        return redirect(cas_client.get_login_url())
+
+    print(ticket)
+
+    user, attributes, pgtiou = cas_client.verify_ticket(ticket)
+
+    if not user:
+        return '<p>Failed to verify</p>'
+
+    session['username'] = user
+    return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
