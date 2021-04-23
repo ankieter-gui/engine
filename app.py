@@ -43,8 +43,6 @@ def login():
     if not ticket:
         return redirect(cas_client.get_login_url())
 
-    print(ticket)
-
     user, attributes, pgtiou = cas_client.verify_ticket(ticket)
 
     if not user:
