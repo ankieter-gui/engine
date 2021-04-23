@@ -14,6 +14,7 @@ class User(db.Model):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
     CasLogin = db.Column(db.String(80), unique=True, nullable=False)
+    FetchData = db.Column(db.Boolean, nullable=False)
     Role = db.Column(db.Integer, default=2, nullable=False)
 
 
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     for _ in range(USERS_AMOUNT):
         cas_login = fake.unique.name()
         role = random.randint(0, 2)
-        db.session.add(User(CasLogin=cas_login, Role=role))
+        db.session.add(User(CasLogin=cas_login, Role=role, FetchData=False))
 
     for _ in range(GROUPS_AMOUNT):
         group_name = fake.company()
