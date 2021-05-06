@@ -8,7 +8,7 @@ from flask_jsonpify import jsonify
 from cas import CASClient
 from setup import *
 import sqlite3
-
+import pandas
 
 app = Flask(__name__)
 api = Api(app)
@@ -21,6 +21,7 @@ app.config.from_mapping(
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     DEBUG=True
 )
+
 DATABASE = SQLAlchemy(app)
 admin = Admin(app, name='Ankieter', template_mode='bootstrap3')
 admin.add_view(ModelView(User, DATABASE.session))
@@ -34,6 +35,13 @@ cas_client = CASClient(
 
 # DATABASE = './master.db'
 
+
+def convertCSV(target_id):
+    con = sqlite3.connect("survey_data/"+str(target_id)+".db")
+    df = pandas.read_csv("temp/"+str(target_id)+".csv",sep=',')
+    df.to_sql("data",con,if_exists='replace',index=False)
+
+    
 class Dashboard(Resource):
     def get(self):
         user = User.query.filter_by(CasLogin=session['username']).first()
@@ -47,13 +55,14 @@ class Dashboard(Resource):
         return jsonify(result)
 
 
-api.add_resource(Dashboard,'/dashboard')
+api.add_resource(Dashboard, '/dashboard')
+
 
 @app.route('/')
 def index():
     if 'username' in session:
         username = session['username']
-        return '''<p>Witaj {}</p></br><a href="{}">Wyloguj</a>'''.format(username,url_for('logout'))
+        return '''<p>Witaj {}</p></br><a href="{}">Wyloguj</a>'''.format(username, url_for('logout'))
     return redirect(url_for('login'))
 
 
@@ -76,6 +85,7 @@ def login():
 def logout():
     session.clear()
     return redirect(cas_client.get_logout_url())
+
 
 if __name__ == '__main__':
     app.run()
