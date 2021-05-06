@@ -2,3 +2,8 @@
 Pipfile
 Pipfile.lock
 *.db
+*.xml
+*.json
+*.csv
+__pycache__
+
