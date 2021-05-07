@@ -37,9 +37,9 @@ cas_client = CASClient(
 
 
 def convertCSV(target_id):
-    con = sqlite3.connect("survey_data/"+str(target_id)+".db")
-    df = pandas.read_csv("temp/"+str(target_id)+".csv",sep=',')
-    df.to_sql("data",con,if_exists='replace',index=False)
+    con = sqlite3.connect("survey_data/" + str(target_id) + ".db")
+    df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
+    df.to_sql("data", con, if_exists='replace', index=False)
 
     
 class Dashboard(Resource):
