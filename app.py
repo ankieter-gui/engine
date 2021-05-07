@@ -33,6 +33,7 @@ cas_client = CASClient(
     server_url='https://cas.amu.edu.pl/cas/'
 )
 
+
 # DATABASE = './master.db'
 
 
@@ -41,18 +42,33 @@ def convertCSV(target_id):
     df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
     df.to_sql("data", con, if_exists='replace', index=False)
 
-    
+
 class Dashboard(Resource):
     def get(self):
         user = User.query.filter_by(CasLogin=session['username']).first()
         surveys = SurveyPermission.query.filter_by(UserId=user.id).all()
         result = {}
         for s in surveys:
+            meta = self.get_meta(s.SurveyId)
+            print(meta)
+            #na szybko - do poprawy
             result[s.SurveyId] = {
                 'survey_id': s.SurveyId,
-                'user_id': s.UserId
+                'user_id': s.UserId,
+                'startedOn': meta[0][0],
+                'endsOn': meta[0][1],
+                'isActive': meta[0][2],
+                'QuestionsAmount': meta[0][3]
             }
         return jsonify(result)
+
+    def get_meta(self, survey_id):
+        conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
+        cur = conn.cursor()
+        cur.execute("select * from meta")
+        data = cur.fetchall()
+        conn.close()
+        return data
 
 
 api.add_resource(Dashboard, '/dashboard')

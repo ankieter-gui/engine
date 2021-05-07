@@ -3,7 +3,7 @@ import sqlite3
 from datetime import datetime
 
 
-def add_meta(survey_id, started_on, ends_on, is_active):
+def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
     conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
     cur = conn.cursor()
 
@@ -17,7 +17,7 @@ def add_meta(survey_id, started_on, ends_on, is_active):
     )'''
     cur.execute(sql)
 
-    sql = "INSERT INTO META VALUES (%s,%s,%d,%d)" % (started_on, ends_on, is_active, 10)
+    sql = "INSERT INTO META VALUES (%s,%s,%d,%d)" % (started_on, ends_on, is_active, questions_amount)
     cur.execute(sql)
 
     conn.commit()
@@ -29,6 +29,6 @@ if __name__ == '__main__':
     convertCSV(2)
     convertCSV(3)
 
-    add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1)
-    add_meta(1, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1)
-    add_meta(1, datetime(2020, 4, 19).timestamp(), datetime(2021, 7, 17).timestamp(), 0)
+    add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1, 10)
+    add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
+    add_meta(3, datetime(2020, 4, 19).timestamp(), datetime(2021, 7, 17).timestamp(), 0, 16)
