@@ -14,7 +14,7 @@ def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
        QuestionsAmount INT)'''
     cur.execute(sql)
 
-    cur.execute("INSERT INTO META VALUES (?,?,?,?)", [started_on, ends_on, is_active, questions_amount])
+    cur.execute("INSERT INTO META VALUES (?,?,?,?)", (started_on, ends_on, is_active, questions_amount))
 
     conn.commit()
     conn.close()
