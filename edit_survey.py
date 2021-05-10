@@ -7,18 +7,14 @@ def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
     conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
     cur = conn.cursor()
 
-    cur.execute("DROP TABLE IF EXISTS meta")
-
-    sql = '''CREATE TABLE meta(
+    sql = '''CREATE TABLE IF NOT EXISTS meta(
        StartedOn TEXT NOT NULL,
        EndsOn TEXT NOT NULL,
        IsActive INT,
-       QuestionsAmount INT
-    )'''
+       QuestionsAmount INT)'''
     cur.execute(sql)
 
-    sql = "INSERT INTO META VALUES (%s,%s,%d,%d)" % (started_on, ends_on, is_active, questions_amount)
-    cur.execute(sql)
+    cur.execute("INSERT INTO META VALUES (?,?,?,?)", [started_on, ends_on, is_active, questions_amount])
 
     conn.commit()
     conn.close()
