@@ -9,6 +9,7 @@ from cas import CASClient
 from setup import *
 import sqlite3
 import pandas
+from request_survey import RequestSurvey
 
 app = Flask(__name__)
 api = Api(app)
@@ -51,7 +52,7 @@ class Dashboard(Resource):
         for s in surveys:
             meta = self.get_meta(s.SurveyId)
             print(meta)
-            #na szybko - do poprawy
+            # na szybko - do poprawy
             result[s.SurveyId] = {
                 'survey_id': s.SurveyId,
                 'user_id': s.UserId,
@@ -101,6 +102,14 @@ def login():
 def logout():
     session.clear()
     return redirect(cas_client.get_logout_url())
+
+
+@app.route('/request_survey', methods=['POST'])
+def request_survey():
+    rs = RequestSurvey(request.json)
+    response = rs.execute_request()
+
+    return response
 
 
 if __name__ == '__main__':
