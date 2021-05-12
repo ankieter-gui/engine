@@ -9,7 +9,6 @@ from cas import CASClient
 from setup import *
 import sqlite3
 import pandas
-from request_survey import *
 
 app = Flask(__name__)
 api = Api(app)
@@ -37,11 +36,6 @@ cas_client = CASClient(
 
 # DATABASE = './master.db'
 
-
-def convertCSV(target_id):
-    con = sqlite3.connect("survey_data/" + str(target_id) + ".db")
-    df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
-    df.to_sql("data", con, if_exists='replace', index=False)
 
 
 class Dashboard(Resource):
