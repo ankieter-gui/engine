@@ -8,7 +8,6 @@ from flask_jsonpify import jsonify
 from cas import CASClient
 from setup import *
 import sqlite3
-import pandas
 
 app = Flask(__name__)
 api = Api(app)
@@ -41,15 +40,16 @@ cas_client = CASClient(
 class Dashboard(Resource):
     def get(self):
         user = User.query.filter_by(CasLogin=session['username']).first()
-        surveys = SurveyPermission.query.filter_by(UserId=user.id).all()
+        survey_permissions = SurveyPermission.query.filter_by(UserId=user.id).all()
         result = {}
-        for s in surveys:
-            meta = self.get_meta(s.SurveyId)
+        for sp in survey_permissions:
+            survey = Survey.query.filter_by(id=sp.SurveyId).first()
+            meta = self.get_meta(survey.AnkieterId)
             print(meta)
-            # na szybko - do poprawy
-            result[s.SurveyId] = {
-                'survey_id': s.SurveyId,
-                'user_id': s.UserId,
+            #na szybko - do poprawy
+            result[survey.AnkieterId] = {
+                'survey_id': survey.AnkieterId,
+                'user_id': sp.UserId,
                 'startedOn': meta[0][0],
                 'endsOn': meta[0][1],
                 'isActive': meta[0][2],

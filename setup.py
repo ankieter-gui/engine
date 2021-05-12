@@ -6,6 +6,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from faker import Faker
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
@@ -29,6 +30,7 @@ class Group(db.Model):
 
 class Survey(db.Model):
     __tablename__ = "Surveys"
+    # TODO Czy nie wystarczy aby AnkieterId było primary key?
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(80), nullable=False)
     AnkieterId = db.Column(db.Integer, unique=True)
@@ -113,6 +115,9 @@ if __name__ == "__main__":
     db.drop_all()
     db.create_all()
 
+    if not os.path.exists('survey_data'):
+        os.makedirs('survey_data')
+
     fake = Faker(locale="pl_PL")
 
     USERS_AMOUNT = 5
@@ -166,13 +171,16 @@ if __name__ == "__main__":
 
     db.session.commit()
 
-    convertCSV(1)
-    convertCSV(2)
+    if os.path.exists('temp/1.csv'):
+        convertCSV(1)
+        add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1, 10)
+
+    if os.path.exists('temp/2.csv'):
+        convertCSV(2)
+        add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
+
     db.session.add(Survey(Name='ankieta testowa', AnkieterId=1))
     db.session.add(Survey(Name='Ocena jakości studiów', AnkieterId=2))
-
-    add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1, 10)
-    add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
 
     pesel = input('Podaj swój pesel\n')
     add_user_and_permissions(pesel)
