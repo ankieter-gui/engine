@@ -101,7 +101,11 @@ def logout():
 
 @app.route('/request_surv', methods=['POST'])
 def request_surv():
-    response = request_survey(request)
+    survey_id = request.json['survey_id']
+    # TODO wyciągnięcie z URL nie z body
+    # TODO obsługa błędów (np. czy nazwa kolumny istnieje)
+    conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
+    response = request_survey(request.json, conn)
 
     return response
 

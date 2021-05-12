@@ -5,13 +5,13 @@ import pandas as pd
 SURVEY_ID = 'survey_id'
 
 
-def request_survey(json_request, survey_id):
-    df = request_columns(json_request, survey_id)
+def request_survey(json_request, conn):
+    df = request_columns(json_request, conn)
 
     return df.to_json()
 
 
-def request_columns(json_request, survey_id):
+def request_columns(json_request, conn):
     columns = []
     for get in json_request['get']:
         columns += get
@@ -24,8 +24,6 @@ def request_columns(json_request, survey_id):
 
     columns_to_select = ', '.join([elem for elem in set(columns)])
 
-    # TODO obsługa błędów (np. czy nazwa kolumny istnieje)
-    conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
     sql = f'SELECT {columns_to_select} FROM data'
     df = pd.read_sql_query(sql, conn)
     conn.close()
