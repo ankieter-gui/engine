@@ -5,23 +5,17 @@ import pandas as pd
 SURVEY_ID = 'survey_id'
 
 
-def request_survey(request):
-    json_data = request.json
-    response = JsonResponse()
-    if SURVEY_ID not in json_data:
-        return response.get_json_error_response(f'Parameter {SURVEY_ID} not found')
-
-    survey_id = json_data[SURVEY_ID]
-    df = request_columns(json_data, survey_id)
+def request_survey(json_request, survey_id):
+    df = request_columns(json_request, survey_id)
 
     return df.to_json()
 
 
-def request_columns(json_data, survey_id):
+def request_columns(json_request, survey_id):
     columns = []
-    for get in json_data['get']:
+    for get in json_request['get']:
         columns += get
-    for by in json_data['by']:
+    for by in json_request['by']:
         columns.append(by)
     try:
         columns.remove('*')
