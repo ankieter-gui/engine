@@ -9,7 +9,7 @@ from cas import CASClient
 from setup import *
 import sqlite3
 import pandas
-from request_survey import RequestSurvey
+from request_survey import *
 
 app = Flask(__name__)
 api = Api(app)
@@ -104,10 +104,9 @@ def logout():
     return redirect(cas_client.get_logout_url())
 
 
-@app.route('/request_survey', methods=['POST'])
-def request_survey():
-    rs = RequestSurvey(request.json)
-    response = rs.execute_request()
+@app.route('/request_surv', methods=['POST'])
+def request_surv():
+    response = request_survey(request)
 
     return response
 

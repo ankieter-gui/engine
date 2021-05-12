@@ -1,38 +1,38 @@
 from json_response import JsonResponse
 import sqlite3
-import pandas
+import pandas as pd
+
+SURVEY_ID = 'survey_id'
 
 
-class RequestSurvey:
-    SURVEY_ID = 'survey_id'
+def request_survey(request):
+    json_data = request.json
+    response = JsonResponse()
+    if SURVEY_ID not in json_data:
+        return response.get_json_error_response(f'Parameter {SURVEY_ID} not found')
 
-    def __init__(self, json_data) -> None:
-        self.json_data = json_data
+    survey_id = json_data[SURVEY_ID]
+    df = request_columns(json_data, survey_id)
 
-    def execute_request(self):
-        response = JsonResponse()
-        if self.SURVEY_ID not in self.json_data:
-            return response.get_json_error_response(f'Parameter {self.SURVEY_ID} not found')
-        if len(self.json_data["get"][0]) != len(self.json_data["as"]):
-            return response.get_json_error_response('Wrong amount of given "get" and "as" values')
+    return df.to_json()
 
-        data = self.get_data()
-        return data
-        # return response.get_json_success_response('Success', data)
 
-    def get_data(self):
-        conn = sqlite3.connect("survey_data/" + str(self.json_data[self.SURVEY_ID]) + '.db')
-        df = pandas.read_sql_query('''
-        SELECT stopien_stodiow, avg(ocena), count(ocena)
-        FROM data
-        GROUP BY stopien_stodiow
-        ''', conn)
-        # cur = conn.cursor()
-        # cur.execute('''
-        # SELECT stopien_stodiow, avg(ocena), count(ocena)
-        # FROM data
-        # GROUP BY stopien_stodiow
-        # ''')
-        # data = cur.fetchall()
-        conn.close()
-        return df.to_json()
+def request_columns(json_data, survey_id):
+    columns = []
+    for get in json_data['get']:
+        columns += get
+    for by in json_data['by']:
+        columns.append(by)
+    try:
+        columns.remove('*')
+    except ValueError:
+        pass
+
+    columns_to_select = ', '.join([elem for elem in set(columns)])
+
+    # TODO obsługa błędów (np. czy nazwa kolumny istnieje)
+    conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
+    sql = f'SELECT {columns_to_select} FROM data'
+    df = pd.read_sql_query(sql, conn)
+    conn.close()
+    return df
