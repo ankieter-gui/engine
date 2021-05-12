@@ -8,6 +8,7 @@ from flask_jsonpify import jsonify
 from cas import CASClient
 from setup import *
 import sqlite3
+from request_survey import *
 
 app = Flask(__name__)
 api = Api(app)
