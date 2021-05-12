@@ -102,11 +102,10 @@ def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
     conn.close()
 
 
-def add_user_and_permissions(pesel):
-    db.session.add(User(CasLogin=pesel, Role=0, FetchData=False))
-    # user_id = User.query.filter_by(CasLogin=pesel).first()
-    db.session.add(SurveyPermission(SurveyId=SURVEYS_AMOUNT+1, UserId=6, Type=0))
-    db.session.add(SurveyPermission(SurveyId=SURVEYS_AMOUNT+2, UserId=6, Type=0))
+def add_user_and_permissions(pesel, ankieter_id):
+    survey = Survey.query.filter_by(AnkieterId=ankieter_id).first()
+    user = User.query.filter_by(CasLogin=pesel).first()
+    db.session.add(SurveyPermission(SurveyId=survey.id, UserId=user.id, Type=0))
 
     db.session.commit()
 
@@ -117,6 +116,9 @@ if __name__ == "__main__":
 
     if not os.path.exists('survey_data'):
         os.makedirs('survey_data')
+
+    if not os.path.exists('temp'):
+        os.makedirs('temp')
 
     fake = Faker(locale="pl_PL")
 
@@ -179,8 +181,13 @@ if __name__ == "__main__":
         convertCSV(2)
         add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
 
-    db.session.add(Survey(Name='ankieta testowa', AnkieterId=1))
-    db.session.add(Survey(Name='Ocena jakości studiów', AnkieterId=2))
-
     pesel = input('Podaj swój pesel\n')
-    add_user_and_permissions(pesel)
+    db.session.add(User(CasLogin=pesel, Role=0, FetchData=False))
+
+    for filename in os.listdir('temp'):
+        if filename.endswith(".csv"):
+            survey_id = filename.split('.')[0]
+            convertCSV(survey_id)
+            add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
+            db.session.add(Survey(Name='ankieta testowa', AnkieterId=survey_id))
+            add_user_and_permissions(pesel, survey_id)
