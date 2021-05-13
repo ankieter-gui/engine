@@ -37,7 +37,6 @@ cas_client = CASClient(
 # DATABASE = './master.db'
 
 
-
 class Dashboard(Resource):
     def get(self):
         user = User.query.filter_by(CasLogin=session['username']).first()
@@ -67,7 +66,20 @@ class Dashboard(Resource):
         return data
 
 
+class RequestSurvey(Resource):
+    def post(self, survey_id):
+        if not request.json:
+            # TODO: return json with errors
+            return
+        json_request = request.json
+        conn = sqlite3.connect("data/"+survey_id+".db")
+        result = request_survey(json_request, conn)
+        conn.close()
+        return result
+        
+
 api.add_resource(Dashboard, '/dashboard')
+api.add_resource(RequestSurvey, '/survey/<survey_id>')
 
 
 @app.route('/')
@@ -97,17 +109,6 @@ def login():
 def logout():
     session.clear()
     return redirect(cas_client.get_logout_url())
-
-
-@app.route('/request_surv', methods=['POST'])
-def request_surv():
-    survey_id = request.json['survey_id']
-    # TODO wyciągnięcie z URL nie z body
-    # TODO obsługa błędów (np. czy nazwa kolumny istnieje)
-    conn = sqlite3.connect("data/" + str(survey_id) + '.db')
-    response = request_survey(request.json, conn)
-
-    return response
 
 
 if __name__ == '__main__':
