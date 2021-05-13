@@ -24,7 +24,7 @@ FILTERS = {
     "=":  Filter("=",  1,    "INTEGER", "REAL", "TEXT"),
     "!=": Filter("!=", 1,    "INTEGER", "REAL", "TEXT"),
     "in": Filter("IN", None, "INTEGER", "REAL", "TEXT", beg="(", end=")")
-    # TODO: between
+    # TODO: between, notin
 }
 
 
@@ -54,6 +54,26 @@ def get_sql_filter_of(json_filter, column_types):
     return result
 
 
+def request_columns(json_request, conn):
+    columns = set()
+    for get in json_request['get']:
+        columns.update(get)
+    columns.update(json_request['by'])
+    if '*' in columns:
+        columns.remove('*')
+
+    columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
+    if 'if' in json_request:
+        types = get_column_types(conn)
+        filters = list(map(lambda x: get_sql_filter_of(x, types), json_request['if']))
+    else:
+        filters = ["TRUE"]
+
+    sql = f'SELECT {columns_to_select} FROM data WHERE '+" AND ".join(filters) + ";"
+    df = read_sql_query(sql, conn)
+    return df
+
+
 # TODO: convert our aggregator names to pandas
 def request_aggregate(json_request, data):
     columns = {}
@@ -80,29 +100,15 @@ def request_aggregate(json_request, data):
     return result
 
 
+def request_format(data):
+    data.columns = [f'{aggr} {label}' for label, aggr in data.columns]
+    return data
+
+
 def request_survey(json_request, conn):
     df = request_columns(json_request, conn)
     df = request_aggregate(json_request, df)
-    return df
-
-
-def request_columns(json_request, conn):
-    columns = set()
-    for get in json_request['get']:
-        columns.update(get)
-    columns.update(json_request['by'])
-    if '*' in columns:
-        columns.remove('*')
-
-    columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
-    if 'if' in json_request:
-        types = get_column_types(conn)
-        filters = list(map(lambda x: get_sql_filter_of(x, types), json_request['if']))
-    else:
-        filters = ["TRUE"]
-
-    sql = f'SELECT {columns_to_select} FROM data WHERE '+" AND ".join(filters) + ";"
-    df = read_sql_query(sql, conn)
+    df = request_format(df)
     return df
 
 
@@ -118,5 +124,13 @@ if __name__ == "__main__":
         "if": [["Age Rating", "in", "4", "9"]]
     }
 
-    for i in range(10):
-        print(request_survey(json_request, conn))
+    print(request_survey(json_request, conn))
+
+    json_request = {
+        "get": [["Price"]],
+        "as": ["mean", "var"],
+        "by": ["Age Rating", "*"],
+        "if": [["Age Rating", "in", "4", "9"]]
+    }
+
+    #print(request_survey(json_request, conn).to_json())
