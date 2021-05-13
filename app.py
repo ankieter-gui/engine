@@ -80,10 +80,18 @@ class RequestSurvey(Resource):
         result = request_survey(json_request, conn)
         conn.close()
         return result
-        
+
 
 api.add_resource(Dashboard, '/dashboard')
 api.add_resource(RequestSurvey, '/data/<survey_id>')
+
+
+@app.route('/data/types/<survey_id>', methods=['GET'])
+def data_types(survey_id):
+    conn = sqlite3.connect(f'data/{survey_id}.db')
+    types = get_column_types(conn)
+    conn.close()
+    return types
 
 
 @app.route('/')
