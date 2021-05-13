@@ -2,9 +2,8 @@ import sqlite3
 
 
 
-def get_column_types(db_name):
+def get_column_types(conn):
     column_types = {}
-    conn = sqlite3.connect("survey_data/"+str(db_name)+".db")
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
     data = cur.fetchall()

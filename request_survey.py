@@ -48,7 +48,9 @@ def get_sql_filter_of(json_filter, column_types):
 
     if col_type == "TEXT":
         args = [f'"{arg}"' for arg in args]
-    result = '"'+column +"\" " + sql_filter.symbol + " " + sql_filter.beg + sql_filter.sep.join(args) + sql_filter.end
+
+    result = f'"{column}" {sql_filter.symbol} {sql_filter.beg}{sql_filter.sep.join(args)}{sql_filter.end}'
+
     return result
 
 
@@ -94,7 +96,7 @@ def request_columns(json_request, conn):
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     if 'if' in json_request:
-        types = get_column_types(SURVEY_ID)
+        types = get_column_types(conn)
         filters = list(map(lambda x: get_sql_filter_of(x, types), json_request['if']))
     else:
         filters = ["TRUE"]
@@ -107,7 +109,7 @@ def request_columns(json_request, conn):
 # TODO: usunąć po zakończeniu testów
 if __name__ == "__main__":
     #convertCSV(SURVEY_ID)
-    conn = sqlite3.connect("survey_data/"+SURVEY_ID+".db")
+    conn = sqlite3.connect(f'survey_data/{SURVEY_ID}.db')
     json_request = {
         "get": [["Price",               "Price"],
                 ["Average User Rating", "Average User Rating"]],
