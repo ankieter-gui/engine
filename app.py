@@ -2,7 +2,6 @@ from flask import redirect, url_for, request, session, g
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
-from flask_restful import Api, Resource
 from flask_cors import CORS
 from flask_jsonpify import jsonify
 from cas import CASClient
@@ -13,7 +12,6 @@ import os
 from request_survey import *
 
 app = Flask(__name__)
-api = Api(app)
 CORS(app)
 
 app.config.from_mapping(
