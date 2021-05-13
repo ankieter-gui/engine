@@ -7,7 +7,7 @@ from survey_tools import get_column_types
 SURVEY_ID = 'filtered'
 
 class Filter:
-    def __init__(self, symbol, arity, *types, beg="", end="", sep=", "):
+    def __init__(self, symbol, arity, *types, beg='', end='', sep=', '):
         self.symbol = symbol
         self.arity = arity
         self.types = types
@@ -17,14 +17,20 @@ class Filter:
 
 
 FILTERS = {
-    ">":  Filter(">",  1,    "INTEGER", "REAL"),
-    "<":  Filter("<",  1,    "INTEGER", "REAL"),
-    "<=": Filter("<=", 1,    "INTEGER", "REAL"),
-    ">=": Filter(">=", 1,    "INTEGER", "REAL"),
-    "=":  Filter("=",  1,    "INTEGER", "REAL", "TEXT"),
-    "!=": Filter("!=", 1,    "INTEGER", "REAL", "TEXT"),
-    "in": Filter("IN", None, "INTEGER", "REAL", "TEXT", beg="(", end=")")
+    '>':  Filter('>',  1,    'INTEGER', 'REAL'),
+    '<':  Filter('<',  1,    'INTEGER', 'REAL'),
+    '<=': Filter('<=', 1,    'INTEGER', 'REAL'),
+    '>=': Filter('>=', 1,    'INTEGER', 'REAL'),
+    '=':  Filter('=',  1,    'INTEGER', 'REAL', 'TEXT'),
+    '!=': Filter('!=', 1,    'INTEGER', 'REAL', 'TEXT'),
+    'in': Filter('IN', None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')')
     # TODO: between, notin
+}
+
+
+def share(s): return s.value_counts().to_dict()
+SPECIAL = {
+    'share': share
 }
 
 
@@ -73,15 +79,19 @@ def request_columns(json_request, conn):
     df = read_sql_query(sql, conn)
     return df
 
-
 # TODO: convert our aggregator names to pandas
 def request_aggregate(json_request, data):
+    global SPECIAL
+
     columns = {}
     for get in json_request['get']:
         for i, column in enumerate(get):
             if column not in columns:
                 columns[column] = []
-            columns[column].append(json_request['as'][i])
+            if json_request['as'][i] in SPECIAL:
+                columns[column].append(SPECIAL[json_request['as'][i]])
+            else:
+                columns[column].append(json_request['as'][i])
 
     if 'by' not in json_request:
         json_request['by'] = ['*']
@@ -127,10 +137,10 @@ if __name__ == "__main__":
     print(request_survey(json_request, conn))
 
     json_request = {
-        "get": [["Price"]],
-        "as": ["mean", "var"],
+        "get": [["Price", "Age Rating"]],
+        "as": ["mean", "share"],
         "by": ["Age Rating", "*"],
         "if": [["Age Rating", "in", "4", "9"]]
     }
 
-    #print(request_survey(json_request, conn).to_json())
+    print(request_survey(json_request, conn))
