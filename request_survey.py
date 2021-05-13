@@ -1,6 +1,6 @@
 from json_response import JsonResponse
 import sqlite3
-import pandas as pd
+from pandas import concat, read_sql_query
 from app import convertCSV
 from survey_tools import get_column_types
 
@@ -71,7 +71,7 @@ def request_aggregate(json_request, data):
         ingroups = data.copy().groupby(group)
 
         if result is not None:
-            result = pd.concat([result, ingroups.aggregate(columns)])
+            result = concat([result, ingroups.aggregate(columns)])
         else:
             result = ingroups.aggregate(columns)
 
@@ -100,7 +100,7 @@ def request_columns(json_request, conn):
         filters = ["TRUE"]
 
     sql = f'SELECT {columns_to_select} FROM data WHERE '+" AND ".join(filters) + ";"
-    df = pd.read_sql_query(sql, conn)
+    df = read_sql_query(sql, conn)
     return df
 
 
@@ -116,4 +116,5 @@ if __name__ == "__main__":
         "if": [["Age Rating", "in", "4", "9"]]
     }
 
-    print(request_survey(json_request, conn))
+    for i in range(10):
+        print(request_survey(json_request, conn))
