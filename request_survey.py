@@ -124,7 +124,7 @@ def request_format(data):
     data.columns = [f'{aggr} {label}' for label, aggr in data.columns]
 
     result = {}
-    result['index'] = data.index.tolist()
+    result['index'] = list(map(lambda x: x if x is not True else '*', data.index.tolist()))
     for column in data:
         result[column] = data[column].tolist()
     return result
