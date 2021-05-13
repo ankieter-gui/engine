@@ -29,8 +29,17 @@ FILTERS = {
 
 
 def share(s): return s.value_counts().to_dict()
-SPECIAL = {
-    'share': share
+AGGREGATORS = {
+    'share':  share,
+    'max':    'max',
+    'min':    'min',
+    'mode':   'mode',
+    'mean':   'mean',
+    'median': 'median',
+    'std':    'std',
+    'var':    'var',
+    'count':  'count',
+    'sum':    'sum'
 }
 
 
@@ -81,17 +90,18 @@ def request_columns(json_request, conn):
 
 # TODO: convert our aggregator names to pandas
 def request_aggregate(json_request, data):
-    global SPECIAL
+    global AGGREGATORS
 
     columns = {}
     for get in json_request['get']:
         for i, column in enumerate(get):
             if column not in columns:
                 columns[column] = []
-            if json_request['as'][i] in SPECIAL:
-                columns[column].append(SPECIAL[json_request['as'][i]])
+            if json_request['as'][i] in AGGREGATORS:
+                columns[column].append(AGGREGATORS[json_request['as'][i]])
             else:
-                columns[column].append(json_request['as'][i])
+                aggregator = json_request['as']
+                return f'NO AGGREGATOR NAMED "{aggregator}"'
 
     if 'by' not in json_request:
         json_request['by'] = ['*']
