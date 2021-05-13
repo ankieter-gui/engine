@@ -109,7 +109,7 @@ def request_columns(json_request, conn):
 # TODO: usunąć po zakończeniu testów
 if __name__ == "__main__":
     #convertCSV(SURVEY_ID)
-    conn = sqlite3.connect(f'survey_data/{SURVEY_ID}.db')
+    conn = sqlite3.connect(f'data/{SURVEY_ID}.db')
     json_request = {
         "get": [["Price",               "Price"],
                 ["Average User Rating", "Average User Rating"]],

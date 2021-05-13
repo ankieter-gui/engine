@@ -59,7 +59,7 @@ class Dashboard(Resource):
         return jsonify(result)
 
     def get_meta(self, survey_id):
-        conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
+        conn = sqlite3.connect("data/" + str(survey_id) + '.db')
         cur = conn.cursor()
         cur.execute("select * from meta")
         data = cur.fetchall()
@@ -104,7 +104,7 @@ def request_surv():
     survey_id = request.json['survey_id']
     # TODO wyciągnięcie z URL nie z body
     # TODO obsługa błędów (np. czy nazwa kolumny istnieje)
-    conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
+    conn = sqlite3.connect("data/" + str(survey_id) + '.db')
     response = request_survey(request.json, conn)
 
     return response

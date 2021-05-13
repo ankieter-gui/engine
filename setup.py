@@ -76,7 +76,7 @@ class ReportPermission(db.Model):
 
 
 def convertCSV(target_id):
-    con = sqlite3.connect("survey_data/" + str(target_id) + ".db")
+    con = sqlite3.connect("data/" + str(target_id) + ".db")
     df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
     df.to_sql("data", con, if_exists='replace', index=False)
 
@@ -86,7 +86,7 @@ def remove_duplicates(primary_keys):
 
 
 def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
-    conn = sqlite3.connect("survey_data/" + str(survey_id) + '.db')
+    conn = sqlite3.connect("data/" + str(survey_id) + '.db')
     cur = conn.cursor()
 
     sql = '''CREATE TABLE IF NOT EXISTS meta(
@@ -114,8 +114,8 @@ if __name__ == "__main__":
     db.drop_all()
     db.create_all()
 
-    if not os.path.exists('survey_data'):
-        os.makedirs('survey_data')
+    if not os.path.exists('data'):
+        os.makedirs('data')
 
     if not os.path.exists('temp'):
         os.makedirs('temp')
