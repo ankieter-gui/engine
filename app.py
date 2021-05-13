@@ -9,6 +9,7 @@ from cas import CASClient
 from setup import *
 from os import path
 import sqlite3
+import os
 from request_survey import *
 
 app = Flask(__name__)
@@ -73,8 +74,9 @@ class RequestSurvey(Resource):
             # TODO: return json with errors
             return
         json_request = request.json
-        p = path.abspath('./app.py')
-        conn = sqlite3.connect(p+"data/"+survey_id+".db")
+        script_absolute_directory_path = os.path.dirname(os.path.realpath(__file__))
+        db_absolute_path=path.join(script_absolute_directory_path,"data", survey_id+".db")
+        conn = sqlite3.connect(db_absolute_path)
         result = request_survey(json_request, conn)
         conn.close()
         return result
