@@ -64,20 +64,16 @@ def request_aggregate(json_request, data):
     if 'by' not in json_request:
         json_request['by'] = ['*']
 
-    group = json_request['by'][0]
-    if group != '*':
+    result = None
+    for group in json_request['by']:
+        if group == '*':
+            group = [True]*len(data)
         ingroups = data.copy().groupby(group)
-    else:
-        ingroups = data.copy().groupby([True]*len(data))
 
-    result = ingroups.aggregate(columns)
-
-    for group in json_request['by'][1:]:
-        if group != '*':
-            ingroups = data.copy().groupby(group)
+        if result is not None:
+            result = pd.concat([result, ingroups.aggregate(columns)])
         else:
-            ingroups = data.copy().groupby([True]*len(data))
-        result = pd.concat([result, ingroups.aggregate(columns)])
+            result = ingroups.aggregate(columns)
 
     return result
 
