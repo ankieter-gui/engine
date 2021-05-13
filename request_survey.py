@@ -112,7 +112,12 @@ def request_aggregate(json_request, data):
 
 def request_format(data):
     data.columns = [f'{aggr} {label}' for label, aggr in data.columns]
-    return data
+
+    result = {}
+    result['index'] = data.index.tolist()
+    for column in data:
+        result[column] = data[column].tolist()
+    return result
 
 
 def request_survey(json_request, conn):
@@ -126,7 +131,7 @@ def request_survey(json_request, conn):
 if __name__ == "__main__":
     #convertCSV(SURVEY_ID)
     conn = sqlite3.connect(f'data/{SURVEY_ID}.db')
-    json_request = {
+    '''json_request = {
         "get": [["Price",               "Price"],
                 ["Average User Rating", "Average User Rating"]],
         "as": ["mean", "var"],
@@ -134,7 +139,7 @@ if __name__ == "__main__":
         "if": [["Age Rating", "in", "4", "9"]]
     }
 
-    print(request_survey(json_request, conn))
+    print(request_survey(json_request, conn))'''
 
     json_request = {
         "get": [["Price", "Age Rating"]],
@@ -143,4 +148,5 @@ if __name__ == "__main__":
         "if": [["Age Rating", "in", "4", "9"]]
     }
 
-    print(request_survey(json_request, conn))
+    r = request_survey(json_request, conn)
+    print(r)
