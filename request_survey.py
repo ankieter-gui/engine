@@ -30,16 +30,22 @@ FILTERS = {
 
 def get_sql_filter_of(json_filter, column_types):
     global FILTERS
-    column = json_filter[0]
-    operator = json_filter[1]
-    args = json_filter[2:]
+
+    column, operator, *args = json_filter
     if operator not in FILTERS:
+        # TODO: obsługa błędów
         return "OPERATOR DOESN'T EXIST"
+
     sql_filter = FILTERS[operator]
+    if sql_filter.arity != None and len(args) != sql_filter.arity:
+        # TODO: obsługa błędów
+        return f'OPERATOR {sql_filter.symbol} REQUIRES {sql_filter.arity} ARGUMENTS, BUT {len(args)} WERE GIVEN'
+
     col_type = column_types[column]
     if col_type not in sql_filter.types:
         # TODO: obsługa błędów
         return "WRONG DATA TYPE"
+
     if col_type == "TEXT":
         args = [f'"{arg}"' for arg in args]
     result = '"'+column +"\" " + sql_filter.symbol + " " + sql_filter.beg + sql_filter.sep.join(args) + sql_filter.end
