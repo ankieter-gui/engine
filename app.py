@@ -7,6 +7,7 @@ from flask_cors import CORS
 from flask_jsonpify import jsonify
 from cas import CASClient
 from setup import *
+from os import path
 import sqlite3
 from request_survey import *
 
@@ -72,14 +73,15 @@ class RequestSurvey(Resource):
             # TODO: return json with errors
             return
         json_request = request.json
-        conn = sqlite3.connect("data/"+survey_id+".db")
+        p = path.abspath('./app.py')
+        conn = sqlite3.connect(p+"data/"+survey_id+".db")
         result = request_survey(json_request, conn)
         conn.close()
         return result
         
 
 api.add_resource(Dashboard, '/dashboard')
-api.add_resource(RequestSurvey, '/survey/<survey_id>')
+api.add_resource(RequestSurvey, '/data/<survey_id>')
 
 
 @app.route('/')
