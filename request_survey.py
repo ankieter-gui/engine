@@ -48,15 +48,6 @@ def get_sql_filter_of(json_filter, column_types):
 
 # TODO: convert our aggregator names to pandas
 def request_aggregate(json_request, data):
-    columns = []
-    for get in json_request['get']:
-        columns += get
-    columns += json_request['by']
-    if '*' in columns:
-        columns.remove('*')
-
-    data = data[list(set(columns))]
-
     columns = {}
     for get in json_request['get']:
         for i, column in enumerate(get):
@@ -89,23 +80,19 @@ def request_survey(json_request, conn):
     df = request_columns(json_request, conn)
     df = request_aggregate(json_request, df)
     return df
-    #return df.to_json()
 
 
 def request_columns(json_request, conn):
-    columns = []
-    types = get_column_types(SURVEY_ID)
+    columns = set()
     for get in json_request['get']:
-        columns += get
-    for by in json_request['by']:
-        columns.append(by)
-    try:
+        columns.update(get)
+    columns.update(json_request['by'])
+    if '*' in columns:
         columns.remove('*')
-    except ValueError:
-        pass
 
-    columns_to_select = ', '.join([f'"{elem}"' for elem in set(columns)])
+    columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     if 'if' in json_request:
+        types = get_column_types(SURVEY_ID)
         filters = list(map(lambda x: get_sql_filter_of(x, types), json_request['if']))
     else:
         filters = ["TRUE"]
@@ -117,7 +104,7 @@ def request_columns(json_request, conn):
 
 # TODO: usunąć po zakończeniu testów
 if __name__ == "__main__":
-    convertCSV(SURVEY_ID)
+    #convertCSV(SURVEY_ID)
     conn = sqlite3.connect("survey_data/"+SURVEY_ID+".db")
     json_request = {
         "get": [["Price",               "Price"],
