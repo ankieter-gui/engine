@@ -24,6 +24,7 @@ FILTERS = {
     "=":  Filter("=",  1,    "INTEGER", "REAL", "TEXT"),
     "!=": Filter("!=", 1,    "INTEGER", "REAL", "TEXT"),
     "in": Filter("IN", None, "INTEGER", "REAL", "TEXT", beg="(", end=")")
+    # TODO: between
 }
 
 
