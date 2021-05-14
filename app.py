@@ -69,7 +69,7 @@ def get_dashboard():
             'startedOn': meta[0][0],
             'endsOn': meta[0][1],
             'isActive': meta[0][2],
-            'QuestionsAmount': meta[0][3]
+            'questionCount': meta[0][3]
         }
     print(result)
     return result
