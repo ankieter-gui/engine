@@ -66,7 +66,7 @@ def get_dashboard():
         result.append( {
             'name':"placeholder name",
             'type': "survey",
-            'surveyId': survey.AnkieterId,
+            'id': survey.AnkieterId,
             'userId': sp.UserId,
             'startedOn': meta[0][0],
             'endsOn': meta[0][1],
@@ -83,7 +83,7 @@ def get_data(survey_id):
         # TODO: return json with errors
         return
     json_request = request.json
-
+    conn = open_database_file(survey_id)
     result = request_survey(json_request, conn)
     conn.close()
     return result
