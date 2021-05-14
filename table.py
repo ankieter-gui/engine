@@ -2,7 +2,7 @@ from json_response import JsonResponse
 import sqlite3
 from pandas import concat, read_sql_query
 from app import convertCSV
-from survey_tools import get_column_types
+import survey
 
 class Filter:
     def __init__(self, symbol, arity, *types, beg='', end='', sep=', '):
@@ -77,7 +77,7 @@ def columns(json_query, conn):
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     if 'if' in json_query:
-        types = get_column_types(conn)
+        types = survey.get_data_types(conn)
         filters = list(map(lambda x: get_sql_filter_of(x, types), json_query['if']))
     else:
         filters = ["TRUE"]

@@ -3,7 +3,6 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-#from flask_cors import CORS
 from flask_jsonpify import jsonify
 from cas import CASClient
 from setup import *
@@ -11,6 +10,7 @@ from os import path
 import sqlite3
 import os
 import table
+import survey
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
@@ -90,7 +90,7 @@ def get_data(survey_id):
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
 def data_types(survey_id):
     conn = open_database_file(survey_id)
-    types = get_column_types(conn)
+    types = survey.get_data_types(conn)
     conn.close()
     return types
 
