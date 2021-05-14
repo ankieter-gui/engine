@@ -10,7 +10,7 @@ from setup import *
 from os import path
 import sqlite3
 import os
-from request_survey import *
+import table
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
@@ -82,7 +82,7 @@ def get_data(survey_id):
         return
     json_request = request.json
 
-    result = request_survey(json_request, conn)
+    result = table.create(json_request, conn)
     conn.close()
     return result
 
