@@ -71,7 +71,8 @@ def get_dashboard():
             'isActive': meta[0][2],
             'QuestionsAmount': meta[0][3]
         }
-    return jsonify(result)
+    print(result)
+    return result
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])

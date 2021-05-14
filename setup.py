@@ -90,8 +90,8 @@ def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
     cur = conn.cursor()
 
     sql = '''CREATE TABLE IF NOT EXISTS meta(
-       StartedOn TEXT NOT NULL,
-       EndsOn TEXT NOT NULL,
+       StartedOn INT NOT NULL,
+       EndsOn INT NOT NULL,
        IsActive INT,
        QuestionsAmount INT)'''
     cur.execute(sql)
@@ -171,13 +171,13 @@ if __name__ == "__main__":
     for primary_key in report_permission:
         db.session.add(ReportPermission(ReportId=primary_key[0], UserId=primary_key[1], Type=random.randint(0, 2)))
 
-    if os.path.exists('temp/1.csv'):
+    '''if os.path.exists('temp/1.csv'):
         convertCSV(1)
         add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1, 10)
 
     if os.path.exists('temp/2.csv'):
         convertCSV(2)
-        add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
+        add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)'''
 
     pesel = input('Podaj swój pesel\n')
     db.session.add(User(CasLogin=pesel, Role=0, FetchData=False))
