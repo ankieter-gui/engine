@@ -64,8 +64,8 @@ def get_dashboard():
         print(meta)
         #na szybko - do poprawy
         result[survey.AnkieterId] = {
-            'survey_id': survey.AnkieterId,
-            'user_id': sp.UserId,
+            'surveyId': survey.AnkieterId,
+            'userId': sp.UserId,
             'startedOn': meta[0][0],
             'endsOn': meta[0][1],
             'isActive': meta[0][2],
