@@ -57,20 +57,20 @@ def get_dashboard():
         return data
     user = User.query.filter_by(CasLogin=session['username']).first()
     survey_permissions = SurveyPermission.query.filter_by(UserId=user.id).all()
-    result = {}
+    result = []
     for sp in survey_permissions:
         survey = Survey.query.filter_by(id=sp.SurveyId).first()
         meta = get_meta(survey.AnkieterId)
         print(meta)
         #na szybko - do poprawy
-        result[survey.AnkieterId] = {
+        result.append( {
             'surveyId': survey.AnkieterId,
             'userId': sp.UserId,
             'startedOn': meta[0][0],
             'endsOn': meta[0][1],
             'isActive': meta[0][2],
             'questionCount': meta[0][3]
-        }
+        })
     print(result)
     return result
 
