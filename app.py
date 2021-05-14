@@ -36,7 +36,7 @@ CAS_CLIENT = CASClient(
 @app.route('/dashboard', methods=['GET'])
 def get_dashboard():
     def get_meta(survey_id):
-        conn = sqlite3.connect("data/" + str(survey_id) + '.db')
+        conn = sqlite3.connect(f'data/{survey_id}.db')
         cur = conn.cursor()
         cur.execute("select * from meta")
         data = cur.fetchall()

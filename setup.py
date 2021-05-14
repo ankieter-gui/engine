@@ -171,8 +171,6 @@ if __name__ == "__main__":
     for primary_key in report_permission:
         db.session.add(ReportPermission(ReportId=primary_key[0], UserId=primary_key[1], Type=random.randint(0, 2)))
 
-    db.session.commit()
-
     if os.path.exists('temp/1.csv'):
         convertCSV(1)
         add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1, 10)
@@ -191,3 +189,4 @@ if __name__ == "__main__":
             add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
             db.session.add(Survey(Name='ankieta testowa', AnkieterId=survey_id))
             add_user_and_permissions(pesel, survey_id)
+    db.session.commit()
