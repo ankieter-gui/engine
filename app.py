@@ -11,6 +11,7 @@ import sqlite3
 import os
 import table
 import survey
+import errors
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
@@ -77,12 +78,10 @@ def get_dashboard():
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
-    if not request.json:
-        # TODO: return json with errors
-        return
-    json_request = request.json
-
-    result = table.create(json_request, conn)
+    try:
+        result = table.create(request.json, conn)
+    except APIError as err:
+        result = err.as_json()
     conn.close()
     return result
 

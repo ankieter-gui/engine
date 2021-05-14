@@ -75,7 +75,7 @@ class ReportPermission(db.Model):
     Type = db.Column(db.Integer, default=2, nullable=False)
 
 
-def convertCSV(target_id):
+def convert_csv(target_id):
     con = sqlite3.connect("data/" + str(target_id) + ".db")
     df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
     df.to_sql("data", con, if_exists='replace', index=False)
@@ -172,11 +172,11 @@ if __name__ == "__main__":
         db.session.add(ReportPermission(ReportId=primary_key[0], UserId=primary_key[1], Type=random.randint(0, 2)))
 
     '''if os.path.exists('temp/1.csv'):
-        convertCSV(1)
+        convert_csv(1)
         add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1, 10)
 
     if os.path.exists('temp/2.csv'):
-        convertCSV(2)
+        convert_csv(2)
         add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)'''
 
     pesel = input('Podaj swój pesel\n')
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     for filename in os.listdir('temp'):
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
-            convertCSV(survey_id)
+            convert_csv(survey_id)
             add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
             db.session.add(Survey(Name='ankieta testowa', AnkieterId=survey_id))
             add_user_and_permissions(pesel, survey_id)
