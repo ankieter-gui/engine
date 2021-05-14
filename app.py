@@ -72,7 +72,7 @@ def get_dashboard():
             'questionCount': meta[0][3]
         })
     print(result)
-    return result
+    return {"objects":result}
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
