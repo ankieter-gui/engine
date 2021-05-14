@@ -90,7 +90,7 @@ def get_data(survey_id):
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
 def data_types(survey_id):
     conn = open_database_file(survey_id)
-    types = survey.get_data_types(conn)
+    types = survey.get_types(conn)
     conn.close()
     return types
 

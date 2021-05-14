@@ -77,7 +77,7 @@ def columns(json_query, conn):
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     if 'if' in json_query:
-        types = survey.get_data_types(conn)
+        types = survey.get_types(conn)
         filters = list(map(lambda x: get_sql_filter_of(x, types), json_query['if']))
     else:
         filters = ["TRUE"]

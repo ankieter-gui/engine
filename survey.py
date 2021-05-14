@@ -1,6 +1,6 @@
 import sqlite3
 
-def get_data_types(conn):
+def get_types(conn):
     types = {}
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
