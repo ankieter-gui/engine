@@ -85,6 +85,7 @@ def get_data(survey_id):
     json_request = request.json
     conn = open_database_file(survey_id)
     result = request_survey(json_request, conn)
+    print(result)
     conn.close()
     return result
 
