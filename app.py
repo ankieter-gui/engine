@@ -64,6 +64,8 @@ def get_dashboard():
         print(meta)
         #na szybko - do poprawy
         result.append( {
+            'name':"placeholder name",
+            'type': "survey",
             'surveyId': survey.AnkieterId,
             'userId': sp.UserId,
             'startedOn': meta[0][0],
