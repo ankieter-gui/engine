@@ -1,6 +1,7 @@
 from flask import redirect, url_for, request, session, g
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 #from flask_cors import CORS
 from flask_jsonpify import jsonify
@@ -12,8 +13,14 @@ import os
 from request_survey import *
 
 app = Flask(__name__)
-#CORS(app)
-
+cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
+@app.after_request
+def after_request(response):
+  response.headers.add('Access-Control-Allow-Origin', 'http://localhost:4200')
+  response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
+  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+  response.headers.add('Access-Control-Allow-Credentials', 'true')
+  return response
 app.config.from_mapping(
     SECRET_KEY='sTzMzxFX8BcJt3wuvNvDeQ',
     FLASK_ADMIN_SWATCH='cerulean',
@@ -33,10 +40,16 @@ CAS_CLIENT = CASClient(
 )
 
 
+def open_database_file(survey_id:int):
+    script_absolute_directory_path = os.path.dirname(os.path.realpath(__file__))
+    db_absolute_path = path.join(script_absolute_directory_path, "data", str(survey_id) + ".db")
+    return sqlite3.connect(db_absolute_path)
+
+
 @app.route('/dashboard', methods=['GET'])
 def get_dashboard():
     def get_meta(survey_id):
-        conn = sqlite3.connect(f'data/{survey_id}.db')
+        conn = open_database_file(survey_id)
         cur = conn.cursor()
         cur.execute("select * from meta")
         data = cur.fetchall()
@@ -67,9 +80,7 @@ def get_data(survey_id):
         # TODO: return json with errors
         return
     json_request = request.json
-    script_absolute_directory_path = os.path.dirname(os.path.realpath(__file__))
-    db_absolute_path=path.join(script_absolute_directory_path,"data", str(survey_id)+".db")
-    conn = sqlite3.connect(db_absolute_path)
+
     result = request_survey(json_request, conn)
     conn.close()
     return result
@@ -77,7 +88,7 @@ def get_data(survey_id):
 
 @app.route('/data/types/<int:survey_id>', methods=['GET'])
 def data_types(survey_id):
-    conn = sqlite3.connect(f'data/{survey_id}.db')
+    conn = open_database_file(survey_id)
     types = get_column_types(conn)
     conn.close()
     return types
