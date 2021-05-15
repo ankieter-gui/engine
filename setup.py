@@ -7,6 +7,7 @@ from flask_sqlalchemy import SQLAlchemy
 from faker import Faker
 from datetime import datetime
 import os
+from random_pesel import RandomPESEL
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
@@ -34,6 +35,9 @@ class Survey(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(80), nullable=False)
     AnkieterId = db.Column(db.Integer, unique=True)
+    StartedOn = db.Column(db.Date, nullable=False)
+    EndsOn = db.Column(db.Date, nullable=False)
+    IsActive = db.Column(db.Integer, nullable=False)
 
 
 class Report(db.Model):
@@ -102,7 +106,7 @@ def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
     conn.close()
 
 
-def add_user_and_permissions(pesel, ankieter_id):
+def add_permission(pesel, ankieter_id):
     survey = Survey.query.filter_by(AnkieterId=ankieter_id).first()
     user = User.query.filter_by(CasLogin=pesel).first()
     db.session.add(SurveyPermission(SurveyId=survey.id, UserId=user.id, Type=0))
@@ -122,13 +126,31 @@ if __name__ == "__main__":
 
     fake = Faker(locale="pl_PL")
 
-    USERS_AMOUNT = 5
+    USERS_AMOUNT = 20
     GROUPS_AMOUNT = 3
-    SURVEYS_AMOUNT = 10
     REPORTS_AMOUNT = 5
 
-    for _ in range(USERS_AMOUNT):
-        cas_login = fake.unique.name()
+    pesel = input('Podaj swój pesel\n')
+    db.session.add(User(CasLogin=pesel, Role=0, FetchData=False))
+
+    surveys_amount = 0
+    for filename in os.listdir('temp'):
+        if filename.endswith(".csv"):
+            survey_id = filename.split('.')[0]
+            convertCSV(survey_id)
+            # add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
+            db.session.add(Survey(
+                Name='ankieta testowa',
+                AnkieterId=survey_id,
+                StartedOn=datetime(2020, 3, random.randint(1, 31)),
+                EndsOn=datetime(2021, 6, random.randint(1, 30)),
+                IsActive=random.randint(0, 1)))
+            add_permission(pesel, survey_id)
+            surveys_amount += 1
+
+    pesel = RandomPESEL()
+    for _ in range(USERS_AMOUNT-1):
+        cas_login = pesel.generate()
         role = random.randint(0, 2)
         db.session.add(User(CasLogin=cas_login, Role=role, FetchData=False))
 
@@ -136,14 +158,14 @@ if __name__ == "__main__":
         group_name = fake.company()
         db.session.add(Group(Name=group_name))
 
-    for i in range(SURVEYS_AMOUNT):
-        survey_name = 'Ankieta ' + str(random.randint(1, 50))
-        ankieter_id = i + 10
-        db.session.add(Survey(Name=survey_name, AnkieterId=ankieter_id))
+    # for i in range(surveys_amount):
+    #     survey_name = 'Ankieta ' + str(random.randint(1, 50))
+    #     ankieter_id = i + 10
+    #     db.session.add(Survey(Name=survey_name, AnkieterId=ankieter_id))
 
     for i in range(REPORTS_AMOUNT):
         report_name = 'Raport ' + str(random.randint(1, 50))
-        survey_id = random.randint(1, SURVEYS_AMOUNT)
+        survey_id = random.randint(1, surveys_amount)
         db.session.add(Report(Name=report_name, SurveyId=survey_id))
 
     user_group = [(random.randint(1, GROUPS_AMOUNT), random.randint(1, USERS_AMOUNT)) for i in range(20)]
@@ -151,7 +173,7 @@ if __name__ == "__main__":
     for primary_key in user_group:
         db.session.add(UserGroup(GroupId=primary_key[0], UserId=primary_key[1]))
 
-    survey_group = [(random.randint(1, SURVEYS_AMOUNT), random.randint(1, GROUPS_AMOUNT)) for i in range(20)]
+    survey_group = [(random.randint(1, surveys_amount), random.randint(1, GROUPS_AMOUNT)) for i in range(20)]
     survey_group = remove_duplicates(survey_group)
     for primary_key in survey_group:
         db.session.add(SurveyGroup(SurveyId=primary_key[0], GroupId=primary_key[1]))
@@ -161,7 +183,7 @@ if __name__ == "__main__":
     for primary_key in report_group:
         db.session.add(ReportGroup(ReportId=primary_key[0], GroupId=primary_key[1]))
 
-    survey_permission = [(random.randint(1, SURVEYS_AMOUNT), random.randint(1, USERS_AMOUNT)) for i in range(20)]
+    survey_permission = [(random.randint(1, surveys_amount), random.randint(1, USERS_AMOUNT)) for i in range(20)]
     survey_permission = remove_duplicates(survey_permission)
     for primary_key in survey_permission:
         db.session.add(SurveyPermission(SurveyId=primary_key[0], UserId=primary_key[1], Type=random.randint(0, 2)))
@@ -171,22 +193,4 @@ if __name__ == "__main__":
     for primary_key in report_permission:
         db.session.add(ReportPermission(ReportId=primary_key[0], UserId=primary_key[1], Type=random.randint(0, 2)))
 
-    '''if os.path.exists('temp/1.csv'):
-        convertCSV(1)
-        add_meta(1, datetime(2020, 5, 17).timestamp(), datetime(2021, 5, 17).timestamp(), 1, 10)
-
-    if os.path.exists('temp/2.csv'):
-        convertCSV(2)
-        add_meta(2, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)'''
-
-    pesel = input('Podaj swój pesel\n')
-    db.session.add(User(CasLogin=pesel, Role=0, FetchData=False))
-
-    for filename in os.listdir('temp'):
-        if filename.endswith(".csv"):
-            survey_id = filename.split('.')[0]
-            convertCSV(survey_id)
-            add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
-            db.session.add(Survey(Name='ankieta testowa', AnkieterId=survey_id))
-            add_user_and_permissions(pesel, survey_id)
     db.session.commit()
