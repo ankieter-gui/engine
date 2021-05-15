@@ -35,8 +35,8 @@ class Survey(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(80), nullable=False)
     AnkieterId = db.Column(db.Integer, unique=True)
-    StartedOn = db.Column(db.Date, nullable=False)
-    EndsOn = db.Column(db.Date, nullable=False)
+    StartedOn = db.Column(db.DateTime, nullable=False)
+    EndsOn = db.Column(db.DateTime, nullable=False)
     IsActive = db.Column(db.Integer, nullable=False)
 
 
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     for primary_key in report_group:
         db.session.add(ReportGroup(ReportId=primary_key[0], GroupId=primary_key[1]))
 
-    survey_permission = [(random.randint(1, surveys_amount), random.randint(1, USERS_AMOUNT)) for i in range(20)]
+    survey_permission = [(random.randint(1, surveys_amount), random.randint(1, USERS_AMOUNT)) for i in range(2)]
     survey_permission = remove_duplicates(survey_permission)
     for primary_key in survey_permission:
         db.session.add(SurveyPermission(SurveyId=primary_key[0], UserId=primary_key[1], Type=random.randint(0, 2)))
