@@ -137,7 +137,7 @@ if __name__ == "__main__":
     for filename in os.listdir('temp'):
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
-            convertCSV(survey_id)
+            convert_csv(survey_id)
             # add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
             db.session.add(Survey(
                 Name='ankieta testowa',
