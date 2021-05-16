@@ -30,10 +30,12 @@ class Group(db.Model):
 
 class Survey(db.Model):
     __tablename__ = "Surveys"
-    # TODO Czy nie wystarczy aby AnkieterId było primary key?
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(80), nullable=False)
     AnkieterId = db.Column(db.Integer, unique=True)
+    StartedOn = db.Column(db.DateTime, nullable=False)
+    EndsOn = db.Column(db.DateTime, nullable=False)
+    IsActive = db.Column(db.Integer, nullable=False)
 
 
 class Report(db.Model):
@@ -79,6 +81,7 @@ def convert_csv(target_id):
     con = sqlite3.connect("data/" + str(target_id) + ".db")
     df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
     df.to_sql("data", con, if_exists='replace', index=False)
+    con.close()
 
 
 def remove_duplicates(primary_keys):
@@ -137,9 +140,10 @@ if __name__ == "__main__":
         db.session.add(Group(Name=group_name))
 
     for i in range(SURVEYS_AMOUNT):
-        survey_name = 'Ankieta ' + str(random.randint(1, 50))
+        name = 'Ankieta ' + str(random.randint(1, 50))
         ankieter_id = i + 10
-        db.session.add(Survey(Name=survey_name, AnkieterId=ankieter_id))
+        db.session.add(Survey(Name=name, AnkieterId=ankieter_id, StartedOn=datetime(2020, 3, 18), EndsOn=datetime(2021, 6, 17), IsActive=True))
+
 
     for i in range(REPORTS_AMOUNT):
         report_name = 'Raport ' + str(random.randint(1, 50))
@@ -186,7 +190,7 @@ if __name__ == "__main__":
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
             convert_csv(survey_id)
-            add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
-            db.session.add(Survey(Name='ankieta testowa', AnkieterId=survey_id))
+            #add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 2)
+            db.session.add(Survey(Name='ankieta testowa', AnkieterId=survey_id, StartedOn=datetime(2020, 3, 18), EndsOn=datetime(2021, 6, 17), IsActive=True))
             add_user_and_permissions(pesel, survey_id)
     db.session.commit()
