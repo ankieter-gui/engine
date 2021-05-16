@@ -67,10 +67,10 @@ def get_dashboard():
     return {"objects": result}
 
 
-
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:
+        conn = open_database_file(survey_id)
         result = table.create(request.json, conn)
     except APIError as err:
         result = err.as_json()
