@@ -73,7 +73,7 @@ def get_data(survey_id):
         conn = open_database_file(survey_id)
         result = table.create(request.json, conn)
     except APIError as err:
-        result = err.as_json()
+        result = err.as_dict()
     conn.close()
     return result
 
