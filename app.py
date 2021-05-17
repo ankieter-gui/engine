@@ -41,12 +41,6 @@ CAS_CLIENT = CASClient(
 )
 
 
-def open_database_file(survey_id:int):
-    script_absolute_directory_path = os.path.dirname(os.path.realpath(__file__))
-    db_absolute_path = path.join(script_absolute_directory_path, "data", str(survey_id) + ".db")
-    return sqlite3.connect(db_absolute_path)
-
-
 @app.route('/dashboard', methods=['GET'])
 def get_dashboard():
     user = User.query.filter_by(CasLogin=session['username']).first()
@@ -94,7 +88,7 @@ def set_report(report_id):
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:
-        conn = open_database_file(survey_id)
+        conn = database.open_survey(survey_id)
         result = table.create(request.json, conn)
     except APIError as err:
         result = err.as_dict()
@@ -104,10 +98,18 @@ def get_data(survey_id):
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
 def data_types(survey_id):
-    conn = open_database_file(survey_id)
+    conn = database.open_survey(survey_id)
     types = database.get_types(conn)
     conn.close()
     return types
+
+
+@app.route('/data/<int:survey_id/questions', methods=['GET'])
+def get_questions(survey_id):
+    conn = database.open_survey(survey_id)
+    columns = database.get_types(conn)
+    conn.close()
+    return columns
 
 
 @app.route('/')
