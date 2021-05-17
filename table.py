@@ -144,8 +144,8 @@ def columns(json_query, conn):
     df = read_sql_query(sql, conn)
     return df
 
-# TODO: convert our aggregator names to pandas
-def aggregate(json_query, data, types):
+
+def aggregate(json_query, data):
     global AGGREGATORS
 
     columns = {}
@@ -153,7 +153,6 @@ def aggregate(json_query, data, types):
         for i, column in enumerate(get):
             aggr_name = json_query['as'][i]
             aggr = AGGREGATORS[aggr_name]
-            col_type = types[column]
             if column not in columns:
                 columns[column] = []
 
@@ -233,6 +232,13 @@ if __name__ == "__main__":
         "get": [["Price", "Name"]],
         "as": ["count", "mean"],
         "by": ["Age Rating", '*'],
+    })
+
+    queries.append({
+        "get": [["Price", "Age Rating"]],
+        "as": ["mean", "share"],
+        "by": ["Age Rating", "*"],
+        "if": [["Age Rating", "in", "4", "9"]]
     })
 
     for query in queries:
