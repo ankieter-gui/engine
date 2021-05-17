@@ -11,7 +11,7 @@ import sqlite3
 import os
 import table
 import survey
-import errors
+from errors import *
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
