@@ -36,15 +36,15 @@ FILTERS = {
 def share(s): return s.value_counts().to_dict()
 AGGREGATORS = {
     'share':  Aggregator(share,    'INTEGER', 'REAL', 'TEXT'),
-    'max':    Aggregator('max',    'INTEGER', 'REAL', ),
-    'min':    Aggregator('min',    'INTEGER', 'REAL', ),
+    'max':    Aggregator('max',    'INTEGER', 'REAL'),
+    'min':    Aggregator('min',    'INTEGER', 'REAL'),
     'mode':   Aggregator('mode',   'INTEGER', 'REAL', 'TEXT'),
-    'mean':   Aggregator('mean',   'INTEGER', 'REAL', ),
-    'median': Aggregator('median', 'INTEGER', 'REAL', ),
-    'std':    Aggregator('std',    'INTEGER', 'REAL', ),
-    'var':    Aggregator('var',    'INTEGER', 'REAL', ),
+    'mean':   Aggregator('mean',   'INTEGER', 'REAL'),
+    'median': Aggregator('median', 'INTEGER', 'REAL'),
+    'std':    Aggregator('std',    'INTEGER', 'REAL'),
+    'var':    Aggregator('var',    'INTEGER', 'REAL'),
     'count':  Aggregator('count',  'INTEGER', 'REAL', 'TEXT'),
-    'sum':    Aggregator('sum',    'INTEGER', 'REAL', )
+    'sum':    Aggregator('sum',    'INTEGER', 'REAL')
 }
 
 def is_str(x):
@@ -201,7 +201,6 @@ def create(json_query, conn):
 # TODO: usunąć po zakończeniu testów
 if __name__ == "__main__":
     SURVEY_ID = '1'
-    #convert_csv(SURVEY_ID)
     conn = sqlite3.connect(f'data/{SURVEY_ID}.db')
 
     queries = []
