@@ -7,5 +7,5 @@ class Error(Exception):
         return self
 
 class APIError(Error):
-    def to_json():
+    def as_dict(self):
         return {'error': self.message}

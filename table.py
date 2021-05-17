@@ -47,21 +47,75 @@ AGGREGATORS = {
     'sum':    Aggregator('sum',    'INTEGER', 'REAL', )
 }
 
+def is_str(x):
+    return isinstance(x, str)
+
+def is_list_of_str(x):
+    return isinstance(x, list) and all(map(is_str, x))
+
+def is_list_of_list_of_str(x):
+    return isinstance(x, list) and all(map(is_list_of_str, x))
+
+def typecheck(json_query, types):
+    if json_query is None:
+        raise APIError(f'empty query')
+    if not is_list_of_list_of_str(json_query.get('get', None)):
+        raise APIError(f'the given "get" clause is not a list of lists of strings')
+    if not is_list_of_str(json_query.get('as', None)):
+        raise APIError(f'the given "as" clause is not a list of strings')
+    if 'by' in json_query and not is_list_of_str(json_query['as']):
+        raise APIError(f'the given "by" clause is not a list of strings')
+    if 'if' in json_query and not is_list_of_list_of_str(json_query['if']):
+        raise APIError(f'the given "if" clause is not a list of lists of strings')
+
+    if not all(map(lambda x: len(x) == len(json_query['as']), json_query['get'])):
+        raise APIError(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
+
+    for agg in json_query['as']:
+        if agg not in AGGREGATORS:
+            raise APIError(f'unknown aggregator "{agg}"')
+
+    if 'by' not in json_query:
+        json_query['by'] = ['*']
+    for by in json_query['by']:
+        if by != '*' and by not in types:
+            raise APIError(f'cannot group by "{by}" as there is no such column')
+
+    for get in json_query['get']:
+        for i, col in enumerate(get):
+            op = json_query['as'][i]
+            agg = AGGREGATORS[op]
+            if col not in types:
+                raise APIError(f'no column "{col}" in the data set')
+            if types[col] not in agg.types:
+                raise APIError(f'aggregator "{op}" supports {", ".join(agg.types)}; got {types[col]} (column "{col}")')
+
+    if 'if' not in json_query:
+        return
+    for iff in json_query['if']:
+        if len(iff) < 2:
+            raise APIError(f'filter "{" ".join(iff)}" is too short')
+
+        col, op, *args = iff
+        flt = FILTERS.get(op, None)
+        if flt is None:
+            raise APIError(f'unknown filter {op}')
+        if col not in types:
+            raise APIError(f'cannot filter by "{col}" as theres no such column')
+        if flt.arity is not None and len(args) != flt.arity:
+            raise APIError(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
+        if types[col] not in flt.types:
+            raise APIError(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
+
 
 def get_sql_filter_of(json_filter, types):
     global FILTERS
 
     column, operator, *args = json_filter
-    if operator not in FILTERS:
-        raise APIError(f'filter "{operator}" does not exist')
 
     sql_filter = FILTERS[operator]
-    if sql_filter.arity != None and len(args) != sql_filter.arity:
-        raise APIError(f'filter "{operator}" expects {sql_filter.arity} arguments, got {len(args)}')
 
     col_type = types[column]
-    if col_type not in sql_filter.types:
-        raise APIError(f'filter "{operator}" supports types {", ".join(sql_filter.types)}; got {col_type} (column "{column}")')
 
     if col_type == "TEXT":
         args = [f'"{arg}"' for arg in args]
@@ -88,7 +142,7 @@ def columns(json_query, conn):
 
     sql = f'SELECT {columns_to_select} FROM data WHERE '+" AND ".join(filters) + ";"
     df = read_sql_query(sql, conn)
-    return df, types
+    return df
 
 # TODO: convert our aggregator names to pandas
 def aggregate(json_query, data, types):
@@ -98,14 +152,8 @@ def aggregate(json_query, data, types):
     for get in json_query['get']:
         for i, column in enumerate(get):
             aggr_name = json_query['as'][i]
-            if aggr_name not in AGGREGATORS:
-                raise APIError(f'no aggregator named "{aggr_name}"')
-
             aggr = AGGREGATORS[aggr_name]
             col_type = types[column]
-            if col_type not in aggr.types:
-                raise APIError(f'aggregator "{aggr_name}" supports types {", ".join(aggr.types)}; got {col_type} (column "{column}")')
-
             if column not in columns:
                 columns[column] = []
 
@@ -139,16 +187,14 @@ def reorder(data):
 
 def create(json_query, conn):
     try:
-        aggrs = len(json_query['as'])
-        for get in json_query['get']:
-            if len(get) != aggrs:
-                raise APIError(f'got {aggrs} aggregators, but some get clauses have {len(get)} columns')
+        types = survey.get_types(conn)
 
-        data, types = columns(json_query, conn)
-        data = aggregate(json_query, data, types)
+        typecheck(json_query, types)
+        data = columns(json_query, conn)
+        data = aggregate(json_query, data)
         table = reorder(data)
     except APIError as err:
-        err.add_detail('could not create table')
+        err.add_details('could not create table')
         raise
     return table
 
@@ -158,31 +204,40 @@ if __name__ == "__main__":
     SURVEY_ID = '1'
     #convert_csv(SURVEY_ID)
     conn = sqlite3.connect(f'data/{SURVEY_ID}.db')
-    '''json_query = {
+
+    queries = []
+
+    queries.append({
         "get": [["Price",               "Price"],
                 ["Average User Rating", "Average User Rating"]],
         "as": ["mean", "var"],
         "by": ["Age Rating", "*"],
-        "if": [["Age Rating", "in", "4", "9"]]
-    }
+        "if": [["9"]]
+    })
 
-    print(create(json_query, conn))'''
-
-    '''json_query = {
+    queries.append({
         "get": [["Price", "Age Rating"]],
         "as": ["mean", "share"],
         "by": ["Age Rating", "*"],
-        "if": [["Age Rating", "in", "4", "9"]]
-    }'''
+        "if": [["Name", ">", "4"]]
+    })
 
-    json_query = {
+    queries.append({
+        "get": [["Price", "Age Rating"]],
+        "as": ["mean", "share"],
+        "by": ["Age Rating", "*"],
+        "if": [["Age Rating", ">", "4", "9"]]
+    })
+
+    queries.append({
         "get": [["Price", "Name"]],
         "as": ["count", "mean"],
         "by": ["Age Rating", '*'],
-    }
+    })
 
-    try:
-        r = create(json_query, conn)
-        print(r)
-    except APIError as err:
-        print(err.as_dict())
+    for query in queries:
+        try:
+            r = create(query, conn)
+            print(r)
+        except APIError as err:
+            print(err.message)
