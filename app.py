@@ -10,7 +10,7 @@ from os import path
 import sqlite3
 import os
 import table
-import survey
+import database
 from errors import *
 
 app = Flask(__name__)
@@ -67,6 +67,30 @@ def get_dashboard():
     return {"objects": result}
 
 
+# ścieżki na następny przyrost
+#@app.route('/survey/<int:survey_id>', methods=['GET'])
+#@app.route('/survey/<int:survey_id>', methods=['POST'])
+#@app.route('/report/new', methods=['POST'])
+
+
+@app.route('/report/<int:report_id>', methods=['GET'])
+def get_report(report_id):
+    file = open(f'/report/{report_id}.json', mode='r')
+    data = file.read()
+    file.close()
+    return data
+
+
+@app.route('/report/<int:report_id>', methods=['POST'])
+def set_report(report_id):
+    file = open(f'/report/{report_id}.json', mode='w')
+    file.write(request.json)
+    file.close()
+
+
+#@app.route('/report/new', methods=['POST'])
+
+
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:
@@ -81,7 +105,7 @@ def get_data(survey_id):
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
 def data_types(survey_id):
     conn = open_database_file(survey_id)
-    types = survey.get_types(conn)
+    types = database.get_types(conn)
     conn.close()
     return types
 

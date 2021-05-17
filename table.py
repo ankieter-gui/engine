@@ -2,7 +2,7 @@ from json_response import JsonResponse
 import sqlite3
 from pandas import concat, read_sql_query
 from app import convert_csv
-import survey
+import database
 from errors import *
 
 class Filter:
@@ -134,7 +134,7 @@ def columns(json_query, conn):
         columns.remove('*')
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
-    types = survey.get_types(conn)
+    types = database.get_types(conn)
     if 'if' in json_query:
         filters = list(map(lambda x: get_sql_filter_of(x, types), json_query['if']))
     else:
@@ -186,7 +186,7 @@ def reorder(data):
 
 def create(json_query, conn):
     try:
-        types = survey.get_types(conn)
+        types = database.get_types(conn)
 
         typecheck(json_query, types)
         data = columns(json_query, conn)
@@ -235,6 +235,13 @@ if __name__ == "__main__":
 
     queries.append({
         "get": [["Price", "Age Rating"]],
+        "as": ["mean", "share"],
+        "by": ["Age Rating", "*"],
+        "if": [["Age Rating", "in", "4", "9"]]
+    })
+
+    queries.append({
+        "get": [["Price", 4]],
         "as": ["mean", "share"],
         "by": ["Age Rating", "*"],
         "if": [["Age Rating", "in", "4", "9"]]

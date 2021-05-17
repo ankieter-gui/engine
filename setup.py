@@ -120,9 +120,10 @@ if __name__ == "__main__":
 
     if not os.path.exists('data'):
         os.makedirs('data')
-
     if not os.path.exists('temp'):
         os.makedirs('temp')
+    if not os.path.exists('report'):
+        os.makedirs('report')
 
     fake = Faker(locale="pl_PL")
 
