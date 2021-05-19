@@ -25,8 +25,8 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
         if type(obj) is not list:
             return f'expected {type(tp).__name__}, got {type(obj).__name__}'
         for i, o in enumerate(obj):
-            if err := analyze(tp[0], o):
-                return f'in element [{i}]: {err}'
+            if msg := analyze(tp[0], o):
+                return f'in element [{i}]: {msg}'
         return False
     if type(tp) is dict:
         if type(obj) is not dict:
@@ -40,8 +40,8 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
                 if 'optional' in params:
                     continue
                 return f'expected key \'{k}\''
-            if err := analyze(t, obj[k]):
-                return f'in element \'{k}\': {err}'
+            if msg := analyze(t, obj[k]):
+                return f'in element \'{k}\': {msg}'
         return False
     return 'unexpected object type'
 
