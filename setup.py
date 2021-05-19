@@ -8,6 +8,7 @@ from faker import Faker
 from datetime import datetime
 import os
 from random_pesel import RandomPESEL
+from database import csv_to_db
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
@@ -41,11 +42,13 @@ class Survey(db.Model):
     QuestionCount = db.Column(db.Integer, nullable=False)
     BackgroundImg = db.Column(db.String(50))
 
+
 class Report(db.Model):
     __tablename__ = "Reports"
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(80), nullable=False)
     SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), nullable=False)
+    BackgroundImg = db.Column(db.String(50))
 
 
 class UserGroup(db.Model):
@@ -78,15 +81,6 @@ class ReportPermission(db.Model):
     ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
     Type = db.Column(db.Integer, default=2, nullable=False)
-
-
-def convert_csv(target_id):
-    global columns_number
-    con = sqlite3.connect("data/" + str(target_id) + ".db")
-    df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
-    columns_number[target_id] = get_columns_number(df)
-    df.to_sql("data", con, if_exists='replace', index=False)
-    con.close()
 
 
 def get_columns_number(df) -> int:
@@ -131,7 +125,7 @@ if __name__ == "__main__":
     for filename in os.listdir('temp'):
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
-            convert_csv(survey_id)
+            csv_to_db(survey_id)
             db.session.add(Survey(
                 Name='ankieta testowa',
                 AnkieterId=survey_id,
