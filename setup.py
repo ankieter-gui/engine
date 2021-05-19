@@ -84,30 +84,17 @@ def convert_csv(target_id):
     global columns_number
     con = sqlite3.connect("data/" + str(target_id) + ".db")
     df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
-    columns_number[target_id] = len(df.columns)
+    columns_number[target_id] = get_columns_number(df)
     df.to_sql("data", con, if_exists='replace', index=False)
     con.close()
 
 
+def get_columns_number(df) -> int:
+    return len(df.columns)
+
+
 def remove_duplicates(primary_keys):
     return list(set([i for i in primary_keys]))
-
-
-# def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
-#     conn = sqlite3.connect("data/" + str(survey_id) + '.db')
-#     cur = conn.cursor()
-#
-#     sql = '''CREATE TABLE IF NOT EXISTS meta(
-#        StartedOn INT NOT NULL,
-#        EndsOn INT NOT NULL,
-#        IsActive INT,
-#        QuestionsAmount INT)'''
-#     cur.execute(sql)
-#
-#     cur.execute("INSERT INTO META VALUES (?,?,?,?)", (started_on, ends_on, is_active, questions_amount))
-#
-#     conn.commit()
-#     conn.close()
 
 
 def add_permission(pesel, ankieter_id):
@@ -142,7 +129,6 @@ if __name__ == "__main__":
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
             convert_csv(survey_id)
-            # add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
             db.session.add(Survey(
                 Name='ankieta testowa',
                 AnkieterId=survey_id,
@@ -162,11 +148,6 @@ if __name__ == "__main__":
     for _ in range(GROUPS_AMOUNT):
         group_name = fake.company()
         db.session.add(Group(Name=group_name))
-
-    # for i in range(surveys_amount):
-    #     survey_name = 'Ankieta ' + str(random.randint(1, 50))
-    #     ankieter_id = i + 10
-    #     db.session.add(Survey(Name=survey_name, AnkieterId=ankieter_id))
 
     for i in range(REPORTS_AMOUNT):
         report_name = 'Raport ' + str(random.randint(1, 50))
