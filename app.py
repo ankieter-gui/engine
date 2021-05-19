@@ -30,9 +30,9 @@ app.config.from_mapping(
     DEBUG=True
 )
 
-DATABASE = SQLAlchemy(app)
+db = SQLAlchemy(app)
 ADMIN = Admin(app, name='Ankieter', template_mode='bootstrap3')
-ADMIN.add_view(ModelView(User, DATABASE.session))
+ADMIN.add_view(ModelView(User, db.session))
 
 CAS_CLIENT = CASClient(
     version=2,
@@ -82,7 +82,28 @@ def set_report(report_id):
     file.close()
 
 
-#@app.route('/report/new', methods=['POST'])
+@app.route('/report/new', methods=['POST'])
+def create_report():
+    # można pomyśleć o maksymalnej, dużej liczbie raportów dla każdego użytkownika
+    # ze względu na bezpieczeństwo.
+    try:
+        if not request.json:
+            raise APIError('empty json request')
+        if 'userId' not in request.json or not isinstance(request.json['userId'], int):
+            raise APIError('wrong user id')
+        if 'surveyId' not in request.json or not isinstance(request.json['surveyId'], int):
+            raise APIError('wrong survey id')
+        if 'title' not in request.json or not isinstance(request.json['title'], str):
+            raise APIError('wrong title type')
+
+        report_id = database.create_report(json.userId, json.surveyId, json.title)
+
+        file = open(f'/report/{report_id}.json', mode='w')
+        file.write(request.json)
+        file.close()
+    except APIError as err:
+        return err.add_details('could not create report').as_dict()
+    return report_id
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
@@ -104,12 +125,12 @@ def data_types(survey_id):
     return types
 
 
-@app.route('/data/<int:survey_id/questions', methods=['GET'])
+@app.route('/data/<int:survey_id>/questions', methods=['GET'])
 def get_questions(survey_id):
     conn = database.open_survey(survey_id)
-    columns = database.get_types(conn)
+    questions = database.get_columns(conn)
     conn.close()
-    return columns
+    return {'questions': questions}
 
 
 @app.route('/')
