@@ -3,16 +3,15 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from flask_jsonpify import jsonify
 from cas import CASClient
 from setup import *
-from os import path
+import json
 import sqlite3
 import os
 import table
 import database
 import grammar
-from errors import *
+import error
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
@@ -70,16 +69,16 @@ def get_dashboard():
 
 @app.route('/report/<int:report_id>', methods=['GET'])
 def get_report(report_id):
-    file = open(f'/report/{report_id}.json', mode='r')
-    data = file.read()
+    file = open(f'report/{report_id}.json', mode='r')
+    data = json.load(file)
     file.close()
     return data
 
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    file = open(f'/report/{report_id}.json', mode='w')
-    file.write(request.json)
+    file = open(f'report/{report_id}.json', mode='w')
+    json.dump(request.json, file)
     file.close()
 
 
@@ -90,14 +89,15 @@ def create_report():
     try:
         grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
-        report_id = database.create_report(json.userId, json.surveyId, json.title)
+        report = request.json
+        report_id = database.create_report(report["userId"], report["surveyId"], report["title"])
 
-        file = open(f'/report/{report_id}.json', mode='w')
-        file.write(request.json)
+        file = open(f'report/{report_id}.json', 'w')
+        json.dump(report, file)
         file.close()
-    except APIError as err:
+    except error.API as err:
         return err.add_details('could not create report').as_dict()
-    return report_id
+    return {"reportId": report_id}
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
@@ -105,7 +105,7 @@ def get_data(survey_id):
     try:
         conn = database.open_survey(survey_id)
         result = table.create(request.json, conn)
-    except APIError as err:
+    except error.API as err:
         result = err.as_dict()
     conn.close()
     return result

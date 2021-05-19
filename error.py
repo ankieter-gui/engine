@@ -1,4 +1,4 @@
-class Error(Exception):
+class Generic(Exception):
     def __init__(self, message):
         self.message = message
 
@@ -6,6 +6,6 @@ class Error(Exception):
         self.message = f'{message}: {self.message}'
         return self
 
-class APIError(Error):
+class API(Generic):
     def as_dict(self):
         return {'error': self.message}

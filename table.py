@@ -1,10 +1,9 @@
-from json_response import JsonResponse
 import sqlite3
 from pandas import concat, read_sql_query
 from app import convert_csv
 import database
 import grammar
-from errors import *
+import error
 
 class Filter:
     def __init__(self, symbol, arity, *types, beg='', end='', sep=', '):
@@ -61,43 +60,43 @@ def typecheck(json_query, types):
     grammar.check(grammar.REQUEST_TABLE, json_query)
 
     if not all(map(lambda x: len(x) == len(json_query['as']), json_query['get'])):
-        raise APIError(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
+        raise error.API(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
 
     for agg in json_query['as']:
         if agg not in AGGREGATORS:
-            raise APIError(f'unknown aggregator "{agg}"')
+            raise error.API(f'unknown aggregator "{agg}"')
 
     if 'by' not in json_query:
         json_query['by'] = ['*']
     for by in json_query['by']:
         if by != '*' and by not in types:
-            raise APIError(f'cannot group by "{by}" as there is no such column')
+            raise error.API(f'cannot group by "{by}" as there is no such column')
 
     for get in json_query['get']:
         for i, col in enumerate(get):
             op = json_query['as'][i]
             agg = AGGREGATORS[op]
             if col not in types:
-                raise APIError(f'no column "{col}" in the data set')
+                raise error.API(f'no column "{col}" in the data set')
             if types[col] not in agg.types:
-                raise APIError(f'aggregator "{op}" supports {", ".join(agg.types)}; got {types[col]} (column "{col}")')
+                raise error.API(f'aggregator "{op}" supports {", ".join(agg.types)}; got {types[col]} (column "{col}")')
 
     if 'if' not in json_query:
         return
     for iff in json_query['if']:
         if len(iff) < 2:
-            raise APIError(f'filter "{" ".join(iff)}" is too short')
+            raise error.API(f'filter "{" ".join(iff)}" is too short')
 
         col, op, *args = iff
         flt = FILTERS.get(op, None)
         if flt is None:
-            raise APIError(f'unknown filter {op}')
+            raise error.API(f'unknown filter {op}')
         if col not in types:
-            raise APIError(f'cannot filter by "{col}" as theres no such column')
+            raise error.API(f'cannot filter by "{col}" as theres no such column')
         if flt.arity is not None and len(args) != flt.arity:
-            raise APIError(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
+            raise error.API(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
         if types[col] not in flt.types:
-            raise APIError(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
+            raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
 
 
 def get_sql_filter_of(json_filter, types):
@@ -184,7 +183,7 @@ def create(json_query, conn):
         data = columns(json_query, conn)
         data = aggregate(json_query, data)
         table = reorder(data)
-    except APIError as err:
+    except error.API as err:
         err.add_details('could not create table')
         raise
     return table
@@ -243,5 +242,5 @@ if __name__ == "__main__":
         try:
             r = create(query, conn)
             print(r)
-        except APIError as err:
+        except error.API as err:
             print(err.message)
