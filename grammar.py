@@ -1,6 +1,6 @@
 # at least Python 3.8, because of the use of :=
 import typing
-import errors
+import error
 
 REQUEST_TABLE = {
     'get': [[str]],
@@ -48,4 +48,4 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
 
 def check(tp: typing.Any, obj: typing.Any):
     if msg := analyze(tp, obj):
-        raise errors.APIError(msg)
+        raise error.API(msg)

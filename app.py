@@ -13,7 +13,7 @@ import os
 import table
 import database
 import grammar
-from errors import *
+import error
 
 app = Flask(__name__)
 cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
@@ -99,7 +99,7 @@ def create_report():
         json.dump(report, file)
         #file.write(jsonify(request.json))
         file.close()
-    except APIError as err:
+    except error.API as err:
         return err.add_details('could not create report').as_dict()
     return {"reportId": report_id}
 
@@ -109,7 +109,7 @@ def get_data(survey_id):
     try:
         conn = database.open_survey(survey_id)
         result = table.create(request.json, conn)
-    except APIError as err:
+    except error.API as err:
         result = err.as_dict()
     conn.close()
     return result
