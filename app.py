@@ -11,6 +11,7 @@ import sqlite3
 import os
 import table
 import database
+import grammar
 from errors import *
 
 app = Flask(__name__)
@@ -87,14 +88,7 @@ def create_report():
     # można pomyśleć o maksymalnej, dużej liczbie raportów dla każdego użytkownika
     # ze względu na bezpieczeństwo.
     try:
-        if not request.json:
-            raise APIError('empty json request')
-        if 'userId' not in request.json or not isinstance(request.json['userId'], int):
-            raise APIError('wrong user id')
-        if 'surveyId' not in request.json or not isinstance(request.json['surveyId'], int):
-            raise APIError('wrong survey id')
-        if 'title' not in request.json or not isinstance(request.json['title'], str):
-            raise APIError('wrong title type')
+        grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
         report_id = database.create_report(json.userId, json.surveyId, json.title)
 

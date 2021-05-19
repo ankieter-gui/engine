@@ -3,6 +3,7 @@ import sqlite3
 from pandas import concat, read_sql_query
 from app import convert_csv
 import database
+import grammar
 from errors import *
 
 class Filter:
@@ -57,16 +58,7 @@ def is_list_of_list_of_str(x):
     return isinstance(x, list) and all(map(is_list_of_str, x))
 
 def typecheck(json_query, types):
-    if json_query is None:
-        raise APIError(f'empty query')
-    if not is_list_of_list_of_str(json_query.get('get', None)):
-        raise APIError(f'the given "get" clause is not a list of lists of strings')
-    if not is_list_of_str(json_query.get('as', None)):
-        raise APIError(f'the given "as" clause is not a list of strings')
-    if 'by' in json_query and not is_list_of_str(json_query['as']):
-        raise APIError(f'the given "by" clause is not a list of strings')
-    if 'if' in json_query and not is_list_of_list_of_str(json_query['if']):
-        raise APIError(f'the given "if" clause is not a list of lists of strings')
+    grammar.check(grammar.REQUEST_TABLE, json_query)
 
     if not all(map(lambda x: len(x) == len(json_query['as']), json_query['get'])):
         raise APIError(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
