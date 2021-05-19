@@ -24,7 +24,7 @@ def analyze(tp, obj):
         if type(obj) is not list:
             return f'expected {type(tp).__name__}, got {type(obj).__name__}'
         for i, o in enumerate(obj):
-            if err := check(tp[0], o):
+            if err := analyze(tp[0], o):
                 return f'in element [{i}]: {err}'
         return False
     if type(tp) is dict:
@@ -39,12 +39,12 @@ def analyze(tp, obj):
                 if 'optional' in params:
                     continue
                 return f'expected key \'{k}\''
-            if err := check(t, obj[k]):
+            if err := analyze(t, obj[k]):
                 return f'in element \'{k}\': {err}'
         return False
     return 'unexpected object type'
 
 
 def check(tp, obj):
-    if err := analyze(tp, obj):
-        raise errors.APIError(err)
+    if msg := analyze(tp, obj):
+        raise errors.APIError(msg)
