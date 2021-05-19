@@ -5,8 +5,8 @@ import error
 REQUEST_TABLE = {
     'get': [[str]],
     'as':  [str],
-    'if':  ([[str]], 'optional'),
     'by':  ([str],   'optional'),
+    'if':  ([[str]], 'optional'),
 }
 
 REQUEST_CREATE_SURVEY = {
