@@ -5,7 +5,6 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from cas import CASClient
 from setup import *
-from os import path
 import json
 import sqlite3
 import os
