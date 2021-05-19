@@ -39,7 +39,7 @@ class Survey(db.Model):
     EndsOn = db.Column(db.DateTime, nullable=False)
     IsActive = db.Column(db.Integer, nullable=False)
     QuestionCount = db.Column(db.Integer, nullable=False)
-
+    BackgroundImg = db.Column(db.String(50))
 
 class Report(db.Model):
     __tablename__ = "Reports"
@@ -115,6 +115,8 @@ if __name__ == "__main__":
         os.makedirs('temp')
     if not os.path.exists('report'):
         os.makedirs('report')
+    if not os.path.exists('bkg'):
+        os.makedirs('bkg')
 
     fake = Faker(locale="pl_PL")
 

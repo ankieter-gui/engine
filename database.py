@@ -1,5 +1,6 @@
 from app import *
 from setup import *
+from pandas import read_csv
 import os
 import sqlite3
 
@@ -8,6 +9,17 @@ import sqlite3
 # get_survey_permission
 # set_survey_permission
 # get_report_permission
+
+def csv_to_db(survey_id: int):
+    try:
+        conn = sqlite3.connect(f"data/{survey_id}.db")
+        cur = conn.cursor()
+        df = read_csv(f"temp/{survey_id}.csv", sep=",")
+        df.to_sql("data", conn, if_exists="replace")
+        print(f"Database for survey {survey_id} created succesfully")
+    except sqlite3.Error as e:
+        return e
+
 
 def set_report_permission(report_id: int, user_id: int, permission: int):
     rp = ReportPermission.query.filter_by(ReportId=report_id, UserId=user_id)
