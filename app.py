@@ -100,15 +100,6 @@ def get_report(report_id):
     return data
 
 
-@app.route('/report/<int:report_id>/survey', methods=['GET'])
-def get_report_survey(report_id):
-    try:
-        survey_id = database.get_report_survey(report_id)
-    except error.API as err:
-        return err.add_details('could not find the source survey').as_dict()
-    return {"surveyId": survey_id}
-
-
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:
@@ -118,6 +109,15 @@ def get_data(survey_id):
         result = err.as_dict()
     conn.close()
     return result
+
+
+@app.route('/report/<int:report_id>/survey', methods=['GET'])
+def get_report_survey(report_id):
+    try:
+        survey_id = database.get_report_survey(report_id)
+    except error.API as err:
+        return err.add_details('could not find the source survey').as_dict()
+    return {"surveyId": survey_id}
 
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
