@@ -14,7 +14,7 @@ import error
 def get_report_survey(report_id: int) -> int:
     report = Report.query.filter_by(id=report_id).first()
     if report is None:
-        raise error.API("no such report")
+        raise error.API('no such report')
     return report.SurveyId
 
 
