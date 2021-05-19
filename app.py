@@ -56,7 +56,7 @@ def get_dashboard():
             'startedOn': survey.StartedOn.timestamp(),
             'endsOn': survey.EndsOn.timestamp(),
             'isActive': survey.IsActive,
-            'questionCount': 10
+            'questionCount': survey.QuestionCount
         })
     return {"objects": result}
 

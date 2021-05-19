@@ -13,6 +13,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+columns_number = {}
 
 
 class User(db.Model):
@@ -37,6 +38,7 @@ class Survey(db.Model):
     StartedOn = db.Column(db.DateTime, nullable=False)
     EndsOn = db.Column(db.DateTime, nullable=False)
     IsActive = db.Column(db.Integer, nullable=False)
+    QuestionCount = db.Column(db.Integer, nullable=False)
 
 
 class Report(db.Model):
@@ -79,31 +81,20 @@ class ReportPermission(db.Model):
 
 
 def convert_csv(target_id):
+    global columns_number
     con = sqlite3.connect("data/" + str(target_id) + ".db")
     df = pandas.read_csv("temp/" + str(target_id) + ".csv", sep=',')
+    columns_number[target_id] = get_columns_number(df)
     df.to_sql("data", con, if_exists='replace', index=False)
     con.close()
 
 
+def get_columns_number(df) -> int:
+    return len(df.columns)
+
+
 def remove_duplicates(primary_keys):
     return list(set([i for i in primary_keys]))
-
-
-def add_meta(survey_id, started_on, ends_on, is_active, questions_amount):
-    conn = sqlite3.connect("data/" + str(survey_id) + '.db')
-    cur = conn.cursor()
-
-    sql = '''CREATE TABLE IF NOT EXISTS meta(
-       StartedOn INT NOT NULL,
-       EndsOn INT NOT NULL,
-       IsActive INT,
-       QuestionsAmount INT)'''
-    cur.execute(sql)
-
-    cur.execute("INSERT INTO META VALUES (?,?,?,?)", (started_on, ends_on, is_active, questions_amount))
-
-    conn.commit()
-    conn.close()
 
 
 def add_permission(pesel, ankieter_id):
@@ -139,18 +130,18 @@ if __name__ == "__main__":
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
             convert_csv(survey_id)
-            # add_meta(survey_id, datetime(2020, 3, 18).timestamp(), datetime(2021, 6, 17).timestamp(), 1, 20)
             db.session.add(Survey(
                 Name='ankieta testowa',
                 AnkieterId=survey_id,
                 StartedOn=datetime(2020, 3, random.randint(1, 31)),
                 EndsOn=datetime(2021, 6, random.randint(1, 30)),
-                IsActive=random.randint(0, 1)))
+                IsActive=random.randint(0, 1),
+                QuestionCount=columns_number[survey_id]))
             add_permission(pesel, survey_id)
             surveys_amount += 1
 
     pesel = RandomPESEL()
-    for _ in range(USERS_AMOUNT-1):
+    for _ in range(USERS_AMOUNT - 1):
         cas_login = pesel.generate()
         role = random.randint(0, 2)
         db.session.add(User(CasLogin=cas_login, Role=role, FetchData=False))
@@ -158,11 +149,6 @@ if __name__ == "__main__":
     for _ in range(GROUPS_AMOUNT):
         group_name = fake.company()
         db.session.add(Group(Name=group_name))
-
-    # for i in range(surveys_amount):
-    #     survey_name = 'Ankieta ' + str(random.randint(1, 50))
-    #     ankieter_id = i + 10
-    #     db.session.add(Survey(Name=survey_name, AnkieterId=ankieter_id))
 
     for i in range(REPORTS_AMOUNT):
         report_name = 'Raport ' + str(random.randint(1, 50))
@@ -184,7 +170,7 @@ if __name__ == "__main__":
     for primary_key in report_group:
         db.session.add(ReportGroup(ReportId=primary_key[0], GroupId=primary_key[1]))
 
-    survey_permission = [(random.randint(1, surveys_amount), random.randint(1, USERS_AMOUNT)) for i in range(2)]
+    survey_permission = [(random.randint(1, surveys_amount), random.randint(2, USERS_AMOUNT)) for i in range(20)]
     survey_permission = remove_duplicates(survey_permission)
     for primary_key in survey_permission:
         db.session.add(SurveyPermission(SurveyId=primary_key[0], UserId=primary_key[1], Type=random.randint(0, 2)))
