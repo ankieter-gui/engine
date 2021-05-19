@@ -1,4 +1,5 @@
 # at least Python 3.8, because of the use of :=
+import typing
 import errors
 
 REQUEST_TABLE = {
@@ -14,7 +15,7 @@ REQUEST_CREATE_SURVEY = {
     'title':    str,
 }
 
-def analyze(tp, obj):
+def analyze(tp: typing.Any, obj: typing.Any) -> str:
     if type(tp) is type:
         if type(obj) is tp:
             return False
@@ -45,6 +46,6 @@ def analyze(tp, obj):
     return 'unexpected object type'
 
 
-def check(tp, obj):
+def check(tp: typing.Any, obj: typing.Any):
     if msg := analyze(tp, obj):
         raise errors.APIError(msg)
