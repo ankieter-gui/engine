@@ -3,7 +3,6 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from flask_jsonpify import jsonify
 from cas import CASClient
 from setup import *
 from os import path
@@ -81,7 +80,6 @@ def get_report(report_id):
 def set_report(report_id):
     file = open(f'report/{report_id}.json', mode='w')
     json.dump(request.json, file)
-    #file.write(jsonify(request.json))
     file.close()
 
 
@@ -97,7 +95,6 @@ def create_report():
 
         file = open(f'report/{report_id}.json', 'w')
         json.dump(report, file)
-        #file.write(jsonify(request.json))
         file.close()
     except error.API as err:
         return err.add_details('could not create report').as_dict()
