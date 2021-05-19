@@ -3,16 +3,26 @@ from setup import *
 from pandas import read_csv
 import os
 import sqlite3
+import error
 
 # set_user_role
 # get_user_role
 # get_survey_permission
 # set_survey_permission
+
+
+def get_report_survey(report_id: int) -> int:
+    report = Report.query.filter_by(id=report_id).first()
+    if report is None:
+        raise error.API("no such report")
+    return report.SurveyId
+
+
 # get_report_permission
 
 
 def set_report_permission(report_id: int, user_id: int, permission: int):
-    rp = ReportPermission.query.filter_by(ReportId=report_id, UserId=user_id)
+    rp = ReportPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
     if rp is None:
         rp = ReportPermission(ReportId=report_id, UserId=user_id)
         db.session.add(rp)

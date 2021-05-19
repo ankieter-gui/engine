@@ -67,21 +67,6 @@ def get_dashboard():
 #@app.route('/report/new', methods=['POST'])
 
 
-@app.route('/report/<int:report_id>', methods=['GET'])
-def get_report(report_id):
-    file = open(f'report/{report_id}.json', mode='r')
-    data = json.load(file)
-    file.close()
-    return data
-
-
-@app.route('/report/<int:report_id>', methods=['POST'])
-def set_report(report_id):
-    file = open(f'report/{report_id}.json', mode='w')
-    json.dump(request.json, file)
-    file.close()
-
-
 @app.route('/report/new', methods=['POST'])
 def create_report():
     # można pomyśleć o maksymalnej, dużej liczbie raportów dla każdego użytkownika
@@ -98,6 +83,30 @@ def create_report():
     except error.API as err:
         return err.add_details('could not create report').as_dict()
     return {"reportId": report_id}
+
+
+@app.route('/report/<int:report_id>', methods=['POST'])
+def set_report(report_id):
+    file = open(f'report/{report_id}.json', mode='w')
+    json.dump(request.json, file)
+    file.close()
+
+
+@app.route('/report/<int:report_id>', methods=['GET'])
+def get_report(report_id):
+    file = open(f'report/{report_id}.json', mode='r')
+    data = json.load(file)
+    file.close()
+    return data
+
+
+@app.route('/report/<int:report_id>/survey', methods=['GET'])
+def get_report_survey(report_id):
+    try:
+        survey_id = database.get_report_survey(report_id)
+    except error.API as err:
+        return err.add_details('could not find the source survey').as_dict()
+    return {"surveyId": survey_id}
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
