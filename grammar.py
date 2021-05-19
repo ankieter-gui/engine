@@ -33,6 +33,8 @@ def analyze(tp, obj):
         for k, t in tp.items():
             if type(t) is tuple:
                 t, *params = t
+            else:
+                params = []
             if k not in obj:
                 if 'optional' in params:
                     continue
