@@ -18,7 +18,7 @@ def get_survey_quest_num(survey_id: int):
     return num
 
 
-def get_sample_tuples(n: int, *args: list[int]):
+def get_sample_tuples(n: int, *args: list[int]) -> list[tuple]:
     from itertools import product
     from functools import reduce
     n = min(n, reduce(lambda a, b: a*b, args))

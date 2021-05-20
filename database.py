@@ -1,5 +1,6 @@
-from setup import *
 from pandas import read_csv
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 import os
 import sqlite3
 import error
@@ -156,5 +157,5 @@ def csv_to_db(survey_id: int):
         print(f"Database for survey {survey_id} created succesfully")
         conn.close()
         return True
-    except sqlite3.Error as e:
-        return e
+    except sqlite3.Error as err:
+        return err
