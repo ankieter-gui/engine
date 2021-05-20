@@ -91,8 +91,6 @@ def typecheck(json_query, types):
 
 
 def get_sql_filter_of(json_filter, types):
-    global FILTERS
-
     column, operator, *args = json_filter
 
     sql_filter = FILTERS[operator]
@@ -128,8 +126,6 @@ def columns(json_query, conn):
 
 
 def aggregate(json_query, data):
-    global AGGREGATORS
-
     columns = {}
     for get in json_query['get']:
         for i, column in enumerate(get):
