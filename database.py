@@ -11,6 +11,15 @@ import error
 # set_survey_permission
 
 
+def set_survey_permission(survey_id: int, user_id: int, permission: int):
+    sp = SurveyPermission.query.filter_by(SurveyId=survey_id, UserId=user_id).first()
+    if sp is None:
+        sp = SurveyPermission(SurveyId=survey_id, UserId=user_id)
+        db.session.add(sp)
+    sp.Type = permission
+    db.session.commit()
+
+
 def get_report_survey(report_id: int) -> int:
     report = Report.query.filter_by(id=report_id).first()
     if report is None:
