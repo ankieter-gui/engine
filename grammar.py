@@ -17,7 +17,7 @@ REQUEST_CREATE_SURVEY = {
 def analyze(tp: typing.Any, obj: typing.Any) -> str:
     if type(tp) is type:
         if type(obj) is tp:
-            return False
+            return ''
         else:
             return f'expected {tp.__name__}, got {type(obj).__name__}'
     if type(tp) is list:
@@ -26,7 +26,7 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
         for i, o in enumerate(obj):
             if msg := analyze(tp[0], o):
                 return f'in element [{i}]: {msg}'
-        return False
+        return ''
     if type(tp) is dict:
         if type(obj) is not dict:
             return f'expected {type(tp).__name__}, got {type(obj).__name__}'
@@ -41,7 +41,7 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
                 return f'expected key \'{k}\''
             if msg := analyze(t, obj[k]):
                 return f'in element \'{k}\': {msg}'
-        return False
+        return ''
     return 'unexpected object type'
 
 
