@@ -1,11 +1,12 @@
-from pandas import read_csv
 from flask_sqlalchemy import SQLAlchemy
-from config import *
+from pandas import read_csv
 from random import randint
 from typing import Literal
-import os
+from flask import session
+from config import *
 import sqlite3
 import error
+import os
 
 db = SQLAlchemy(app)
 user_role = Literal['s', 'u', 'p']
@@ -82,6 +83,10 @@ class ReportPermission(db.Model):
 
 ADMIN.add_view(ModelView(User, db.session))
 ADMIN.add_view(ModelView(Survey, db.session))
+
+
+def get_user() -> User:
+    return User.query.filter_by(CasLogin=session['username'])
 
 
 def get_user_role(user_id: int):
@@ -208,5 +213,3 @@ def csv_to_db(survey_id: int):
         return True
     except sqlite3.Error as err:
         return err
-
-

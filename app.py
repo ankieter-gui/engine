@@ -44,7 +44,8 @@ def create_report():
         grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
         report = request.json
-        report_id = database.create_report(report["userId"], report["surveyId"], report["title"])
+        user = database.get_user()
+        report_id = database.create_report(user.id, report["surveyId"], report["title"])
         with open(f'report/{report_id}.json', 'w') as file:
             json.dump(report, file)
     except error.API as err:

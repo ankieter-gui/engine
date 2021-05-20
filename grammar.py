@@ -9,7 +9,6 @@ REQUEST_TABLE = {
 }
 
 REQUEST_CREATE_SURVEY = {
-    'userId':   int,
     'surveyId': int,
     'title':    str,
 }
