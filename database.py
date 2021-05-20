@@ -2,11 +2,17 @@ from pandas import read_csv
 from flask_sqlalchemy import SQLAlchemy
 from config import *
 from random import randint
+from typing import Literal
 import os
 import sqlite3
 import error
 
 db = SQLAlchemy(app)
+user_role = Literal['s', 'u', 'p']
+user_roles = {'s': 0, 'u': 1, 'g': 2, 0: 's', 1: 's', 2: 'g'}
+permission_type = Literal['o', 'w', 'r']
+permissions_types = {'o': 0, 'w': 1, 'r': 2, 0: 'o', 1: 'w', 2: 'r'}
+
 
 class User(db.Model):
     __tablename__ = "Users"
@@ -73,13 +79,25 @@ class ReportPermission(db.Model):
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
     Type = db.Column(db.Integer, default=2, nullable=False)
 
+
 ADMIN.add_view(ModelView(User, db.session))
 ADMIN.add_view(ModelView(Survey, db.session))
 
-# set_user_role
-# get_user_role
-# get_survey_permission
-# set_survey_permission
+
+def get_user_role(user_id: int):
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        raise error.API('no such user')
+    return user_roles[user.Role]
+
+
+def set_user_role(user_id: int, role: user_role):
+    user = User.query.filter_by(id=user_id).first()
+    if user is None:
+        raise error.API('no such user')
+    user.Role = user_roles[role]
+    db.session.commit()
+
 
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
 def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
@@ -89,13 +107,13 @@ def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
         db.session.add(survey)
     if name:
         survey.Name = name
-    if meta["started_on"] :
+    if meta["started_on"]:
         survey.StartedOn = meta["started_on"]
     if meta["ends_on"]:
         survey.EndsOn = meta["ends_on"]
     if meta["is_active"]:
         survey.IsActive = meta["is_active"]
-    if survey.BackgroundImg == None:
+    if survey.BackgroundImg is None:
         bkgs = os.listdir('bkg')
         survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
     db.session.commit()
@@ -103,12 +121,19 @@ def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
     return True
 
 
-def set_survey_permission(survey_id: int, user_id: int, permission: int):
+def get_survey_permission(survey_id: int, user_id: int):
+    sp = SurveyPermission.query.filter_by(SurveyId=survey_id, UserId=user_id).first()
+    if sp is None:
+        raise error.API('no such survey permission')
+    return permissions_types[sp.Type]
+
+
+def set_survey_permission(survey_id: int, user_id: int, permission: permission_type):
     sp = SurveyPermission.query.filter_by(SurveyId=survey_id, UserId=user_id).first()
     if sp is None:
         sp = SurveyPermission(SurveyId=survey_id, UserId=user_id)
         db.session.add(sp)
-    sp.Type = permission
+    sp.Type = permissions_types[permission]
     db.session.commit()
 
 
@@ -119,15 +144,19 @@ def get_report_survey(report_id: int) -> int:
     return report.SurveyId
 
 
-# get_report_permission
+def get_report_permission(report_id: int, user_id: int):
+    sp = SurveyPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
+    if sp is None:
+        raise error.API('no such report permission')
+    return permissions_types[sp.Type]
 
 
-def set_report_permission(report_id: int, user_id: int, permission: int):
+def set_report_permission(report_id: int, user_id: int, permission: permission_type):
     rp = ReportPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
     if rp is None:
         rp = ReportPermission(ReportId=report_id, UserId=user_id)
         db.session.add(rp)
-    rp.Type = permission
+    rp.Type = permissions_types[permission]
     db.session.commit()
 
 
@@ -136,7 +165,7 @@ def create_report(user_id: int, survey_id: int, name: int) -> int:
     bg = Survey.query.filter_by(id=survey_id)
     db.session.add(report)
     db.session.commit()
-    set_report_permission(report.id, user_id, 0)
+    set_report_permission(report.id, user_id, 'o')
     return report.id
 
 
