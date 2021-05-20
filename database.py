@@ -82,7 +82,7 @@ ADMIN.add_view(ModelView(Survey, db.session))
 # set_survey_permission
 
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
-def add_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
+def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
     survey = Survey.query.filter_by(AnkieterId=survey_id).first()
     if survey is None:
         survey = Survey(Name=name, AnkieterId=survey_id, QuestionCount=question_count)
