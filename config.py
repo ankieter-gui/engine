@@ -1,3 +1,4 @@
+# -- config section -----------------------------------------------------------
 # URL of the CAS service used by the institution
 CAS_URL='https://cas.amu.edu.pl/cas/'
 
@@ -10,8 +11,8 @@ APP_URL='http://localhost:5000'
 # must be True or False; change to True for detailed logs during app runtime
 DEBUG=True
 
-# the code below applies the given configurarion and the user is not encouraged
-# to change it in any way
+# the code below applies the given configurarion and the user is not ----------
+# encouraged to change it in any way ------------------------------------------
 
 from flask import Flask, redirect, url_for, request, session, g
 from flask_admin.contrib.sqla import ModelView
@@ -20,7 +21,6 @@ from flask_cors import CORS
 from cas import CASClient
 from os import urandom
 
-# -- general config -----------------------------------------------------------
 app = Flask(__name__)
 app.config.from_mapping(
     SECRET_KEY=urandom(22), #'sTzMzxFX8BcJt3wuvNvDeQ',
@@ -30,21 +30,15 @@ app.config.from_mapping(
     DEBUG=DEBUG
 )
 
-
-# -- admin panel config -------------------------------------------------------
+# under class definitions in database.py ADMIN is also later attached to the db
 ADMIN = Admin(app, name='Ankieter+', template_mode='bootstrap3')
-# it is also later attached to the db under class definitions in database.py
 
-
-# -- CAS config ---------------------------------------------------------------
 CAS_CLIENT = CASClient(
     version=CAS_VERSION,
     service_url=f'{APP_URL}/login',
     server_url=CAS_URL
 )
 
-
-# -- CORS config --------------------------------------------------------------
 cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
 @app.after_request
 def after_request(response):
