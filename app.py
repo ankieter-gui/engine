@@ -78,9 +78,8 @@ def create_report():
 
         report = request.json
         report_id = database.create_report(report["userId"], report["surveyId"], report["title"])
-        file = open(f'report/{report_id}.json', 'w')
-        json.dump(report, file)
-        file.close()
+        with open(f'report/{report_id}.json', 'w') as file:
+            json.dump(report, file)
     except error.API as err:
         return err.add_details('could not create report').as_dict()
     return {"reportId": report_id}
@@ -88,16 +87,14 @@ def create_report():
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    file = open(f'report/{report_id}.json', mode='w')
-    json.dump(request.json, file)
-    file.close()
+    with open(f'report/{report_id}.json', mode='w') as file:
+        json.dump(request.json, file)
 
 
 @app.route('/report/<int:report_id>', methods=['GET'])
 def get_report(report_id):
-    file = open(f'report/{report_id}.json', mode='r')
-    data = json.load(file)
-    file.close()
+    with open(f'report/{report_id}.json', mode='r') as file:
+        data = json.load(file)
     return data
 
 
