@@ -1,6 +1,5 @@
 import sqlite3
 from pandas import concat, read_sql_query
-from app import convert_csv
 import database
 import grammar
 import error

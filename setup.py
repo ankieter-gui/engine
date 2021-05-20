@@ -9,6 +9,7 @@ from flask_sqlalchemy import SQLAlchemy
 from faker import Faker
 from datetime import datetime
 import os
+from database import csv_to_db
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
@@ -42,11 +43,13 @@ class Survey(db.Model):
     QuestionCount = db.Column(db.Integer, nullable=False)
     BackgroundImg = db.Column(db.String(50))
 
+
 class Report(db.Model):
     __tablename__ = "Reports"
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(80), nullable=False)
     SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), nullable=False)
+    BackgroundImg = db.Column(db.String(50))
 
 
 class UserGroup(db.Model):
@@ -81,6 +84,7 @@ class ReportPermission(db.Model):
     Type = db.Column(db.Integer, default=2, nullable=False)
 
 
+<<<<<<< HEAD
 def convert_csv(target_id):
     global columns_number
     con = sqlite3.connect("data/" + str(target_id) + ".db")
@@ -97,6 +101,22 @@ def get_sample_tuples(n, *args):
     args = map(lambda x: range(1, x+1), args)
     s = random.sample(sorted(product(*args)), n)
     return s
+=======
+def get_columns_number(df) -> int:
+    return len(df.columns)
+
+
+def remove_duplicates(primary_keys):
+    return list(set([i for i in primary_keys]))
+
+
+def add_permission(pesel, ankieter_id):
+    survey = Survey.query.filter_by(AnkieterId=ankieter_id).first()
+    user = User.query.filter_by(CasLogin=pesel).first()
+    db.session.add(SurveyPermission(SurveyId=survey.id, UserId=user.id, Type=0))
+
+    db.session.commit()
+>>>>>>> b24995eb0d2501491b06eb82f0db9daa2c8768b7
 
 
 if __name__ == "__main__":
@@ -117,7 +137,7 @@ if __name__ == "__main__":
     for filename in os.listdir('temp'):
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
-            convert_csv(survey_id)
+            csv_to_db(survey_id)
             db.session.add(Survey(
                 Name='ankieta testowa',
                 AnkieterId=survey_id,

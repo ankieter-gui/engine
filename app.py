@@ -33,6 +33,7 @@ app.config.from_mapping(
 db = SQLAlchemy(app)
 ADMIN = Admin(app, name='Ankieter', template_mode='bootstrap3')
 ADMIN.add_view(ModelView(User, db.session))
+ADMIN.add_view(ModelView(Survey, db.session))
 
 CAS_CLIENT = CASClient(
     version=2,
@@ -49,14 +50,15 @@ def get_dashboard():
     for sp in survey_permissions:
         survey = Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
-            'name': "placeholder name",
+            'name': survey.Name,
             'type': "survey",
             'id': survey.AnkieterId,
             'userId': sp.UserId,
             'startedOn': survey.StartedOn.timestamp(),
             'endsOn': survey.EndsOn.timestamp(),
             'isActive': survey.IsActive,
-            'questionCount': survey.QuestionCount
+            'questionCount': survey.QuestionCount,
+            'backgroundImg': survey.BackgroundImg
         })
     return {"objects": result}
 
@@ -76,7 +78,6 @@ def create_report():
 
         report = request.json
         report_id = database.create_report(report["userId"], report["surveyId"], report["title"])
-
         file = open(f'report/{report_id}.json', 'w')
         json.dump(report, file)
         file.close()

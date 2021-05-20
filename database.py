@@ -41,6 +41,7 @@ def set_report_permission(report_id: int, user_id: int, permission: int):
 
 def create_report(user_id: int, survey_id: int, name: int) -> int:
     report = Report(Name=name, SurveyId=survey_id)
+    bg = Survey.query.filter_by(SurveyId=surve)
     db.session.add(report)
     db.session.commit()
     set_report_permission(report.id, user_id, 0)
@@ -82,5 +83,7 @@ def csv_to_db(survey_id: int):
         df = read_csv(f"temp/{survey_id}.csv", sep=",")
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
+        conn.close()
+        return True
     except sqlite3.Error as e:
         return e
