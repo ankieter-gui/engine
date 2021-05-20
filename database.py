@@ -30,9 +30,9 @@ class Survey(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     Name = db.Column(db.String(80), nullable=False)
     AnkieterId = db.Column(db.Integer, unique=True)
-    StartedOn = db.Column(db.DateTime, nullable=False)
-    EndsOn = db.Column(db.DateTime, nullable=False)
-    IsActive = db.Column(db.Integer, nullable=False)
+    StartedOn = db.Column(db.DateTime, nullable=True)
+    EndsOn = db.Column(db.DateTime, nullable=True)
+    IsActive = db.Column(db.Integer, nullable=True)
     QuestionCount = db.Column(db.Integer, nullable=False)
     BackgroundImg = db.Column(db.String(50))
 
@@ -82,6 +82,9 @@ class ReportPermission(db.Model):
 # get_survey_permission
 # set_survey_permission
 
+def add_survey_meta(survey_id: int, name: str, meta: dict):
+    return
+
 
 def set_survey_permission(survey_id: int, user_id: int, permission: int):
     sp = SurveyPermission.query.filter_by(SurveyId=survey_id, UserId=user_id).first()
@@ -113,7 +116,7 @@ def set_report_permission(report_id: int, user_id: int, permission: int):
 
 def create_report(user_id: int, survey_id: int, name: int) -> int:
     report = Report(Name=name, SurveyId=survey_id)
-    bg = Survey.query.filter_by(SurveyId=surve)
+    bg = Survey.query.filter_by(id=survey_id)
     db.session.add(report)
     db.session.commit()
     set_report_permission(report.id, user_id, 0)
