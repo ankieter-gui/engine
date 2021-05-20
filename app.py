@@ -2,7 +2,6 @@ from flask import redirect, url_for, request, session, g
 from flask_sqlalchemy import SQLAlchemy
 
 from config import *
-from setup import *
 import json
 import sqlite3
 import os
@@ -89,7 +88,7 @@ def get_report_survey(report_id):
 
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
-def data_types(survey_id):
+def get_data_types(survey_id):
     conn = database.open_survey(survey_id)
     types = database.get_types(conn)
     conn.close()
