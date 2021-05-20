@@ -1,5 +1,5 @@
-import sqlite3
 from pandas import concat, read_sql_query
+import sqlite3
 import database
 import grammar
 import error

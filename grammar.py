@@ -1,4 +1,3 @@
-# at least Python 3.8, because of the use of :=
 import typing
 import error
 
