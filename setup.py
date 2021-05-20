@@ -1,14 +1,11 @@
+from datetime import datetime
+from database import *
+import faker
 import random
 import sqlite3
 import pandas
 import string
-
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from faker import Faker
-from datetime import datetime
 import os
-from database import *
 
 
 def get_survey_quest_num(survey_id: int):
@@ -32,7 +29,7 @@ if __name__ == "__main__":
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-    fake = Faker(locale="pl_PL")
+    fake = faker.Faker(locale="pl_PL")
 
     USERS_AMOUNT = 20
     GROUPS_AMOUNT = 3

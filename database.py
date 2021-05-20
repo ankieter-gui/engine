@@ -1,15 +1,11 @@
 from pandas import read_csv
-from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from config import *
 import os
 import sqlite3
 import error
 
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
 
 class User(db.Model):
     __tablename__ = "Users"
@@ -76,6 +72,8 @@ class ReportPermission(db.Model):
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
     Type = db.Column(db.Integer, default=2, nullable=False)
 
+ADMIN.add_view(ModelView(User, db.session))
+ADMIN.add_view(ModelView(Survey, db.session))
 
 # set_user_role
 # get_user_role

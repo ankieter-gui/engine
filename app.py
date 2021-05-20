@@ -1,9 +1,7 @@
 from flask import redirect, url_for, request, session, g
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
-from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from cas import CASClient
+
+from config import *
 from setup import *
 import json
 import sqlite3
@@ -12,34 +10,6 @@ import table
 import database
 import grammar
 import error
-
-app = Flask(__name__)
-cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
-@app.after_request
-def after_request(response):
-  response.headers.add('Access-Control-Allow-Origin', 'http://localhost:4200')
-  response.headers.add('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization')
-  response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-  response.headers.add('Access-Control-Allow-Credentials', 'true')
-  return response
-app.config.from_mapping(
-    SECRET_KEY='sTzMzxFX8BcJt3wuvNvDeQ',
-    FLASK_ADMIN_SWATCH='cerulean',
-    SQLALCHEMY_DATABASE_URI='sqlite:///master.db',
-    SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    DEBUG=True
-)
-
-db = SQLAlchemy(app)
-ADMIN = Admin(app, name='Ankieter', template_mode='bootstrap3')
-ADMIN.add_view(ModelView(database.User, db.session))
-ADMIN.add_view(ModelView(database.Survey, db.session))
-
-CAS_CLIENT = CASClient(
-    version=2,
-    service_url='http://localhost:5000/login',
-    server_url='https://cas.amu.edu.pl/cas/'
-)
 
 
 @app.route('/dashboard', methods=['GET'])
