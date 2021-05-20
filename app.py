@@ -1,6 +1,4 @@
 from flask import redirect, url_for, request, session, g
-from flask_sqlalchemy import SQLAlchemy
-
 from config import *
 import json
 import sqlite3
