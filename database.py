@@ -1,6 +1,7 @@
 from pandas import read_csv
 from flask_sqlalchemy import SQLAlchemy
 from config import *
+from random import randint
 import os
 import sqlite3
 import error
@@ -30,7 +31,7 @@ class Survey(db.Model):
     EndsOn = db.Column(db.DateTime, nullable=True)
     IsActive = db.Column(db.Integer, nullable=True)
     QuestionCount = db.Column(db.Integer, nullable=False)
-    BackgroundImg = db.Column(db.String(50))
+    BackgroundImg = db.Column(db.String(50), default=None)
 
 
 class Report(db.Model):
@@ -80,8 +81,26 @@ ADMIN.add_view(ModelView(Survey, db.session))
 # get_survey_permission
 # set_survey_permission
 
-def add_survey_meta(survey_id: int, name: str, meta: dict):
-    return
+# meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
+def add_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
+    survey = Survey.query.filter_by(AnkieterId=survey_id).first()
+    if survey is None:
+        survey = Survey(Name=name, AnkieterId=survey_id, QuestionCount=question_count)
+        db.session.add(survey)
+    if name:
+        survey.Name = name
+    if meta["started_on"] :
+        survey.StartedOn = meta["started_on"]
+    if meta["ends_on"]:
+        survey.EndsOn = meta["ends_on"]
+    if meta["is_active"]:
+        survey.IsActive = meta["is_active"]
+    if survey.BackgroundImg == None:
+        bkgs = os.listdir('bkg')
+        survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
+    db.session.commit()
+    print("Survey meta data added")
+    return True
 
 
 def set_survey_permission(survey_id: int, user_id: int, permission: int):
@@ -160,3 +179,5 @@ def csv_to_db(survey_id: int):
         return True
     except sqlite3.Error as err:
         return err
+
+
