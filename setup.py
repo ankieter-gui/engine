@@ -25,7 +25,7 @@ def get_sample_tuples(n: int, *args: list[int]) -> list[tuple]:
 
 
 if __name__ == "__main__":
-    for dir in ['data', 'temp', 'report', 'bkg']:
+    for dir in ['data', 'raw', 'report', 'bkg']:
         if not os.path.exists(dir):
             os.makedirs(dir)
 
@@ -40,7 +40,7 @@ if __name__ == "__main__":
     db.drop_all()
     db.create_all()
 
-    for filename in os.listdir('temp'):
+    for filename in os.listdir('raw'):
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
             csv_to_db(survey_id)

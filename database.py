@@ -153,7 +153,7 @@ def csv_to_db(survey_id: int):
     try:
         conn = sqlite3.connect(f"data/{survey_id}.db")
         cur = conn.cursor()
-        df = read_csv(f"temp/{survey_id}.csv", sep=",")
+        df = read_csv(f"raw/{survey_id}.csv", sep=",")
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
         conn.close()
