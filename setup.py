@@ -2,89 +2,23 @@ import random
 import sqlite3
 import pandas
 import string
-import database
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from faker import Faker
 from datetime import datetime
 import os
-from database import csv_to_db
-
-app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///master.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-columns_number = {}
+from database import *
 
 
-class User(db.Model):
-    __tablename__ = "Users"
-    id = db.Column(db.Integer, primary_key=True)
-    CasLogin = db.Column(db.String(80), unique=True, nullable=False)
-    FetchData = db.Column(db.Boolean, nullable=False)
-    Role = db.Column(db.Integer, default=2, nullable=False)
+def get_survey_quest_num(survey_id: int):
+    conn = open_survey(survey_id)
+    num = len(get_columns(conn))
+    conn.close()
+    return num
 
 
-class Group(db.Model):
-    __tablename__ = "Groups"
-    id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.String(25), nullable=False)
-
-
-class Survey(db.Model):
-    __tablename__ = "Surveys"
-    id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.String(80), nullable=False)
-    AnkieterId = db.Column(db.Integer, unique=True)
-    StartedOn = db.Column(db.DateTime, nullable=False)
-    EndsOn = db.Column(db.DateTime, nullable=False)
-    IsActive = db.Column(db.Integer, nullable=False)
-    QuestionCount = db.Column(db.Integer, nullable=False)
-    BackgroundImg = db.Column(db.String(50))
-
-
-class Report(db.Model):
-    __tablename__ = "Reports"
-    id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.String(80), nullable=False)
-    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), nullable=False)
-    BackgroundImg = db.Column(db.String(50))
-
-
-class UserGroup(db.Model):
-    __tablename__ = "UserGroups"
-    GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
-    UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
-
-
-class SurveyGroup(db.Model):
-    __tablename__ = "SurveyGroups"
-    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True)
-    GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
-
-
-class ReportGroup(db.Model):
-    __tablename__ = "ReportGroups"
-    ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
-    GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
-
-
-class SurveyPermission(db.Model):
-    __tablename__ = "SurveyPermissions"
-    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True)
-    UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
-    Type = db.Column(db.Integer, default=2, nullable=False)
-
-
-class ReportPermission(db.Model):
-    __tablename__ = "ReportPermissions"
-    ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
-    UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
-    Type = db.Column(db.Integer, default=2, nullable=False)
-
-
-def get_sample_tuples(n, *args):
+def get_sample_tuples(n: int, *args: list[int]):
     from itertools import product
     from functools import reduce
     n = min(n, reduce(lambda a, b: a*b, args))
@@ -94,9 +28,6 @@ def get_sample_tuples(n, *args):
 
 
 if __name__ == "__main__":
-    db.drop_all()
-    db.create_all()
-
     for dir in ['data', 'temp', 'report', 'bkg']:
         if not os.path.exists(dir):
             os.makedirs(dir)
@@ -108,6 +39,10 @@ if __name__ == "__main__":
     REPORTS_AMOUNT = 5
 
     surveys_amount = 0
+
+    db.drop_all()
+    db.create_all()
+
     for filename in os.listdir('temp'):
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
@@ -118,7 +53,7 @@ if __name__ == "__main__":
                 StartedOn=datetime(2020, 3, random.randint(1, 31)),
                 EndsOn=datetime(2021, 6, random.randint(1, 30)),
                 IsActive=random.randint(0, 1),
-                QuestionCount=columns_number[survey_id]))
+                QuestionCount=get_survey_quest_num(survey_id)))
             surveys_amount += 1
 
     for _ in range(USERS_AMOUNT - 1):
@@ -156,4 +91,4 @@ if __name__ == "__main__":
     db.session.commit()
 
     for survey in Survey.query.all():
-        database.set_survey_permission(survey.id, user.id, 0)
+        set_survey_permission(survey.id, 1, 0)

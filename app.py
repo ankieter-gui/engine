@@ -32,8 +32,8 @@ app.config.from_mapping(
 
 db = SQLAlchemy(app)
 ADMIN = Admin(app, name='Ankieter', template_mode='bootstrap3')
-ADMIN.add_view(ModelView(User, db.session))
-ADMIN.add_view(ModelView(Survey, db.session))
+ADMIN.add_view(ModelView(database.User, db.session))
+ADMIN.add_view(ModelView(database.Survey, db.session))
 
 CAS_CLIENT = CASClient(
     version=2,
@@ -44,11 +44,11 @@ CAS_CLIENT = CASClient(
 
 @app.route('/dashboard', methods=['GET'])
 def get_dashboard():
-    user = User.query.filter_by(CasLogin=session['username']).first()
-    survey_permissions = SurveyPermission.query.filter_by(UserId=user.id).all()
+    user = database.User.query.filter_by(CasLogin=session['username']).first()
+    survey_permissions = database.SurveyPermission.query.filter_by(UserId=user.id).all()
     result = []
     for sp in survey_permissions:
-        survey = Survey.query.filter_by(id=sp.SurveyId).first()
+        survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
             'name': survey.Name,
             'type': "survey",
