@@ -46,14 +46,6 @@ AGGREGATORS = {
     'sum':    Aggregator('sum',    'INTEGER', 'REAL')
 }
 
-def is_str(x):
-    return isinstance(x, str)
-
-def is_list_of_str(x):
-    return isinstance(x, list) and all(map(is_str, x))
-
-def is_list_of_list_of_str(x):
-    return isinstance(x, list) and all(map(is_list_of_str, x))
 
 def typecheck(json_query, types):
     grammar.check(grammar.REQUEST_TABLE, json_query)
