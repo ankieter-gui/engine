@@ -175,8 +175,7 @@ def create_report(user_id: int, survey_id: int, name: int) -> int:
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
-    script_absolute_directory_path = os.path.dirname(os.path.realpath(__file__))
-    db_absolute_path = os.path.join(script_absolute_directory_path, f"data/{survey_id}.db")
+    db_absolute_path = os.path.join(ABSOLUTE_DIR_PATH, f"data/{survey_id}.db")
     return sqlite3.connect(db_absolute_path)
 
 
