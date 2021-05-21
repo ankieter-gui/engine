@@ -9,9 +9,9 @@ import error
 import os
 
 db = SQLAlchemy(app)
-user_role = Literal['s', 'u', 'p']
+Role = Literal['s', 'u', 'g']
 # user_roles = {'s': 0, 'u': 1, 'g': 2, 0: 's', 1: 's', 2: 'g'}
-permission_type = Literal['o', 'w', 'r']
+Permission = Literal['o', 'w', 'r']
 # permissions_types = {'o': 0, 'w': 1, 'r': 2, 0: 'o', 1: 'w', 2: 'r'}
 
 
@@ -89,14 +89,14 @@ def get_user() -> User:
     return User.query.filter_by(CasLogin=session['username'])
 
 
-def get_user_role(user_id: int) -> user_role:
+def get_user_role(user_id: int) -> Role:
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         raise error.API('no such user')
     return user.Role
 
 
-def set_user_role(user_id: int, role: user_role):
+def set_user_role(user_id: int, role: Role):
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         raise error.API('no such user')
@@ -126,14 +126,14 @@ def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
     return True
 
 
-def get_survey_permission(survey_id: int, user_id: int) -> permission_type:
+def get_survey_permission(survey_id: int, user_id: int) -> Permission:
     sp = SurveyPermission.query.filter_by(SurveyId=survey_id, UserId=user_id).first()
     if sp is None:
         raise error.API('no such survey permission')
     return sp.Type
 
 
-def set_survey_permission(survey_id: int, user_id: int, permission: permission_type):
+def set_survey_permission(survey_id: int, user_id: int, permission: Permission):
     sp = SurveyPermission.query.filter_by(SurveyId=survey_id, UserId=user_id).first()
     if sp is None:
         sp = SurveyPermission(SurveyId=survey_id, UserId=user_id)
@@ -149,14 +149,14 @@ def get_report_survey(report_id: int) -> int:
     return report.SurveyId
 
 
-def get_report_permission(report_id: int, user_id: int) -> permission_type:
+def get_report_permission(report_id: int, user_id: int) -> Permission:
     sp = SurveyPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
     if sp is None:
         raise error.API('no such report permission')
     return sp.Type
 
 
-def set_report_permission(report_id: int, user_id: int, permission: permission_type):
+def set_report_permission(report_id: int, user_id: int, permission: Permission):
     rp = ReportPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
     if rp is None:
         rp = ReportPermission(ReportId=report_id, UserId=user_id)
