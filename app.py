@@ -44,7 +44,7 @@ def create_report():
         grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
         report = request.json
-        user = database.get_user()
+        user = database.get_user(session['username'])
         report_id = database.create_report(user.id, report["surveyId"], report["title"])
         with open(f'report/{report_id}.json', 'w') as file:
             json.dump(report, file)
