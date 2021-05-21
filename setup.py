@@ -55,7 +55,8 @@ if __name__ == "__main__":
 
     for _ in range(USERS_AMOUNT - 1):
         cas_login = ''.join([random.choice(string.digits) for i in range(11)])
-        role = random.randint(0, 2)
+        # role = random.randint(0, 2)
+        role = random.choice('gus')
         db.session.add(User(CasLogin=cas_login, Role=role, FetchData=False))
 
     for _ in range(GROUPS_AMOUNT):
@@ -77,10 +78,10 @@ if __name__ == "__main__":
         db.session.add(ReportGroup(ReportId=r_id, GroupId=g_id))
 
     for s_id, u_id in get_sample_tuples(18, surveys_amount, USERS_AMOUNT):
-        db.session.add(SurveyPermission(SurveyId=s_id, UserId=u_id, Type=random.randint(0, 2)))
+        db.session.add(SurveyPermission(SurveyId=s_id, UserId=u_id, Type=random.choice('rwo')))
 
     for r_id, u_id in get_sample_tuples(18, REPORTS_AMOUNT, USERS_AMOUNT):
-        db.session.add(ReportPermission(ReportId=r_id, UserId=u_id, Type=random.randint(0, 2)))
+        db.session.add(ReportPermission(ReportId=r_id, UserId=u_id, Type=random.choice('rwo')))
 
     pesel = input('Podaj swój pesel\n')
     user = User.query.filter_by(id=1).first()

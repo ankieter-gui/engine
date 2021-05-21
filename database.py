@@ -10,9 +10,9 @@ import os
 
 db = SQLAlchemy(app)
 user_role = Literal['s', 'u', 'p']
-user_roles = {'s': 0, 'u': 1, 'g': 2, 0: 's', 1: 's', 2: 'g'}
+# user_roles = {'s': 0, 'u': 1, 'g': 2, 0: 's', 1: 's', 2: 'g'}
 permission_type = Literal['o', 'w', 'r']
-permissions_types = {'o': 0, 'w': 1, 'r': 2, 0: 'o', 1: 'w', 2: 'r'}
+# permissions_types = {'o': 0, 'w': 1, 'r': 2, 0: 'o', 1: 'w', 2: 'r'}
 
 
 class User(db.Model):
@@ -20,7 +20,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     CasLogin = db.Column(db.String(80), unique=True, nullable=False)
     FetchData = db.Column(db.Boolean, nullable=False)
-    Role = db.Column(db.Integer, default=2, nullable=False)
+    Role = db.Column(db.String, default='g', nullable=False)
 
 
 class Group(db.Model):
@@ -71,14 +71,14 @@ class SurveyPermission(db.Model):
     __tablename__ = "SurveyPermissions"
     SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True)
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
-    Type = db.Column(db.Integer, default=2, nullable=False)
+    Type = db.Column(db.String, default='r', nullable=False)
 
 
 class ReportPermission(db.Model):
     __tablename__ = "ReportPermissions"
     ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
-    Type = db.Column(db.Integer, default=2, nullable=False)
+    Type = db.Column(db.String, default='r', nullable=False)
 
 
 ADMIN.add_view(ModelView(User, db.session))
@@ -89,18 +89,18 @@ def get_user() -> User:
     return User.query.filter_by(CasLogin=session['username'])
 
 
-def get_user_role(user_id: int):
+def get_user_role(user_id: int) -> user_role:
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         raise error.API('no such user')
-    return user_roles[user.Role]
+    return user.Role
 
 
 def set_user_role(user_id: int, role: user_role):
     user = User.query.filter_by(id=user_id).first()
     if user is None:
         raise error.API('no such user')
-    user.Role = user_roles[role]
+    user.Role = role
     db.session.commit()
 
 
@@ -126,11 +126,11 @@ def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
     return True
 
 
-def get_survey_permission(survey_id: int, user_id: int):
+def get_survey_permission(survey_id: int, user_id: int) -> permission_type:
     sp = SurveyPermission.query.filter_by(SurveyId=survey_id, UserId=user_id).first()
     if sp is None:
         raise error.API('no such survey permission')
-    return permissions_types[sp.Type]
+    return sp.Type
 
 
 def set_survey_permission(survey_id: int, user_id: int, permission: permission_type):
@@ -138,7 +138,7 @@ def set_survey_permission(survey_id: int, user_id: int, permission: permission_t
     if sp is None:
         sp = SurveyPermission(SurveyId=survey_id, UserId=user_id)
         db.session.add(sp)
-    sp.Type = permissions_types[permission]
+    sp.Type = permission
     db.session.commit()
 
 
@@ -149,11 +149,11 @@ def get_report_survey(report_id: int) -> int:
     return report.SurveyId
 
 
-def get_report_permission(report_id: int, user_id: int):
+def get_report_permission(report_id: int, user_id: int) -> permission_type:
     sp = SurveyPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
     if sp is None:
         raise error.API('no such report permission')
-    return permissions_types[sp.Type]
+    return sp.Type
 
 
 def set_report_permission(report_id: int, user_id: int, permission: permission_type):
@@ -161,7 +161,7 @@ def set_report_permission(report_id: int, user_id: int, permission: permission_t
     if rp is None:
         rp = ReportPermission(ReportId=report_id, UserId=user_id)
         db.session.add(rp)
-    rp.Type = permissions_types[permission]
+    rp.Type = permission
     db.session.commit()
 
 
@@ -205,7 +205,6 @@ def get_columns(conn: sqlite3.Connection) -> list[str]:
 def csv_to_db(survey_id: int):
     try:
         conn = sqlite3.connect(f"data/{survey_id}.db")
-        cur = conn.cursor()
         df = read_csv(f"raw/{survey_id}.csv", sep=",")
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
