@@ -11,7 +11,7 @@ import error
 
 @app.route('/dashboard', methods=['GET'])
 def get_dashboard():
-    user = database.User.query.filter_by(CasLogin=session['username']).first()
+    user = database.get_user()
     survey_permissions = database.SurveyPermission.query.filter_by(UserId=user.id).all()
     result = []
     for sp in survey_permissions:
@@ -44,7 +44,7 @@ def create_report():
         grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
         report = request.json
-        user = database.get_user(session['username'])
+        user = database.get_user()
         report_id = database.create_report(user.id, report["surveyId"], report["title"])
         with popen(f'report/{report_id}.json', 'w') as file:
             json.dump(report, file)
