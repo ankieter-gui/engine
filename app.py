@@ -78,6 +78,14 @@ def get_report(report_id):
     return data
 
 
+@app.route('/report/<int:report_id>/copy', methods=['GET'])
+def copy_report(report_id):
+    request.json = get_report(report_id)
+    if 'error' in request.json:
+        return request.json
+    return create_report()
+
+
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:
