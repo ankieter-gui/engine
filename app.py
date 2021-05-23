@@ -73,7 +73,8 @@ def copy_report(report_id):
         return report
     try:
         user = database.get_user()
-        report_id = database.create_report(user.id, report["surveyId"], report["title"])
+        survey = database.get_report_survey(report_id)
+        report_id = database.create_report(user.id, survey.id, report["title"])
         with popen(f'report/{report_id}.json', 'w') as file:
             json.dump(report, file)
     except error.API as err:
