@@ -17,15 +17,27 @@ def get_dashboard():
     for sp in survey_permissions:
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
-            'name': survey.Name,
-            'type': "survey",
-            'id': survey.AnkieterId,
-            'userId': sp.UserId,
-            'startedOn': survey.StartedOn.timestamp(),
-            'endsOn': survey.EndsOn.timestamp(),
-            'isActive': survey.IsActive,
+            'type': 'survey',
+            'id':            survey.id,
+            'name':          survey.Name,
+            'ankieterId':    survey.AnkieterId,
+            'startedOn':     survey.StartedOn.timestamp(),
+            'endsOn':        survey.EndsOn.timestamp(),
+            'isActive':      survey.IsActive,
             'questionCount': survey.QuestionCount,
-            'backgroundImg': survey.BackgroundImg
+            'backgroundImg': survey.BackgroundImg,
+            'userId':        sp.UserId
+        })
+    report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
+    for rp in report_permissions:
+        report = database.Report.query.filter_by(id=rp.ReportId).first()
+        result.append({
+            'type': 'report',
+            'id':            report.id,
+            'name':          report.Name,
+            'surveyId':      report.SurveyId,
+            'backgroundImg': report.BackgroundImd,
+            'userId':        rp.UserId
         })
     return {"objects": result}
 
