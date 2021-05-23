@@ -72,6 +72,7 @@ def set_report(report_id):
         json.dump(request.json, file)
     return {"reportId": report_id}
 
+
 @app.route('/report/<int:report_id>', methods=['GET'])
 def get_report(report_id):
     with popen(f'report/{report_id}.json', 'r') as file:
