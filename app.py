@@ -66,6 +66,21 @@ def create_report():
     return {"reportId": report_id}
 
 
+@app.route('/report/<int:report_id>/copy', methods=['GET'])
+def copy_report(report_id):
+    report = get_report(report_id)
+    if 'error' in report:
+        return report
+    try:
+        user = database.get_user()
+        report_id = database.create_report(user.id, report["surveyId"], report["title"])
+        with popen(f'report/{report_id}.json', 'w') as file:
+            json.dump(report, file)
+    except error.API as err:
+        return err.add_details('could not copy the report').as_dict()
+    return {"reportId": report_id}
+
+
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
     with popen(f'report/{report_id}.json', 'w') as file:
@@ -78,14 +93,6 @@ def get_report(report_id):
     with popen(f'report/{report_id}.json', 'r') as file:
         data = json.load(file)
     return data
-
-
-@app.route('/report/<int:report_id>/copy', methods=['GET'])
-def copy_report(report_id):
-    request.json = get_report(report_id)
-    if 'error' in request.json:
-        return request.json
-    return create_report()
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
