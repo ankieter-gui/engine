@@ -36,7 +36,7 @@ def get_dashboard():
             'id':            report.id,
             'name':          report.Name,
             'surveyId':      report.SurveyId,
-            'backgroundImg': report.BackgroundImd,
+            'backgroundImg': report.BackgroundImg,
             'userId':        rp.UserId
         })
     return {"objects": result}
