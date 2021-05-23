@@ -142,11 +142,12 @@ def set_survey_permission(survey_id: int, user_id: int, permission: Permission):
     db.session.commit()
 
 
-def get_report_survey(report_id: int) -> int:
+def get_report_survey(report_id: int) -> Survey:
     report = Report.query.filter_by(id=report_id).first()
     if report is None:
         raise error.API('no such report')
-    return report.SurveyId
+    survey = Report.query.filter_by(id=report.SurveyId).first()
+    return survey
 
 
 def get_report_permission(report_id: int, user_id: int) -> Permission:

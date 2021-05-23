@@ -30,16 +30,15 @@ def get_dashboard():
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
-
         report = database.Report.query.filter_by(id=rp.ReportId).first()
-        survey = database.Survey.query.filter_by(id=report.SurveyId).first()
+        survey = database.get_report_survey(report.id)
         result.append({
             'type': 'report',
-            'id':            report.id,
-            'name':          report.Name,
-            'connectedSurvey':      {"id":report.SurveyId, "name":survey.Name },
-            'backgroundImg': report.BackgroundImg,
-            'userId':        rp.UserId
+            'id':              report.id,
+            'name':            report.Name,
+            'connectedSurvey': {"id":report.SurveyId, "name":survey.Name },
+            'backgroundImg':   report.BackgroundImg,
+            'userId':          rp.UserId
         })
     return {"objects": result}
 
@@ -102,10 +101,10 @@ def get_data(survey_id):
 @app.route('/report/<int:report_id>/survey', methods=['GET'])
 def get_report_survey(report_id):
     try:
-        survey_id = database.get_report_survey(report_id)
+        survey = database.get_report_survey(report_id)
     except error.API as err:
         return err.add_details('could not find the source survey').as_dict()
-    return {"surveyId": survey_id}
+    return {"surveyId": survey.id}
 
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
