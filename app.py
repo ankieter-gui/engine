@@ -30,12 +30,14 @@ def get_dashboard():
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
+
         report = database.Report.query.filter_by(id=rp.ReportId).first()
+        survey = database.Survey.query.filter_by(id=report.SurveyId).first()
         result.append({
             'type': 'report',
             'id':            report.id,
             'name':          report.Name,
-            'surveyId':      report.SurveyId,
+            'connectedSurvey':      {"id":report.SurveyId, "name":survey.Name },
             'backgroundImg': report.BackgroundImg,
             'userId':        rp.UserId
         })
@@ -69,7 +71,7 @@ def create_report():
 def set_report(report_id):
     with popen(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
-
+    return {"reportId": report_id}
 
 @app.route('/report/<int:report_id>', methods=['GET'])
 def get_report(report_id):
