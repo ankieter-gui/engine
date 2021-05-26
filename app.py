@@ -96,6 +96,16 @@ def get_report(report_id):
     return data
 
 
+@app.route('/survey/<int:survey_id>', methods=['DELETE'])
+def delete_survey(survey_id):
+    return database.delete_survey(survey_id)
+
+
+@app.route('/report/<int:report_id>', methods=['DELETE'])
+def delete_report(report_id):
+    return database.delete_report(report_id)
+
+
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:

@@ -175,6 +175,36 @@ def create_report(user_id: int, survey_id: int, name: int) -> int:
     return report.id
 
 
+def delete_survey(survey_id: int):
+    survey = Survey.query.filter_by(id=survey_id).first()
+    if survey is None:
+        raise error.API('no such survey')
+    # db_path = 'data/' + str(survey_id) + '.db'
+    # if os.path.exists(db_path):
+    #     os.remove(db_path)
+    # xml_path = 'survey/' + str(survey_id) + '.xml'
+    # if os.path.exists(xml_path):
+    #     os.remove(xml_path)
+
+    SurveyPermission.query.filter_by(SurveyId=survey_id).delete()
+    SurveyGroup.query.filter_by(SurveyId=survey_id).delete()
+    Survey.query.filter_by(id=survey_id).delete()
+    db.session.commit()
+    return {'message': 'Survey has been deleted', 'survey_id': survey_id}
+
+
+def delete_report(report_id: int):
+    report = Report.query.filter_by(id=report_id).first()
+    if report is None:
+        raise error.API('no such survey')
+
+    ReportPermission.query.filter_by(ReportId=report_id).delete()
+    ReportGroup.query.filter_by(ReportId=report_id).delete()
+    Report.query.filter_by(id=report_id).delete()
+    db.session.commit()
+    return {'message': 'Report has been deleted', 'report_id': report_id}
+
+
 def open_survey(survey_id: int) -> sqlite3.Connection:
     db_absolute_path = os.path.join(ABSOLUTE_DIR_PATH, f"data/{survey_id}.db")
     return sqlite3.connect(db_absolute_path)
@@ -212,3 +242,8 @@ def csv_to_db(survey_id: int):
         return True
     except sqlite3.Error as err:
         return err
+
+
+if __name__ == '__main__':
+    delete_survey(1)
+    delete_report(1)
