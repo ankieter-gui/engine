@@ -168,7 +168,7 @@ def set_report_permission(report_id: int, user_id: int, permission: Permission):
 
 def create_report(user_id: int, survey_id: int, name: int) -> int:
     report = Report(Name=name, SurveyId=survey_id)
-    bg = Survey.query.filter_by(id=survey_id)
+    report["BackgroundImg"] = Survey.query.filter_by(id=survey_id).first()["BackgroundImg"]
     db.session.add(report)
     db.session.commit()
     set_report_permission(report.id, user_id, 'o')
