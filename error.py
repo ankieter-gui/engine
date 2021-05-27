@@ -9,3 +9,7 @@ class Generic(Exception):
 class API(Generic):
     def as_dict(self):
         return {'error': self.message}
+
+class Permission(Generic):
+    def as_dict(self):
+        return {'error': self.message}
