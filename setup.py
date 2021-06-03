@@ -2,8 +2,6 @@ from datetime import datetime
 from database import *
 import faker
 import random
-import sqlite3
-import pandas
 import string
 import os
 
