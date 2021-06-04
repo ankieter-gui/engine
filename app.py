@@ -84,9 +84,9 @@ def copy_report(report_id):
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=get_user().id).Type
-    if user_perm not in ['o', 'w']:
-        return error.Permission("You have no permission to edit this survey.")
+    #user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=get_user().id).Type
+    #if user_perm not in ['o', 'w']:
+    #    return error.Permission("You have no permission to edit this survey.")
     with popen(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
     return {"reportId": report_id}
