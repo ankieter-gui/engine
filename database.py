@@ -195,12 +195,34 @@ def delete_survey(survey_id: int):
 def delete_report(report_id: int):
     report = Report.query.filter_by(id=report_id).first()
     if report is None:
-        raise error.API('no such survey')
+        raise error.API('no such report')
     ReportPermission.query.filter_by(ReportId=report_id).delete()
     ReportGroup.query.filter_by(ReportId=report_id).delete()
     Report.query.filter_by(id=report_id).delete()
     db.session.commit()
     return {'message': 'Report has been deleted', 'report_id': report_id}
+
+
+def rename_report(report_id: int, request):
+    report = Report.query.filter_by(id=report_id).first()
+    if report is None:
+        raise error.API('no such report')
+    if 'title' not in request:
+        raise error.API('no parameter title')
+    report.Name = request['title']
+    db.session.commit()
+    return {'message': 'Report name has been changed', 'report_id': report_id, 'report_name': report_name}
+
+
+def rename_survey(survey_id: int, request):
+    survey = Survey.query.filter_by(id=survey_id).first()
+    if survey is None:
+        raise error.API('no such survey')
+    if 'title' not in request:
+        raise error.API('no parameter title')
+    survey.Name = request['title']
+    db.session.commit()
+    return {'message': 'Survey name has been changed', 'survey_id': survey_id, 'survey_name': survey_name}
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:

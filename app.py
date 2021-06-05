@@ -161,6 +161,24 @@ def get_questions(survey_id):
     return {'questions': questions}
 
 
+@app.route('/report/<int:report_id>/rename', methods=['POST'])
+def rename_report(report_id):
+    try:
+        result = database.rename_report(report_id, request.json)
+    except error.API as err:
+        result = err.as_dict()
+    return result
+
+
+@app.route('/survey/<int:survey_id>/rename', methods=['POST'])
+def rename_survey(survey_id):
+    try:
+        result = database.rename_survey(survey_id, request.json)
+    except error.API as err:
+        result = err.as_dict()
+    return result
+
+
 @app.route('/')
 def index():
     if 'username' in session:
