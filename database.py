@@ -185,9 +185,6 @@ def delete_survey(survey_id: int):
     # xml_path = 'survey/' + str(survey_id) + '.xml'
     # if os.path.exists(xml_path):
     #     os.remove(xml_path)
-    user_perm = SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=get_user().id).Type
-    if user_perm != 'o':
-        return error.Permission("You have no permission to delete this survey.")
     SurveyPermission.query.filter_by(SurveyId=survey_id).delete()
     SurveyGroup.query.filter_by(SurveyId=survey_id).delete()
     Survey.query.filter_by(id=survey_id).delete()
@@ -199,9 +196,6 @@ def delete_report(report_id: int):
     report = Report.query.filter_by(id=report_id).first()
     if report is None:
         raise error.API('no such survey')
-    user_perm = ReportPermission.query.filter_by(ReportId=report_id,UserId=get_user().id).Type
-    if user_perm != 'o':
-        return error.Permission("You have no permission to delete this report")
     ReportPermission.query.filter_by(ReportId=report_id).delete()
     ReportGroup.query.filter_by(ReportId=report_id).delete()
     Report.query.filter_by(id=report_id).delete()

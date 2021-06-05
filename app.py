@@ -48,6 +48,12 @@ def get_dashboard():
 #@app.route('/survey/<int:survey_id>', methods=['POST'])
 #@app.route('/report/new', methods=['POST'])
 
+@app.route('/data/new', methods=['POST'])
+def upload_results():
+    if 'file' in request.files['file']:
+        return
+
+
 
 @app.route('/report/new', methods=['POST'])
 def create_report():
@@ -84,9 +90,9 @@ def copy_report(report_id):
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    #user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=get_user().id).Type
-    #if user_perm not in ['o', 'w']:
-    #    return error.Permission("You have no permission to edit this survey.")
+    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=get_user().id).Type
+    if user_perm not in ['o', 'w']:
+        return error.Permission("You have no permission to edit this report.")
     with popen(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
     return {"reportId": report_id}
@@ -101,11 +107,17 @@ def get_report(report_id):
 
 @app.route('/survey/<int:survey_id>', methods=['DELETE'])
 def delete_survey(survey_id):
+    user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=database.get_user().id).Type
+    if user_perm != 'o':
+        return error.Permission("You have no permission to delete this survey.")
     return database.delete_survey(survey_id)
 
 
 @app.route('/report/<int:report_id>', methods=['DELETE'])
 def delete_report(report_id):
+    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=database.get_user().id).Type
+    if user_perm != 'o':
+        return error.Permission("You have no permission to delete this report")
     return database.delete_report(report_id)
 
 
@@ -131,17 +143,21 @@ def get_report_survey(report_id):
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
 def get_data_types(survey_id):
-    conn = database.open_survey(survey_id)
-    types = database.get_types(conn)
-    conn.close()
+    db = database.Survey.query.filter_by(id=survey_id).first()
+    if db:
+        conn = database.open_survey(survey_id)
+        types = database.get_types(conn)
+        conn.close()
     return types
 
 
 @app.route('/data/<int:survey_id>/questions', methods=['GET'])
 def get_questions(survey_id):
-    conn = database.open_survey(survey_id)
-    questions = database.get_columns(conn)
-    conn.close()
+    db = database.Survey.query.filter_by(id=survey_id).first()
+    if db:
+        conn = database.open_survey(survey_id)
+        questions = database.get_columns(conn)
+        conn.close()
     return {'questions': questions}
 
 
