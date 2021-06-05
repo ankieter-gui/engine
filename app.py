@@ -90,7 +90,7 @@ def copy_report(report_id):
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=get_user().id).Type
+    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=get_user().id).first().Type
     if user_perm not in ['o', 'w']:
         return error.Permission("You have no permission to edit this report.")
     with popen(f'report/{report_id}.json', 'w') as file:
