@@ -107,7 +107,7 @@ def get_report(report_id):
 
 @app.route('/survey/<int:survey_id>', methods=['DELETE'])
 def delete_survey(survey_id):
-    user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=database.get_user().id).Type
+    user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=database.get_user().id).first().Type
     if user_perm != 'o':
         return error.Permission("You have no permission to delete this survey.")
     return database.delete_survey(survey_id)
@@ -115,7 +115,7 @@ def delete_survey(survey_id):
 
 @app.route('/report/<int:report_id>', methods=['DELETE'])
 def delete_report(report_id):
-    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=database.get_user().id).Type
+    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=database.get_user().id).first().Type
     if user_perm != 'o':
         return error.Permission("You have no permission to delete this report")
     return database.delete_report(report_id)
@@ -188,6 +188,8 @@ def login():
 def logout():
     session.clear()
     return redirect(CAS_CLIENT.get_logout_url())
+
+
 @app.route("/user",  methods=['GET'])
 def user():
     try:
@@ -195,5 +197,7 @@ def user():
         return {"id":user.id, "logged":True, "username":session['username']}
     except:
         return {"logged":False}
+
+
 if __name__ == '__main__':
     app.run()
