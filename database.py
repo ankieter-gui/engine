@@ -103,7 +103,7 @@ def set_user_role(user_id: int, role: Role):
     db.session.commit()
 
 
-def create_survey(name: str, user: User) -> Survey:
+def create_survey(user: User, name: str) -> Survey:
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
@@ -175,13 +175,13 @@ def set_report_permission(report_id: int, user_id: int, permission: Permission):
     db.session.commit()
 
 
-def create_report(user_id: int, survey_id: int, name: int) -> int:
+def create_report(user_id: int, survey_id: int, name: int) -> Report:
     report = Report(Name=name, SurveyId=survey_id)
     report.BackgroundImg = Survey.query.filter_by(id=survey_id).first().BackgroundImg
     db.session.add(report)
     db.session.commit()
     set_report_permission(report.id, user_id, 'o')
-    return report.id
+    return report
 
 
 def delete_survey(survey_id: int):
