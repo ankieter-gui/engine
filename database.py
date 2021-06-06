@@ -105,7 +105,7 @@ def set_user_role(user_id: int, role: Role):
 def survey_from_file(name: str):
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
-    bkgs = os.listdir('bkg')
+    bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
     db.session.commit()
     set_survey_permission(survey.id, get_user().id, 'o')

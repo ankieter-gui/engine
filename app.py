@@ -55,10 +55,10 @@ def upload_results():
         name, ext = file.filename.rsplit('.', 1)
         if not ext.lower()=='csv':
             return error.API("File type not supported (csv required).")
-        if request.form['name']:
+        if 'name' in request.form:
             name = request.form['name']
         id = database.survey_from_file(name)
-        file.save(os.path.join("raw/", f"{id}.csv"))
+        file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{id}.csv"))
         database.csv_to_db(id)
         return {
             "survey_id": id,
@@ -104,7 +104,7 @@ def copy_report(report_id):
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=get_user().id).first().Type
+    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=database.get_user().id).first().Type
     if user_perm not in ['o', 'w']:
         return error.API("You have no permission to edit this report.")
     with popen(f'report/{report_id}.json', 'w') as file:
