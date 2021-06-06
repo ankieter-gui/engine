@@ -50,23 +50,29 @@ def get_dashboard():
 
 @app.route('/data/new', methods=['POST'])
 def upload_results():
-    if request.files['file']:
-        file = request.files['file']
-        name, ext = file.filename.rsplit('.', 1)
-        if not ext.lower()=='csv':
-            return error.API("File type not supported (csv required).")
-        if 'name' in request.form:
-            name = request.form['name']
-        id = database.survey_from_file(name)
-        file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{id}.csv"))
-        database.csv_to_db(id)
-        return {
-            "id": id,
-            "name": name
-        }
-    else:
-        return error.API("Could not create survey file.")
+    if not request.files['file']:
+        return error.API("could not create survey file").as_dict()
 
+    file = request.files['file']
+    name, ext = file.filename.rsplit('.', 1)
+
+    if 'name' in request.form:
+        name = request.form['name']
+    if ext.lower() != 'csv':
+        return error.API("expected a CSV file").as_dict()
+
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
+
+    survey = database.create_survey(name, get_user())
+    database.csv_to_db(survey.id)
+    conn = open_survey(survey.id)
+    survey.QuestionCount = len(get_columns(conn))
+    conn.close()
+
+    return {
+        "id": id,
+        "name": name
+    }
 
 
 @app.route('/report/new', methods=['POST'])
