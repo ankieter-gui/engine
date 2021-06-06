@@ -51,7 +51,9 @@ def get_dashboard():
 @app.route('/data/new', methods=['POST'])
 def upload_results():
     if 'file' in request.files['file']:
-        return
+        return {"file": "exists"}
+    else:
+        return {"error": 1}
 
 
 
