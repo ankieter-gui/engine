@@ -52,8 +52,8 @@ def get_dashboard():
 def upload_results():
     if request.files['file']:
         file = request.files['file']
-        name, ext = file.filename.rsplit('.', 1)[0], file.filename.rsplit('.', 1)[1].lower()
-        if not ext=='csv':
+        name, ext = file.filename.rsplit('.', 1)
+        if not ext.lower()=='csv':
             return error.API("File type not supported (csv).")
         if request.form['name']:
             name = request.form['name']
