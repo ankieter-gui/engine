@@ -5,7 +5,6 @@ from typing import Literal
 from flask import session
 from config import *
 import sqlite3
-import re
 import error
 import os
 
@@ -109,7 +108,7 @@ def survey_from_file(name: str):
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
     db.session.commit()
-    survey.QuestionCount = len(get_columns(survey.id))
+    survey.QuestionCount = len(get_columns(open_survey(survey.id)))
     db.session.commit()
     set_survey_permission(survey.id, get_user().id, 'o')
     return survey.id
@@ -267,13 +266,7 @@ def csv_to_db(survey_id: int):
     try:
         conn = sqlite3.connect(f"data/{survey_id}.db")
         df = read_csv(f"raw/{survey_id}.csv", sep=",")
-        df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
-
-        df = df.transpose()
-        df.index = df.index.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
-        df = df.groupby(df.index).min().transpose()
         df.to_sql("data", conn, if_exists="replace")
-
         print(f"Database for survey {survey_id} created succesfully")
         conn.close()
         return True
