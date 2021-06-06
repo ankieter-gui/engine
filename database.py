@@ -105,7 +105,7 @@ def set_user_role(user_id: int, role: Role):
 def survey_from_file(name: str):
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
-    bkgs = os.listdir('bkg')
+    bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
     db.session.commit()
     set_survey_permission(survey.id, get_user().id, 'o')
@@ -219,7 +219,7 @@ def rename_report(report_id: int, request):
         raise error.API('no parameter title')
     report.Name = request['title']
     db.session.commit()
-    return {'message': 'Report name has been changed', 'report_id': report_id, 'report_name': request['title']}
+    return {'message': 'Report name has been changed', 'report_id': report_id, 'title': request['title']}
 
 
 def rename_survey(survey_id: int, request):
@@ -230,7 +230,7 @@ def rename_survey(survey_id: int, request):
         raise error.API('no parameter title')
     survey.Name = request['title']
     db.session.commit()
-    return {'message': 'Survey name has been changed', 'survey_id': survey_id, 'survey_name': request['title']}
+    return {'message': 'Survey name has been changed', 'survey_id': survey_id, 'title': request['title']}
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
