@@ -10,9 +10,7 @@ import os
 
 db = SQLAlchemy(app)
 Role = Literal['s', 'u', 'g']
-# user_roles = {'s': 0, 'u': 1, 'g': 2, 0: 's', 1: 's', 2: 'g'}
 Permission = Literal['o', 'w', 'r']
-# permissions_types = {'o': 0, 'w': 1, 'r': 2, 0: 'o', 1: 'w', 2: 'r'}
 
 
 class User(db.Model):
@@ -102,6 +100,16 @@ def set_user_role(user_id: int, role: Role):
         raise error.API('no such user')
     user.Role = role
     db.session.commit()
+
+
+def survey_from_file(name: str):
+    survey = Survey(Name=name, QuestionCount=0)
+    db.session.add(survey)
+    bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
+    survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
+    db.session.commit()
+    set_survey_permission(survey.id, get_user().id, 'o')
+    return survey.id
 
 
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
@@ -211,7 +219,7 @@ def rename_report(report_id: int, request):
         raise error.API('no parameter title')
     report.Name = request['title']
     db.session.commit()
-    return {'message': 'Report name has been changed', 'report_id': report_id, 'report_name': request['title']}
+    return {'message': 'Report name has been changed', 'report_id': report_id, 'title': request['title']}
 
 
 def rename_survey(survey_id: int, request):
@@ -222,7 +230,7 @@ def rename_survey(survey_id: int, request):
         raise error.API('no parameter title')
     survey.Name = request['title']
     db.session.commit()
-    return {'message': 'Survey name has been changed', 'survey_id': survey_id, 'survey_name': request['title']}
+    return {'message': 'Survey name has been changed', 'survey_id': survey_id, 'title': request['title']}
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
