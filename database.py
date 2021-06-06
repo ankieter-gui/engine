@@ -105,7 +105,7 @@ def set_user_role(user_id: int, role: Role):
 def survey_from_file(name: str):
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
-    bkgs = os.listdir('bkg')
+    bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
     db.session.commit()
     set_survey_permission(survey.id, get_user().id, 'o')
@@ -264,6 +264,7 @@ def csv_to_db(survey_id: int):
     try:
         conn = sqlite3.connect(f"data/{survey_id}.db")
         df = read_csv(f"raw/{survey_id}.csv", sep=",")
+        df.columns = df.columns.str.replace('<[^<]+?>', '', regex=True)
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
         conn.close()
