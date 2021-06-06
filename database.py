@@ -2,6 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from pandas import read_csv
 from random import randint
 from typing import Literal
+from random import choice
 from flask import session
 from config import *
 import sqlite3
@@ -107,7 +108,7 @@ def survey_from_file(name: str):
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
-    survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
+    survey.BackgroundImg = choice(bkgs)
     db.session.commit()
     survey.QuestionCount = len(get_columns(survey.id))
     db.session.commit()
