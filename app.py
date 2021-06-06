@@ -54,7 +54,7 @@ def upload_results():
         file = request.files['file']
         name, ext = file.filename.rsplit('.', 1)
         if not ext.lower()=='csv':
-            return error.API("File type not supported (csv).")
+            return error.API("File type not supported (csv required).")
         if request.form['name']:
             name = request.form['name']
         id = database.survey_from_file(name)
