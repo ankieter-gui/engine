@@ -107,7 +107,7 @@ def survey_from_file(name: str):
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
-    survey.QuestionCount = len(get_columns)
+    survey.QuestionCount = len(get_columns(survey.id))
     db.session.commit()
     set_survey_permission(survey.id, get_user().id, 'o')
     return survey.id
@@ -265,7 +265,6 @@ def csv_to_db(survey_id: int):
     try:
         conn = sqlite3.connect(f"data/{survey_id}.db")
         df = read_csv(f"raw/{survey_id}.csv", sep=",")
-        df.columns = df.columns.str.replace('<[^<]+?>', '', regex=True)
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
         conn.close()
