@@ -102,6 +102,16 @@ def set_user_role(user_id: int, role: Role):
     db.session.commit()
 
 
+def survey_from_file(name: str):
+    survey = Survey(Name=name, QuestionCount=0)
+    db.session.add(survey)
+    bkgs = os.listdir('bkg')
+    survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
+    db.session.commit()
+    set_survey_permission(survey.id, get_user().id, 'o')
+    return survey.id
+
+
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
 def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
     survey = Survey.query.filter_by(AnkieterId=survey_id).first()
