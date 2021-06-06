@@ -92,7 +92,7 @@ def copy_report(report_id):
 def set_report(report_id):
     user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=get_user().id).first().Type
     if user_perm not in ['o', 'w']:
-        return error.Permission("You have no permission to edit this report.")
+        return error.API("You have no permission to edit this report.")
     with popen(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
     return {"reportId": report_id}
@@ -109,7 +109,7 @@ def get_report(report_id):
 def delete_survey(survey_id):
     user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=database.get_user().id).first().Type
     if user_perm != 'o':
-        return error.Permission("You have no permission to delete this survey.")
+        return error.API("You have no permission to delete this survey.")
     return database.delete_survey(survey_id)
 
 
@@ -117,7 +117,7 @@ def delete_survey(survey_id):
 def delete_report(report_id):
     user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=database.get_user().id).first().Type
     if user_perm != 'o':
-        return error.Permission("You have no permission to delete this report")
+        return error.API("You have no permission to delete this report")
     return database.delete_report(report_id)
 
 
