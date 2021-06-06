@@ -16,12 +16,10 @@ def get_dashboard():
     result = []
     for sp in survey_permissions:
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
-        if survey.StartedOn is not None:
-            result.append('startedOn': survey.StartedOn.timestamp())
-        if survey.EndsOn is not None:
-            results.append('endsOn': survey.EndsOn.timestamp())
         result.append({
             'type': 'survey',
+            'endsOn':survey.EndsOn.timestamp() if survey.EndsOn is not None  else None,
+            'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None  else None,
             'id':            survey.id,
             'name':          survey.Name,
             'ankieterId':    survey.AnkieterId,
@@ -63,7 +61,7 @@ def upload_results():
         file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{id}.csv"))
         database.csv_to_db(id)
         return {
-            "survey_id": id,
+            "id": id,
             "name": name
         }
     else:

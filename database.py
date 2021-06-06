@@ -109,6 +109,8 @@ def survey_from_file(name: str):
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
     db.session.commit()
+    survey.QuestionCount = len(get_columns(survey.id))
+    db.session.commit()
     set_survey_permission(survey.id, get_user().id, 'o')
     return survey.id
 
