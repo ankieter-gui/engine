@@ -16,13 +16,15 @@ def get_dashboard():
     result = []
     for sp in survey_permissions:
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
+        if survey.StartedOn is not None:
+            result.append('startedOn': survey.StartedOn.timestamp())
+        if survey.EndsOn is not None:
+            results.append('endsOn': survey.EndsOn.timestamp())
         result.append({
             'type': 'survey',
             'id':            survey.id,
             'name':          survey.Name,
             'ankieterId':    survey.AnkieterId,
-            'startedOn':     survey.StartedOn.timestamp(),
-            'endsOn':        survey.EndsOn.timestamp(),
             'isActive':      survey.IsActive,
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
