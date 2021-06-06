@@ -10,9 +10,7 @@ import os
 
 db = SQLAlchemy(app)
 Role = Literal['s', 'u', 'g']
-# user_roles = {'s': 0, 'u': 1, 'g': 2, 0: 's', 1: 's', 2: 'g'}
 Permission = Literal['o', 'w', 'r']
-# permissions_types = {'o': 0, 'w': 1, 'r': 2, 0: 'o', 1: 'w', 2: 'r'}
 
 
 class User(db.Model):
