@@ -219,7 +219,7 @@ def rename_report(report_id: int, request):
         raise error.API('no parameter title')
     report.Name = request['title']
     db.session.commit()
-    return {'message': 'Report name has been changed', 'report_id': report_id, 'report_name': request['title']}
+    return {'message': 'Report name has been changed', 'report_id': report_id, 'title': request['title']}
 
 
 def rename_survey(survey_id: int, request):
@@ -230,7 +230,7 @@ def rename_survey(survey_id: int, request):
         raise error.API('no parameter title')
     survey.Name = request['title']
     db.session.commit()
-    return {'message': 'Survey name has been changed', 'survey_id': survey_id, 'survey_name': request['title']}
+    return {'message': 'Survey name has been changed', 'survey_id': survey_id, 'title': request['title']}
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
