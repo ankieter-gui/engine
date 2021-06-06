@@ -50,6 +50,9 @@ AGGREGATORS = {
 def typecheck(json_query, types):
     grammar.check(grammar.REQUEST_TABLE, json_query)
 
+    if len(json_query['get']) == 0 or len(json_query['get'][0]) == 0:
+        raise error.API(f'no columns were requested')
+
     if not all(map(lambda x: len(x) == len(json_query['as']), json_query['get'])):
         raise error.API(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
 
@@ -223,6 +226,13 @@ if __name__ == "__main__":
         "as": ["mean", "share"],
         "by": ["Age Rating", "*"],
         "if": [["Age Rating", "in", "4", "9"]]
+    })
+
+    queries.append({
+        "as": [],
+        "by": [],
+        "filter": [],
+        "get": []
     })
 
     for query in queries:
