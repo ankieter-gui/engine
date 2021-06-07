@@ -45,7 +45,7 @@ if __name__ == "__main__":
             survey_id = filename.split('.')[0]
             csv_to_db(survey_id)
             db.session.add(Survey(
-                Name          = 'ankieta testowa',
+                Name          = 'ankieta testowa'+str(random.randint(0,99999)),
                 AnkieterId    = survey_id,
                 StartedOn     = datetime(2020, 3, random.randint(1, 31)),
                 EndsOn        = datetime(2021, 6, random.randint(1, 30)),
