@@ -110,24 +110,13 @@ def get_users() -> dict:
     return {"users": result}
 
 
-def get_user_role(user: User) -> Role:
-    return user.Role
-
-
-def set_user_role(user: User):
-    if user is None:
-        raise error.API('no such user')
-    user.Role = role
-    db.session.commit()
-
-
 def create_survey(user: User, name: str) -> Survey:
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
-    set_survey_permission(survey.id, user.id, 'o')
+    set_survey_permission(survey, user, 'o')
     return survey
 
 
@@ -196,7 +185,7 @@ def create_report(user: User, survey: Survey, name: int) -> Report:
     report.BackgroundImg = Survey.query.filter_by(id=survey.id).first().BackgroundImg
     db.session.add(report)
     db.session.commit()
-    set_report_permission(report.id, user.id, 'o')
+    set_report_permission(report, user, 'o')
     return report
 
 
