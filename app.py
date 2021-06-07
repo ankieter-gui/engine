@@ -202,6 +202,12 @@ def rename_survey(survey_id):
     return result
 
 
+@app.route('/users', methods=['GET'])
+def get_users():
+    return database.get_users()
+    
+
+
 @app.route('/')
 def index():
     if 'username' in session:
