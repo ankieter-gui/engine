@@ -261,6 +261,14 @@ def get_columns(conn: sqlite3.Connection) -> list[str]:
     return columns
 
 
+def get_answers_count(survey_id: int):
+    conn = open_survey(survey_id)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM data")
+    conn.close()
+    return len(cur.fetchall())
+
+
 def csv_to_db(survey_id: int):
     def shame(s, **kwargs):
         counts = s.value_counts().to_dict()
