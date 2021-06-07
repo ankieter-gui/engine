@@ -117,8 +117,8 @@ def copy_report(report_id):
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
     report = database.get_report(report_id)
-    per = database.get_report_permission(report, database.get_user())
-    if per not in ['o', 'w']:
+    perm = database.get_report_permission(report, database.get_user())
+    if perm not in ['o', 'w']:
         return error.API("you have no permission to edit this report")
     with open(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
@@ -135,8 +135,8 @@ def get_report(report_id):
 @app.route('/survey/<int:survey_id>', methods=['DELETE'])
 def delete_survey(survey_id):
     survey = database.get_survey(survey_id)
-    per = database.get_survey_permission(survey, database.get_user())
-    if per != 'o':
+    perm = database.get_survey_permission(survey, database.get_user())
+    if perm != 'o':
         return error.API("You have no permission to delete this survey.")
     return database.delete_survey(survey)
 
@@ -144,8 +144,8 @@ def delete_survey(survey_id):
 @app.route('/report/<int:report_id>', methods=['DELETE'])
 def delete_report(report_id):
     report = database.get_report(report_id)
-    per = database.get_report_permission(report, database.get_user())
-    if per != 'o':
+    perm = database.get_report_permission(report, database.get_user())
+    if perm != 'o':
         return error.API("You have no permission to delete this report")
     return database.delete_report(report)
 
