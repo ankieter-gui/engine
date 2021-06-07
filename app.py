@@ -50,23 +50,29 @@ def get_dashboard():
 
 @app.route('/data/new', methods=['POST'])
 def upload_results():
-    if request.files['file']:
-        file = request.files['file']
-        name, ext = file.filename.rsplit('.', 1)
-        if not ext.lower()=='csv':
-            return error.API("File type not supported (csv required).")
-        if 'name' in request.form:
-            name = request.form['name']
-        id = database.survey_from_file(name)
-        file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{id}.csv"))
-        database.csv_to_db(id)
-        return {
-            "id": id,
-            "name": name
-        }
-    else:
-        return error.API("Could not create survey file.")
+    if not request.files['file']:
+        return error.API("could not create survey file").as_dict()
 
+    file = request.files['file']
+    name, ext = file.filename.rsplit('.', 1)
+
+    if 'name' in request.form:
+        name = request.form['name']
+    if ext.lower() != 'csv':
+        return error.API("expected a CSV file").as_dict()
+
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
+
+    survey = database.create_survey(get_user(), name)
+    database.csv_to_db(survey.id)
+    conn = open_survey(survey.id)
+    survey.QuestionCount = len(get_columns(conn))
+    conn.close()
+
+    return {
+        "id": id,
+        "name": name
+    }
 
 
 @app.route('/report/new', methods=['POST'])
@@ -78,12 +84,12 @@ def create_report():
 
         report = request.json
         user = database.get_user()
-        report_id = database.create_report(user.id, report["surveyId"], report["title"])
-        with popen(f'report/{report_id}.json', 'w') as file:
+        report = database.create_report(user.id, report["surveyId"], report["title"])
+        with popen(f'report/{report.id}.json', 'w') as file:
             json.dump(report, file)
     except error.API as err:
         return err.add_details('could not create report').as_dict()
-    return {"reportId": report_id}
+    return {"reportId": report.id}
 
 
 @app.route('/report/<int:report_id>/copy', methods=['GET'])
@@ -94,12 +100,12 @@ def copy_report(report_id):
     try:
         user = database.get_user()
         survey = database.get_report_survey(report_id)
-        report_id = database.create_report(user.id, survey.id, report["title"])
-        with popen(f'report/{report_id}.json', 'w') as file:
+        report = database.create_report(user.id, survey.id, report["title"])
+        with popen(f'report/{report.id}.json', 'w') as file:
             json.dump(report, file)
     except error.API as err:
         return err.add_details('could not copy the report').as_dict()
-    return {"reportId": report_id}
+    return {"reportId": report.id}
 
 
 @app.route('/report/<int:report_id>', methods=['POST'])

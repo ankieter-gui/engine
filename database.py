@@ -1,10 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from pandas import read_csv
-from random import randint
 from typing import Literal
-from random import choice
 from flask import session
 from config import *
+import random
 import re
 import sqlite3
 import error
@@ -104,16 +103,14 @@ def set_user_role(user_id: int, role: Role):
     db.session.commit()
 
 
-def survey_from_file(name: str):
+def create_survey(user: User, name: str) -> Survey:
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
-    survey.BackgroundImg = choice(bkgs)
+    survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
-    survey.QuestionCount = len(get_columns(open_survey(survey.id)))
-    db.session.commit()
-    set_survey_permission(survey.id, get_user().id, 'o')
-    return survey.id
+    set_survey_permission(survey.id, user.id, 'o')
+    return survey
 
 
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
@@ -132,7 +129,7 @@ def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
         survey.IsActive = meta["is_active"]
     if survey.BackgroundImg is None:
         bkgs = os.listdir('bkg')
-        survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
+        survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
     print("Survey meta data added")
     return True
@@ -178,13 +175,13 @@ def set_report_permission(report_id: int, user_id: int, permission: Permission):
     db.session.commit()
 
 
-def create_report(user_id: int, survey_id: int, name: int) -> int:
+def create_report(user_id: int, survey_id: int, name: int) -> Report:
     report = Report(Name=name, SurveyId=survey_id)
     report.BackgroundImg = Survey.query.filter_by(id=survey_id).first().BackgroundImg
     db.session.add(report)
     db.session.commit()
     set_report_permission(report.id, user_id, 'o')
-    return report.id
+    return report
 
 
 def delete_survey(survey_id: int):
@@ -265,10 +262,14 @@ def get_columns(conn: sqlite3.Connection) -> list[str]:
 
 
 def csv_to_db(survey_id: int):
-    def shame(s):
-        counts = s[s.columns[0]].value_counts().to_dict()
+    def shame(s, **kwargs):
+        print(s)
+        counts = s.value_counts().to_dict()
         if len(counts) == 0:
+            #print('!', s.columns.values)
             return None
+        #print(s)
+        #print(min(counts, key=counts.get), max(counts, key=counts.get), s.columns.values)
         return min(counts, key=counts.get)
 
     try:
@@ -278,8 +279,8 @@ def csv_to_db(survey_id: int):
 
         #df = df.transpose()
         #columns = list(map(lambda x: re.sub(r'\.\d+$', '', str(x)), df.columns.values))
-        columns = df.columns.map(lambda x: re.sub(r'\.\d+$', '', str(x))).values
-        df = df.groupby(columns, axis='columns').agg(shame)
+        columns = df.columns.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
+        df = df.groupby(columns, axis='columns').agg(func=shame, axis='columns')
         #print(df)
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
