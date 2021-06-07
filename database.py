@@ -268,13 +268,13 @@ def get_answers_count(survey_id: int):
 
 
 def csv_to_db(survey_id: int):
-    def shame(s, **kwargs):
-        counts = s.value_counts().to_dict()
+    def shame(vals):
+        counts = {}
+        for v in vals:
+            c = counts.get(v, 0)
+            counts[v] = c+1
         if len(counts) == 0:
-            #print('!', s.columns.values)
             return None
-        #print(s)
-        #print(min(counts, key=counts.get), max(counts, key=counts.get), s.columns.values)
         return min(counts, key=counts.get)
 
     try:
@@ -282,10 +282,21 @@ def csv_to_db(survey_id: int):
         df = read_csv(pabs(f"raw/{survey_id}.csv"), sep=",")
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
-        df = df.transpose()
-        index = df.index.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
-        df = df.groupby(index).agg(shame).transpose()
-        print(df)
+        columns = df.columns.values
+        repeats = df.filter(regex=r'\.\d+$').columns.values
+        uniques = [c for c in columns if c not in repeats]
+
+        for u in uniques:
+            #print(*list(df.columns.values), sep='\n --> ')
+            esc = re.escape(u)
+            group = list(df.filter(regex=esc+'\.\d+$').columns.values)
+            group.append(u)
+            df[u] = df[[*group]].aggregate(shame, axis='columns')
+            df.drop(group[:-1], axis='columns')
+
+        #df = df.transpose()
+        #index = df.index.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
+        #df = df.groupby(index).agg(shame).transpose()
 
         #columns = list(map(lambda x: re.sub(r'\.\d+$', '', str(x)), df.columns.values))
         #columns = df.columns.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
