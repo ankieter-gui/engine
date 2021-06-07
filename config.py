@@ -27,7 +27,7 @@ ABSOLUTE_DIR_PATH = dirname(realpath(__file__))
 #popen = lambda p, mode: open(pabs(p), mode)
 
 pabs = lambda x: x
-popen = pabs
+popen = open
 
 chdir(ABSOLUTE_DIR_PATH)
 
