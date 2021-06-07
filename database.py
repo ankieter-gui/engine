@@ -296,7 +296,7 @@ def csv_to_db(survey: Survey, filename: str):
             esc = re.escape(u)
             group = list(df.filter(regex=esc+'\.\d+$').columns.values)
             group.append(u)
-            df[u] = df[[*group]].aggregate(shame, axis='columns')
+            df[u] = df[group].aggregate(shame, axis='columns')
             df = df.drop(group[:-1], axis='columns')
 
         df.to_sql("data", conn, if_exists="replace")
