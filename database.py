@@ -88,6 +88,14 @@ def get_user() -> User:
     return User.query.filter_by(CasLogin=session['username']).first()
 
 
+def get_users():
+    users = User.query.all()
+    result = {}
+    for i in range(len(users)):
+        result[i] = users[i].CasLogin
+    return result
+
+
 def get_user_role(user_id: int) -> Role:
     user = User.query.filter_by(id=user_id).first()
     if user is None:
