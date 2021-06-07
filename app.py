@@ -216,6 +216,32 @@ def rename_survey(survey_id):
     return result
 
 
+@app.route('/survey/<int:survey_id>/share', methods=['POST'])
+def share_survey(survey_id):
+    json = request.json
+    survey = database.get_survey(survey_id)
+    perm = database.get_survey_permission(survey, database.get_user())
+    if perm != "o":
+        return error.API("you must be the owner to share this survey")
+    for CasLogin in json.values():
+        user = database.get_user(CasLogin)
+        database.set_survey_permission(survey, user, 'r')
+    return {"status": "permissions added"}
+
+
+@app.route('/report/<int:report_id>/share', methods=['POST'])
+def share_report(report_id):
+    json = request.json
+    report = database.get_survey(report_id)
+    perm = database.get_report_permission(report, database.get_user())
+    if perm != "o":
+        return error.API("you must be the owner to share this report")
+    for CasLogin in json.values():
+        user = database.get_user(CasLogin)
+        database.set_survey_permission(report, user, 'r')
+    return {"status": "permissions added"}
+
+
 @app.route('/users', methods=['GET'])
 def get_users():
     return database.get_users()
@@ -225,7 +251,6 @@ def get_users():
 def index():
     if 'username' in session:
         username = session['username']
-        return redirect("http://localhost:4200")
         return '''<p>Witaj {}</p></br><a href="{}">Wyloguj</a>'''.format('123456789', url_for('logout'))
     return redirect(url_for('login'))
 
