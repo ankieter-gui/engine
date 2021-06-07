@@ -295,21 +295,13 @@ def csv_to_db(survey_id: int):
         uniques = [c for c in columns if c not in repeats]
 
         for u in uniques:
-            #print(*list(df.columns.values), sep='\n --> ')
             esc = re.escape(u)
             group = list(df.filter(regex=esc+'\.\d+$').columns.values)
             group.append(u)
             df[u] = df[[*group]].aggregate(shame, axis='columns')
-            df.drop(group[:-1], axis='columns')
+            df = df.drop(group[:-1], axis='columns')
 
-        #df = df.transpose()
-        #index = df.index.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
-        #df = df.groupby(index).agg(shame).transpose()
-
-        #columns = list(map(lambda x: re.sub(r'\.\d+$', '', str(x)), df.columns.values))
-        #columns = df.columns.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
-        #df = df.groupby(columns, axis='columns').agg(func=shame, axis='columns')
-        #print(df)
+        df.to_csv('test.csv')
 
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
