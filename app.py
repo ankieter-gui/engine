@@ -61,13 +61,13 @@ def upload_results():
     if ext.lower() != 'csv':
         return error.API("expected a CSV file").as_dict()
 
-    survey = database.create_survey(get_user(), name)
+    survey = database.create_survey(database.get_user(), name)
 
     file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
 
     database.csv_to_db(survey.id)
-    conn = open_survey(survey.id)
-    survey.QuestionCount = len(get_columns(conn))
+    conn = database.open_survey(survey.id)
+    survey.QuestionCount = len(database.get_columns(conn))
     conn.close()
 
     return {
