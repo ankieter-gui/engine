@@ -1,4 +1,4 @@
-from flask import redirect, url_for, request, session, g
+from flask import send_from_directory, redirect, url_for, request, session, g
 from config import *
 import json
 import sqlite3
@@ -16,29 +16,28 @@ def get_dashboard():
     result = []
     for sp in survey_permissions:
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
-        if survey.StartedOn is not None:
-            result.append('startedOn': survey.StartedOn.timestamp())
-        if survey.EndsOn is not None:
-            results.append('endsOn': survey.EndsOn.timestamp())
         result.append({
             'type': 'survey',
+            'endsOn':survey.EndsOn.timestamp() if survey.EndsOn is not None  else None,
+            'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None  else None,
             'id':            survey.id,
             'name':          survey.Name,
             'ankieterId':    survey.AnkieterId,
             'isActive':      survey.IsActive,
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
-            'userId':        sp.UserId
+            'userId':        sp.UserId,
+            'answersCount': database.get_answers_count(survey.id)
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
         report = database.Report.query.filter_by(id=rp.ReportId).first()
-        survey = database.get_report_survey(report.id)
+        survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
             'type': 'report',
             'id':              report.id,
             'name':            report.Name,
-            'connectedSurvey': {"id":report.SurveyId, "name":survey.Name },
+            'connectedSurvey': {"id": report.SurveyId, "name":survey.Name },
             'backgroundImg':   report.BackgroundImg,
             'userId':          rp.UserId
         })
@@ -52,23 +51,30 @@ def get_dashboard():
 
 @app.route('/data/new', methods=['POST'])
 def upload_results():
-    if request.files['file']:
-        file = request.files['file']
-        name, ext = file.filename.rsplit('.', 1)
-        if not ext.lower()=='csv':
-            return error.API("File type not supported (csv required).")
-        if 'name' in request.form:
-            name = request.form['name']
-        id = database.survey_from_file(name)
-        file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{id}.csv"))
-        database.csv_to_db(id)
-        return {
-            "survey_id": id,
-            "name": name
-        }
-    else:
-        return error.API("Could not create survey file.")
+    if not request.files['file']:
+        return error.API("could not create survey file").as_dict()
 
+    file = request.files['file']
+    name, ext = file.filename.rsplit('.', 1)
+
+    if 'name' in request.form:
+        name = request.form['name']
+    if ext.lower() != 'csv':
+        return error.API("expected a CSV file").as_dict()
+
+    survey = database.create_survey(database.get_user(), name)
+
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
+
+    database.csv_to_db(survey.id)
+    conn = database.open_survey(survey.id)
+    survey.QuestionCount = len(database.get_columns(conn))
+    conn.close()
+
+    return {
+        "id": survey.id,
+        "name": name
+    }
 
 
 @app.route('/report/new', methods=['POST'])
@@ -78,14 +84,15 @@ def create_report():
     try:
         grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
-        report = request.json
+        data = request.json
         user = database.get_user()
-        report_id = database.create_report(user.id, report["surveyId"], report["title"])
-        with popen(f'report/{report_id}.json', 'w') as file:
-            json.dump(report, file)
+        # czy użytkownik widzi tę ankietę?
+        report = database.create_report(user.id, data["surveyId"], data["title"])
+        with open(f'report/{report.id}.json', 'w') as file:
+            json.dump(data, file)
     except error.API as err:
         return err.add_details('could not create report').as_dict()
-    return {"reportId": report_id}
+    return {"reportId": report.id}
 
 
 @app.route('/report/<int:report_id>/copy', methods=['GET'])
@@ -96,34 +103,34 @@ def copy_report(report_id):
     try:
         user = database.get_user()
         survey = database.get_report_survey(report_id)
-        report_id = database.create_report(user.id, survey.id, report["title"])
-        with popen(f'report/{report_id}.json', 'w') as file:
+        report = database.create_report(user.id, survey.id, report["title"])
+        with open(f'report/{report.id}.json', 'w') as file:
             json.dump(report, file)
     except error.API as err:
         return err.add_details('could not copy the report').as_dict()
-    return {"reportId": report_id}
+    return {"reportId": report.id}
 
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=database.get_user().id).first().Type
+    user_perm = database.get_report_permission(report_id, database.get_user().id)
     if user_perm not in ['o', 'w']:
         return error.API("You have no permission to edit this report.")
-    with popen(f'report/{report_id}.json', 'w') as file:
+    with open(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
     return {"reportId": report_id}
 
 
 @app.route('/report/<int:report_id>', methods=['GET'])
 def get_report(report_id):
-    with popen(f'report/{report_id}.json', 'r') as file:
+    with open(f'report/{report_id}.json', 'r') as file:
         data = json.load(file)
     return data
 
 
 @app.route('/survey/<int:survey_id>', methods=['DELETE'])
 def delete_survey(survey_id):
-    user_perm = database.SurveyPermission.query.filter_by(SurveyId=survey_id,UserId=database.get_user().id).first().Type
+    user_perm = database.get_survey_permission(survey_id, database.get_user().id)
     if user_perm != 'o':
         return error.API("You have no permission to delete this survey.")
     return database.delete_survey(survey_id)
@@ -131,7 +138,7 @@ def delete_survey(survey_id):
 
 @app.route('/report/<int:report_id>', methods=['DELETE'])
 def delete_report(report_id):
-    user_perm = database.ReportPermission.query.filter_by(ReportId=report_id,UserId=database.get_user().id).first().Type
+    user_perm = database.get_report_permission(report_id, database.get_user().id)
     if user_perm != 'o':
         return error.API("You have no permission to delete this report")
     return database.delete_report(report_id)
@@ -195,10 +202,17 @@ def rename_survey(survey_id):
     return result
 
 
+@app.route('/users', methods=['GET'])
+def get_users():
+    return database.get_users()
+
+
+
 @app.route('/')
 def index():
     if 'username' in session:
         username = session['username']
+        return redirect("http://localhost:4200")
         return '''<p>Witaj {}</p></br><a href="{}">Wyloguj</a>'''.format('123456789', url_for('logout'))
     return redirect(url_for('login'))
 
@@ -224,13 +238,18 @@ def logout():
     return redirect(CAS_CLIENT.get_logout_url())
 
 
-@app.route("/user",  methods=['GET'])
+@app.route('/user',  methods=['GET'])
 def user():
     try:
         user = database.get_user()
         return {"id":user.id, "logged":True, "username":session['username']}
     except:
         return {"logged":False}
+
+
+@app.route('/bkg/<path:path>', methods=['GET'])
+def get_bkg(path):
+    return send_from_directory('bkg', path)
 
 
 if __name__ == '__main__':

@@ -20,10 +20,13 @@ from flask_admin import Admin
 from flask_cors import CORS
 from cas import CASClient
 from os.path import dirname, realpath
-from os import urandom, path
+from os import urandom, path, chdir
 
 ABSOLUTE_DIR_PATH = dirname(realpath(__file__))
-popen = lambda p, mode: open(path.join(ABSOLUTE_DIR_PATH, p), mode)
+chdir(ABSOLUTE_DIR_PATH)
+popen = lambda p, mode: open(pabs(p), mode)
+pabs = lambda p: path.join(ABSOLUTE_DIR_PATH, p)
+
 
 app = Flask(__name__)
 app.config.from_mapping(

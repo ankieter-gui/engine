@@ -50,6 +50,9 @@ AGGREGATORS = {
 def typecheck(json_query, types):
     grammar.check(grammar.REQUEST_TABLE, json_query)
 
+    if len(json_query['get']) == 0 or len(json_query['get'][0]) == 0:
+        raise error.API(f'no columns were requested')
+
     if not all(map(lambda x: len(x) == len(json_query['as']), json_query['get'])):
         raise error.API(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
 
@@ -178,8 +181,7 @@ def create(json_query, conn):
 
 # TODO: usunąć po zakończeniu testów
 if __name__ == "__main__":
-    SURVEY_ID = '1'
-    conn = sqlite3.connect(f'data/{SURVEY_ID}.db')
+    conn = sqlite3.connect(f'data/1.db')
 
     queries = []
 
@@ -225,9 +227,25 @@ if __name__ == "__main__":
         "if": [["Age Rating", "in", "4", "9"]]
     })
 
+    queries.append({
+        "as": [],
+        "by": [],
+        "filter": [],
+        "get": []
+    })
+
     for query in queries:
         try:
             r = create(query, conn)
             print(r)
         except error.API as err:
             print(err.message)
+
+    conn.close()
+    conn = sqlite3.connect(f'data/2.db')
+    r = create({
+        "get": [["Na jakim wydziale prowadzony jest kierunek studiów, który oceniał/a P. w tej ankiecie?"]],
+        "as": ["max"],
+        "by": ["P1 - czas wypełniania"]
+    }, conn)
+    print(r)

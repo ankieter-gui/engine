@@ -1,9 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
 from pandas import read_csv
-from random import randint
 from typing import Literal
 from flask import session
 from config import *
+import random
+import re
 import sqlite3
 import error
 import os
@@ -87,6 +88,14 @@ def get_user() -> User:
     return User.query.filter_by(CasLogin=session['username']).first()
 
 
+def get_users() -> dict:
+    users = User.query.all()
+    result = []
+    for u in users:
+        result.append({"CasLogin": u.CasLogin})
+    return {"users": result}
+
+
 def get_user_role(user_id: int) -> Role:
     user = User.query.filter_by(id=user_id).first()
     if user is None:
@@ -102,14 +111,14 @@ def set_user_role(user_id: int, role: Role):
     db.session.commit()
 
 
-def survey_from_file(name: str):
+def create_survey(user: User, name: str) -> Survey:
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
-    survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
+    survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
-    set_survey_permission(survey.id, get_user().id, 'o')
-    return survey.id
+    set_survey_permission(survey.id, user.id, 'o')
+    return survey
 
 
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
@@ -127,8 +136,8 @@ def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
     if meta["is_active"]:
         survey.IsActive = meta["is_active"]
     if survey.BackgroundImg is None:
-        bkgs = os.listdir('bkg')
-        survey.BackgroundImg = bkgs[randint(0, len(bkgs))]
+        bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH, 'bkg'))
+        survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
     print("Survey meta data added")
     return True
@@ -174,13 +183,13 @@ def set_report_permission(report_id: int, user_id: int, permission: Permission):
     db.session.commit()
 
 
-def create_report(user_id: int, survey_id: int, name: int) -> int:
+def create_report(user_id: int, survey_id: int, name: int) -> Report:
     report = Report(Name=name, SurveyId=survey_id)
     report.BackgroundImg = Survey.query.filter_by(id=survey_id).first().BackgroundImg
     db.session.add(report)
     db.session.commit()
     set_report_permission(report.id, user_id, 'o')
-    return report.id
+    return report
 
 
 def delete_survey(survey_id: int):
@@ -234,8 +243,7 @@ def rename_survey(survey_id: int, request):
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
-    db_absolute_path = os.path.join(ABSOLUTE_DIR_PATH, f"data/{survey_id}.db")
-    return sqlite3.connect(db_absolute_path)
+    return sqlite3.connect(f"data/{survey_id}.db")
 
 
 def get_types(conn: sqlite3.Connection) -> dict[str, str]:
@@ -243,7 +251,6 @@ def get_types(conn: sqlite3.Connection) -> dict[str, str]:
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
     data = cur.fetchall()
-
     for row in data:
         types[row[1]] = row[2]
     return types
@@ -254,17 +261,48 @@ def get_columns(conn: sqlite3.Connection) -> list[str]:
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
     data = cur.fetchall()
-
     for row in data:
         columns.append(row[1])
     return columns
 
 
+def get_answers_count(survey_id: int):
+    conn = open_survey(survey_id)
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM data")
+    n = len(cur.fetchall())
+    conn.close()
+    return n
+
+
 def csv_to_db(survey_id: int):
+    def shame(vals):
+        counts = {}
+        for v in vals:
+            c = counts.get(v, 0)
+            counts[v] = c+1
+        if len(counts) == 0:
+            return None
+        return min(counts, key=counts.get)
+
     try:
         conn = sqlite3.connect(f"data/{survey_id}.db")
         df = read_csv(f"raw/{survey_id}.csv", sep=",")
-        df.columns = df.columns.str.replace('<[^<]+?>', '', regex=True)
+        df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
+
+        columns = df.columns.values
+        repeats = df.filter(regex=r'\.\d+$').columns.values
+        uniques = [c for c in columns if c not in repeats]
+
+        for u in uniques:
+            esc = re.escape(u)
+            group = list(df.filter(regex=esc+'\.\d+$').columns.values)
+            group.append(u)
+            df[u] = df[[*group]].aggregate(shame, axis='columns')
+            df = df.drop(group[:-1], axis='columns')
+
+        df.to_csv('test.csv')
+
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
         conn.close()
