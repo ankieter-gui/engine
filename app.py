@@ -27,12 +27,12 @@ def get_dashboard():
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
             'userId':        sp.UserId,
-            'answers_count': database.get_answers_count(survey.id)
+            'answersCount': database.get_answers_count(survey.id)
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
         report = database.Report.query.filter_by(id=rp.ReportId).first()
-        survey = database.get_report_survey(report.id)
+        survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
             'type': 'report',
             'id':              report.id,
