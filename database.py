@@ -263,7 +263,6 @@ def get_columns(conn: sqlite3.Connection) -> list[str]:
 
 def csv_to_db(survey_id: int):
     def shame(s, **kwargs):
-        print(s)
         counts = s.value_counts().to_dict()
         if len(counts) == 0:
             #print('!', s.columns.values)
@@ -277,11 +276,16 @@ def csv_to_db(survey_id: int):
         df = read_csv(f"raw/{survey_id}.csv", sep=",")
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
-        #df = df.transpose()
+        df = df.transpose()
+        index = df.index.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
+        df = df.groupby(index).agg(shame).transpose()
+        print(df)
+
         #columns = list(map(lambda x: re.sub(r'\.\d+$', '', str(x)), df.columns.values))
-        columns = df.columns.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
-        df = df.groupby(columns, axis='columns').agg(func=shame, axis='columns')
+        #columns = df.columns.map(lambda x: re.sub(r'\.\d+$', '', str(x)))
+        #df = df.groupby(columns, axis='columns').agg(func=shame, axis='columns')
         #print(df)
+
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey_id} created succesfully")
         conn.close()
