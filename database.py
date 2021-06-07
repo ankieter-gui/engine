@@ -88,12 +88,12 @@ def get_user() -> User:
     return User.query.filter_by(CasLogin=session['username']).first()
 
 
-def get_users():
+def get_users() -> Dict:
     users = User.query.all()
-    result = {}
+    result = []
     for i in range(len(users)):
-        result[i] = users[i].CasLogin
-    return result
+        result.append({"CasLogin": u.CasLogin})
+    return {result}
 
 
 def get_user_role(user_id: int) -> Role:
