@@ -206,6 +206,7 @@ def rename_survey(survey_id):
 def index():
     if 'username' in session:
         username = session['username']
+        return redirect("http://localhost:4200")
         return '''<p>Witaj {}</p></br><a href="{}">Wyloguj</a>'''.format('123456789', url_for('logout'))
     return redirect(url_for('login'))
 
