@@ -235,7 +235,7 @@ def rename_survey(survey_id: int, request):
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
-    db_absolute_path = os.path.join(ABSOLUTE_DIR_PATH, f"data/{survey_id}.db")
+    db_absolute_path = pabs(f"data/{survey_id}.db")
     return sqlite3.connect(db_absolute_path)
 
 
