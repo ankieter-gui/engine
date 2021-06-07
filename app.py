@@ -232,13 +232,18 @@ def logout():
     return redirect(CAS_CLIENT.get_logout_url())
 
 
-@app.route("/user",  methods=['GET'])
+@app.route('/user',  methods=['GET'])
 def user():
     try:
         user = database.get_user()
         return {"id":user.id, "logged":True, "username":session['username']}
     except:
         return {"logged":False}
+
+
+@app.route('/bkg/<path:path>', methods['GET'])
+def get_bkg(path):
+    return send_from_directory('bkg', path)
 
 
 if __name__ == '__main__':
