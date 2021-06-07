@@ -235,8 +235,7 @@ def rename_survey(survey_id: int, request):
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
-    db_absolute_path = pabs(f"data/{survey_id}.db")
-    return sqlite3.connect(db_absolute_path)
+    return sqlite3.connect(pabs(f"data/{survey_id}.db"))
 
 
 def get_types(conn: sqlite3.Connection) -> dict[str, str]:
@@ -244,7 +243,6 @@ def get_types(conn: sqlite3.Connection) -> dict[str, str]:
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
     data = cur.fetchall()
-    conn.close()
     for row in data:
         types[row[1]] = row[2]
     return types
@@ -255,7 +253,6 @@ def get_columns(conn: sqlite3.Connection) -> list[str]:
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
     data = cur.fetchall()
-    conn.close()
     for row in data:
         columns.append(row[1])
     return columns
