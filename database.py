@@ -265,8 +265,9 @@ def get_answers_count(survey_id: int):
     conn = open_survey(survey_id)
     cur = conn.cursor()
     cur.execute("SELECT * FROM data")
+    n = len(cur.fetchall())
     conn.close()
-    return len(cur.fetchall())
+    return n
 
 
 def csv_to_db(survey_id: int):
