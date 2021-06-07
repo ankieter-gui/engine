@@ -38,17 +38,20 @@ if __name__ == "__main__":
     db.drop_all()
     db.create_all()
 
+    bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
+
     for filename in os.listdir('raw'):
         if filename.endswith(".csv"):
             survey_id = filename.split('.')[0]
             csv_to_db(survey_id)
             db.session.add(Survey(
-                Name='ankieta testowa',
-                AnkieterId=survey_id,
-                StartedOn=datetime(2020, 3, random.randint(1, 31)),
-                EndsOn=datetime(2021, 6, random.randint(1, 30)),
-                IsActive=random.randint(0, 1),
-                QuestionCount=get_survey_quest_num(survey_id)))
+                Name          = 'ankieta testowa',
+                AnkieterId    = survey_id,
+                StartedOn     = datetime(2020, 3, random.randint(1, 31)),
+                EndsOn        = datetime(2021, 6, random.randint(1, 30)),
+                IsActive      = random.randint(0, 1),
+                QuestionCount = get_survey_quest_num(survey_id),
+                BackgroundImg = random.choice(bkgs)))
             surveys_amount += 1
 
     for _ in range(USERS_AMOUNT - 1):
