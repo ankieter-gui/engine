@@ -71,7 +71,7 @@ def upload_results():
     conn.close()
 
     return {
-        "id": id,
+        "id": survey.id,
         "name": name
     }
 
