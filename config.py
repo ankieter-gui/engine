@@ -23,7 +23,8 @@ from os.path import dirname, realpath
 from os import urandom, path
 
 ABSOLUTE_DIR_PATH = dirname(realpath(__file__))
-popen = lambda p, mode: open(path.join(ABSOLUTE_DIR_PATH, p), mode)
+pabs = lambda p: path.join(ABSOLUTE_DIR_PATH, p)
+popen = lambda p, mode: open(pabs(p), mode)
 
 app = Flask(__name__)
 app.config.from_mapping(
