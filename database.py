@@ -168,7 +168,7 @@ def get_report_survey(report_id: int) -> Survey:
 
 
 def get_report_permission(report_id: int, user_id: int) -> Permission:
-    sp = SurveyPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
+    sp = ReportPermission.query.filter_by(ReportId=report_id, UserId=user_id).first()
     if sp is None:
         raise error.API('no such report permission')
     return sp.Type
