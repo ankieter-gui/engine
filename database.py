@@ -282,7 +282,7 @@ def csv_to_db(survey_id: int):
 
     try:
         conn = sqlite3.connect(pabs(f"data/{survey_id}.db"))
-        df = read_csv(f"raw/{survey_id}.csv", sep=",")
+        df = read_csv(pabs(f"raw/{survey_id}.csv"), sep=",")
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
         df = df.transpose()
