@@ -1,4 +1,4 @@
-from flask import redirect, url_for, request, session, g
+from flask import send_from_directory, redirect, url_for, request, session, g
 from config import *
 import json
 import sqlite3
@@ -241,7 +241,7 @@ def user():
         return {"logged":False}
 
 
-@app.route('/bkg/<path:path>', methods['GET'])
+@app.route('/bkg/<path:path>', methods=['GET'])
 def get_bkg(path):
     return send_from_directory('bkg', path)
 
