@@ -26,7 +26,8 @@ def get_dashboard():
             'isActive':      survey.IsActive,
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
-            'userId':        sp.UserId
+            'userId':        sp.UserId,
+            'answers_count': database.get_answers_count(survey.id)
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
@@ -36,7 +37,7 @@ def get_dashboard():
             'type': 'report',
             'id':              report.id,
             'name':            report.Name,
-            'connectedSurvey': {"id":report.SurveyId, "name":survey.Name },
+            'connectedSurvey': {"id": report.SurveyId, "name":survey.Name },
             'backgroundImg':   report.BackgroundImg,
             'userId':          rp.UserId
         })
