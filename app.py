@@ -88,7 +88,7 @@ def create_report():
         user = database.get_user()
         # czy użytkownik widzi tę ankietę?
         report = database.create_report(user.id, data["surveyId"], data["title"])
-        with popen(f'report/{report.id}.json', 'w') as file:
+        with open(f'report/{report.id}.json', 'w') as file:
             json.dump(data, file)
     except error.API as err:
         return err.add_details('could not create report').as_dict()
@@ -104,7 +104,7 @@ def copy_report(report_id):
         user = database.get_user()
         survey = database.get_report_survey(report_id)
         report = database.create_report(user.id, survey.id, report["title"])
-        with popen(f'report/{report.id}.json', 'w') as file:
+        with open(f'report/{report.id}.json', 'w') as file:
             json.dump(report, file)
     except error.API as err:
         return err.add_details('could not copy the report').as_dict()
@@ -116,14 +116,14 @@ def set_report(report_id):
     user_perm = database.get_report_permission(report_id, database.get_user().id)
     if user_perm not in ['o', 'w']:
         return error.API("You have no permission to edit this report.")
-    with popen(f'report/{report_id}.json', 'w') as file:
+    with open(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
     return {"reportId": report_id}
 
 
 @app.route('/report/<int:report_id>', methods=['GET'])
 def get_report(report_id):
-    with popen(f'report/{report_id}.json', 'r') as file:
+    with open(f'report/{report_id}.json', 'r') as file:
         data = json.load(file)
     return data
 
@@ -205,7 +205,7 @@ def rename_survey(survey_id):
 @app.route('/users', methods=['GET'])
 def get_users():
     return database.get_users()
-    
+
 
 
 @app.route('/')

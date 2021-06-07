@@ -243,7 +243,7 @@ def rename_survey(survey_id: int, request):
 
 
 def open_survey(survey_id: int) -> sqlite3.Connection:
-    return sqlite3.connect(pabs(f"data/{survey_id}.db"))
+    return sqlite3.connect(f"data/{survey_id}.db")
 
 
 def get_types(conn: sqlite3.Connection) -> dict[str, str]:
@@ -286,8 +286,8 @@ def csv_to_db(survey_id: int):
         return min(counts, key=counts.get)
 
     try:
-        conn = sqlite3.connect(pabs(f"data/{survey_id}.db"))
-        df = read_csv(pabs(f"raw/{survey_id}.csv"), sep=",")
+        conn = sqlite3.connect(f"data/{survey_id}.db")
+        df = read_csv(f"raw/{survey_id}.csv", sep=",")
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
         columns = df.columns.values
