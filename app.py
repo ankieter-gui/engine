@@ -255,6 +255,6 @@ def get_bkg(path):
 
 
 if __name__ == '__main__':
-    #for d in daemon.LIST:
-    #    threading.Thread(target=d).start()
+    for d in daemon.LIST:
+        threading.Thread(target=d, daemon=True).start()
     app.run()
