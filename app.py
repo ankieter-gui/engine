@@ -19,9 +19,9 @@ def get_dashboard():
     for sp in survey_permissions:
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
-            'type': 'survey',
-            'endsOn':survey.EndsOn.timestamp() if survey.EndsOn is not None  else None,
-            'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None  else None,
+            'type':          'survey',
+            'endsOn':        survey.EndsOn.timestamp() if survey.EndsOn is not None else None,
+            'startedOn':     survey.StartedOn.timestamp() if survey.StartedOn is not None else None,
             'id':            survey.id,
             'name':          survey.Name,
             'ankieterId':    survey.AnkieterId,
@@ -29,7 +29,7 @@ def get_dashboard():
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
             'userId':        sp.UserId,
-            'answersCount': database.get_answers_count(survey.id)
+            'answersCount':  database.get_answers_count(survey)
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
@@ -68,8 +68,8 @@ def upload_results():
 
     file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
 
-    database.csv_to_db(survey.id)
-    conn = database.open_survey(survey.id)
+    database.csv_to_db(survey, f"{survey.id}.csv")
+    conn = database.open_survey(survey)
     survey.QuestionCount = len(database.get_columns(conn))
     conn.close()
 
@@ -89,7 +89,7 @@ def create_report():
         data = request.json
         user = database.get_user()
         # czy użytkownik widzi tę ankietę?
-        report = database.create_report(user.id, data["surveyId"], data["title"])
+        report = database.create_report(user, data["surveyId"], data["title"])
         with open(f'report/{report.id}.json', 'w') as file:
             json.dump(data, file)
     except error.API as err:
@@ -99,15 +99,16 @@ def create_report():
 
 @app.route('/report/<int:report_id>/copy', methods=['GET'])
 def copy_report(report_id):
-    report = get_report(report_id)
-    if 'error' in report:
-        return report
+    data = get_report(report_id)
+    if 'error' in data:
+        return data
     try:
         user = database.get_user()
-        survey = database.get_report_survey(report_id)
-        report = database.create_report(user.id, survey.id, report["title"])
+        report = database.get_report(report_id)
+        survey = database.get_report_survey(report)
+        report = database.create_report(user, survey, report["title"])
         with open(f'report/{report.id}.json', 'w') as file:
-            json.dump(report, file)
+            json.dump(data, file)
     except error.API as err:
         return err.add_details('could not copy the report').as_dict()
     return {"reportId": report.id}
@@ -115,9 +116,10 @@ def copy_report(report_id):
 
 @app.route('/report/<int:report_id>', methods=['POST'])
 def set_report(report_id):
-    user_perm = database.get_report_permission(report_id, database.get_user().id)
-    if user_perm not in ['o', 'w']:
-        return error.API("You have no permission to edit this report.")
+    report = database.get_report(report_id)
+    per = database.get_report_permission(report, database.get_user())
+    if per not in ['o', 'w']:
+        return error.API("you have no permission to edit this report")
     with open(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
     return {"reportId": report_id}
@@ -132,24 +134,27 @@ def get_report(report_id):
 
 @app.route('/survey/<int:survey_id>', methods=['DELETE'])
 def delete_survey(survey_id):
-    user_perm = database.get_survey_permission(survey_id, database.get_user().id)
-    if user_perm != 'o':
+    survey = database.get_survey(survey_id)
+    per = database.get_survey_permission(survey, database.get_user())
+    if per != 'o':
         return error.API("You have no permission to delete this survey.")
-    return database.delete_survey(survey_id)
+    return database.delete_survey(survey)
 
 
 @app.route('/report/<int:report_id>', methods=['DELETE'])
 def delete_report(report_id):
-    user_perm = database.get_report_permission(report_id, database.get_user().id)
-    if user_perm != 'o':
+    report = database.get_report(report_id)
+    per = database.get_report_permission(report, database.get_user())
+    if per != 'o':
         return error.API("You have no permission to delete this report")
-    return database.delete_report(report_id)
+    return database.delete_report(report)
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:
-        conn = database.open_survey(survey_id)
+        survey = database.get_survey(survey_id)
+        conn = database.open_survey(survey)
         result = table.create(request.json, conn)
     except error.API as err:
         result = err.as_dict()
@@ -160,7 +165,8 @@ def get_data(survey_id):
 @app.route('/report/<int:report_id>/survey', methods=['GET'])
 def get_report_survey(report_id):
     try:
-        survey = database.get_report_survey(report_id)
+        report = database.get_report(report_id)
+        survey = database.get_report_survey(report)
     except error.API as err:
         return err.add_details('could not find the source survey').as_dict()
     return {"surveyId": survey.id}
@@ -168,28 +174,33 @@ def get_report_survey(report_id):
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
 def get_data_types(survey_id):
-    db = database.Survey.query.filter_by(id=survey_id).first()
-    if db:
-        conn = database.open_survey(survey_id)
+    try:
+        survey = database.get_survey(survey_id)
+        conn = database.open_survey(survey)
         types = database.get_types(conn)
         conn.close()
+    except error.API as err:
+        return err.add_details('could not get question types').as_dict()
     return types
 
 
 @app.route('/data/<int:survey_id>/questions', methods=['GET'])
 def get_questions(survey_id):
-    db = database.Survey.query.filter_by(id=survey_id).first()
-    if db:
-        conn = database.open_survey(survey_id)
+    try:
+        survey = database.get_survey(survey_id)
+        conn = database.open_survey(survey)
         questions = database.get_columns(conn)
         conn.close()
+    except error.API as err:
+        return err.add_details('could not get question order').as_dict()
     return {'questions': questions}
 
 
 @app.route('/report/<int:report_id>/rename', methods=['POST'])
 def rename_report(report_id):
     try:
-        result = database.rename_report(report_id, request.json)
+        report = database.get_report(report_id)
+        result = database.rename_report(report, request.json)
     except error.API as err:
         result = err.as_dict()
     return result
@@ -198,7 +209,8 @@ def rename_report(report_id):
 @app.route('/survey/<int:survey_id>/rename', methods=['POST'])
 def rename_survey(survey_id):
     try:
-        result = database.rename_survey(survey_id, request.json)
+        survey = database.get_survey(survey_id)
+        result = database.rename_survey(survey, request.json)
     except error.API as err:
         result = err.as_dict()
     return result
@@ -207,7 +219,6 @@ def rename_survey(survey_id):
 @app.route('/users', methods=['GET'])
 def get_users():
     return database.get_users()
-
 
 
 @app.route('/')
