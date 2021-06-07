@@ -128,7 +128,7 @@ def set_survey_meta(survey_id: int, name: str, question_count: int, meta: dict):
     if meta["is_active"]:
         survey.IsActive = meta["is_active"]
     if survey.BackgroundImg is None:
-        bkgs = os.listdir('bkg')
+        bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH, 'bkg'))
         survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
     print("Survey meta data added")
