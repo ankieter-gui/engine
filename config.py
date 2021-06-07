@@ -8,6 +8,9 @@ CAS_VERSION=2
 # address and port can be changed here; do not append the name with a '/'
 APP_URL='http://localhost:5000'
 
+# seconds of between subsequent daemon wakeups (for eg. the gatherer daemon)
+DINTERVAL=5*60
+
 # must be True or False; change to True for detailed logs during app runtime
 DEBUG=True
 

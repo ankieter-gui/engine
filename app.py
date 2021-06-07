@@ -3,9 +3,11 @@ from config import *
 import json
 import sqlite3
 import os
-import table
+import threading
 import database
 import grammar
+import daemon
+import table
 import error
 
 
@@ -253,4 +255,6 @@ def get_bkg(path):
 
 
 if __name__ == '__main__':
+    #for d in daemon.LIST:
+    #    threading.Thread(target=d).start()
     app.run()
