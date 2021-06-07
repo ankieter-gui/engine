@@ -281,7 +281,7 @@ def csv_to_db(survey_id: int):
         return min(counts, key=counts.get)
 
     try:
-        conn = sqlite3.connect(f"data/{survey_id}.db")
+        conn = sqlite3.connect(pabs(f"data/{survey_id}.db"))
         df = read_csv(f"raw/{survey_id}.csv", sep=",")
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
