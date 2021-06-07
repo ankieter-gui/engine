@@ -84,7 +84,7 @@ ADMIN.add_view(ModelView(User, db.session))
 ADMIN.add_view(ModelView(Survey, db.session))
 
 
-def get_user() -> User:
+def get_user(id: int = None) -> User:
     return User.query.filter_by(CasLogin=session['username']).first()
 
 
