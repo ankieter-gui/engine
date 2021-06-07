@@ -83,11 +83,12 @@ def create_report():
     try:
         grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
-        report = request.json
+        data = request.json
         user = database.get_user()
-        report = database.create_report(user.id, report["surveyId"], report["title"])
+        # czy użytkownik widzi tę ankietę?
+        report = database.create_report(user.id, data["surveyId"], data["title"])
         with popen(f'report/{report.id}.json', 'w') as file:
-            json.dump(report, file)
+            json.dump(data, file)
     except error.API as err:
         return err.add_details('could not create report').as_dict()
     return {"reportId": report.id}
