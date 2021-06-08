@@ -19,6 +19,14 @@ REQUEST_CHANGE_PERMISSIONS = {
     'n': ([int], 'optional'),
 }
 
+REQUEST_GROUP = {
+    'group': str,
+}
+
+REQUEST_USER = {
+    'userId': int,
+}
+
 def analyze(tp: typing.Any, obj: typing.Any) -> str:
     if type(tp) is type:
         if type(obj) is tp:

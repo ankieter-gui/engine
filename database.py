@@ -89,6 +89,7 @@ ADMIN.add_view(ModelView(Survey, db.session))
 
 def get_user(login: str="") -> User:
     if not login:
+        # jeśli nie ma loginu, to przydziel gościa
         login = session['username']
     return User.query.filter_by(CasLogin=login).first()
 
