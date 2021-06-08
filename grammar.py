@@ -13,6 +13,15 @@ REQUEST_CREATE_SURVEY = {
     'title':    str,
 }
 
+REQUEST_CHANGE_PERMISSIONS = {
+    [
+        {
+            'userId':     int,
+            'permission': str,
+        }
+    ]
+}
+
 def analyze(tp: typing.Any, obj: typing.Any) -> str:
     if type(tp) is type:
         if type(obj) is tp:
