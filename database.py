@@ -265,7 +265,7 @@ def get_columns(conn: sqlite3.Connection) -> list[str]:
 
 
 def get_answers_count(survey: Survey):
-    conn = open_survey(survey.id)
+    conn = open_survey(survey)
     cur = conn.cursor()
     cur.execute("SELECT * FROM data")
     n = len(cur.fetchall())
