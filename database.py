@@ -10,7 +10,11 @@ import error
 import os
 
 db = SQLAlchemy(app)
+
 Role = Literal['s', 'u', 'g']
+
+# dodać 'n' -- none, pozwoli połączyć funkcję nadającą uprawnienia z tą,
+# która je zabiera
 Permission = Literal['o', 'w', 'r']
 
 
@@ -112,6 +116,27 @@ def get_users() -> dict:
     return {"users": result}
 
 
+#def get_group(name: str) -> Group
+
+
+#def create_group(name: str):
+
+
+#def set_user_group(user: User, group: Group):
+
+
+#def unset_user_group(user: User, group: Group)
+
+
+#def get_user_groups(user: User) -> list[Group]:
+
+
+#def get_group_users(group: Group) -> list[User]:
+
+
+#def delete_group(group: Group):
+
+
 def create_survey(user: User, name: str) -> Survey:
     survey = Survey(Name=name, QuestionCount=0)
     db.session.add(survey)
@@ -192,8 +217,6 @@ def create_report(user: User, survey: Survey, name: int) -> Report:
 
 
 def delete_survey(survey: Survey):
-    if survey is None:
-        raise error.API('no such survey')
     # db_path = 'data/' + str(survey.id) + '.db'
     # if os.path.exists(db_path):
     #     os.remove(db_path)
@@ -205,39 +228,14 @@ def delete_survey(survey: Survey):
     SurveyGroup.query.filter_by(SurveyId=survey.id).delete()
     Survey.query.filter_by(id=survey.id).delete()
     db.session.commit()
-    return {'message': 'survey has been deleted', 'surveyId': id}
 
 
 def delete_report(report: Report):
-    if report is None:
-        raise error.API('no such report')
     id = report.id
     ReportPermission.query.filter_by(ReportId=report.id).delete()
     ReportGroup.query.filter_by(ReportId=report.id).delete()
     Report.query.filter_by(id=report.id).delete()
     db.session.commit()
-    return {'message': 'report has been deleted', 'reportId': id}
-
-
-def rename_report(report: Report, request):
-    report = Report.query.filter_by(id=report.id).first()
-    if report is None:
-        raise error.API('no such report')
-    if 'title' not in request:
-        raise error.API('no parameter title')
-    report.Name = request['title']
-    db.session.commit()
-    return {'message': 'report name has been changed', 'reportId': report.id, 'title': request['title']}
-
-
-def rename_survey(survey: Survey, request):
-    if survey is None:
-        raise error.API('no such survey')
-    if 'title' not in request:
-        raise error.API('no parameter title')
-    survey.Name = request['title']
-    db.session.commit()
-    return {'message': 'survey name has been changed', 'surveyId': survey.id, 'title': request['title']}
 
 
 def open_survey(survey: Survey) -> sqlite3.Connection:

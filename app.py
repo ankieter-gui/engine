@@ -134,21 +134,34 @@ def get_report(report_id):
 
 @app.route('/survey/<int:survey_id>', methods=['DELETE'])
 def delete_survey(survey_id):
-    survey = database.get_survey(survey_id)
-    perm = database.get_survey_permission(survey, database.get_user())
-    if perm != 'o':
-        return error.API("You have no permission to delete this survey.")
-    return database.delete_survey(survey)
+    try:
+        survey = database.get_survey(survey_id)
+        perm = database.get_survey_permission(survey, database.get_user())
+        if perm != 'o':
+            raise error.API("you have no permission to delete this survey")
+        database.delete_survey(survey)
+    except error.API as err:
+        return err.add_details('could not delete survey').to_dict()
+    return {
+        'message': 'report has been deleted',
+        'surveyId': survey_id
+    }
 
 
 @app.route('/report/<int:report_id>', methods=['DELETE'])
 def delete_report(report_id):
-    report = database.get_report(report_id)
-    perm = database.get_report_permission(report, database.get_user())
-    if perm != 'o':
-        return error.API("You have no permission to delete this report")
-    return database.delete_report(report)
-
+    try:
+        report = database.get_report(report_id)
+        perm = database.get_report_permission(report, database.get_user())
+        if perm != 'o':
+            raise error.API("you have no permission to delete this report")
+        database.delete_report(report)
+    except error.API as err:
+        return err.add_details('could not delete report').to_dict()
+    return {
+        'message': 'report has been deleted',
+        'reportId': report_id
+    }
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
@@ -169,7 +182,9 @@ def get_report_survey(report_id):
         survey = database.get_report_survey(report)
     except error.API as err:
         return err.add_details('could not find the source survey').as_dict()
-    return {"surveyId": survey.id}
+    return {
+        "surveyId": survey.id
+    }
 
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
@@ -193,27 +208,45 @@ def get_questions(survey_id):
         conn.close()
     except error.API as err:
         return err.add_details('could not get question order').as_dict()
-    return {'questions': questions}
+    return {
+        'questions': questions
+    }
 
 
 @app.route('/report/<int:report_id>/rename', methods=['POST'])
 def rename_report(report_id):
     try:
+        # uprawnienia
+        if 'title' not in request:
+            raise error.API('no parameter title')
         report = database.get_report(report_id)
-        result = database.rename_report(report, request.json)
+        result.Name = request.json['title']
+        db.session.commit()
     except error.API as err:
-        result = err.as_dict()
-    return result
+        result = err.add_info('could not rename report').as_dict()
+    return {
+        'message': 'report name has been changed',
+        'reportId': report.id,
+        'title': request.json['title']
+    }
 
 
 @app.route('/survey/<int:survey_id>/rename', methods=['POST'])
 def rename_survey(survey_id):
     try:
+        # uprawnienia
+        if 'title' not in request:
+            raise error.API('no parameter title')
         survey = database.get_survey(survey_id)
-        result = database.rename_survey(survey, request.json)
+        survey.Name = request.json['title']
+        db.session.commit()
     except error.API as err:
-        result = err.as_dict()
-    return result
+        result = err.add_info('could not rename survey').as_dict()
+    return {
+        'message': 'survey name has been changed',
+        'surveyId': survey.id,
+        'title': request.json['title']
+    }
 
 
 @app.route('/survey/<int:survey_id>/share', methods=['POST'])
@@ -226,7 +259,9 @@ def share_survey(survey_id):
     for CasLogin in json.values():
         user = database.get_user(CasLogin)
         database.set_survey_permission(survey, user, 'r')
-    return {"status": "permissions added"}
+    return {
+        "status": "permissions added"
+    }
 
 
 @app.route('/report/<int:report_id>/share', methods=['POST'])
@@ -239,7 +274,9 @@ def share_report(report_id):
     for CasLogin in json.values():
         user = database.get_user(CasLogin)
         database.set_survey_permission(report, user, 'r')
-    return {"status": "permissions added"}
+    return {
+        "status": "permissions added"
+    }
 
 
 @app.route('/users', methods=['GET'])
