@@ -298,6 +298,9 @@ def set_group():
                 database.set_user_group(user.id, group)
     except error.API as err:
         return err.add_details('failed adding users to groups').to_dict()
+    return {
+        'message': 'users added to groups'
+    }
 
 
 @app.route('/group/unset', methods=['POST'])
@@ -312,6 +315,9 @@ def unset_group():
                 database.unset_user_group(user.id, group)
     except error.API as err:
         return err.add_details('failed removing users from groups').to_dict()
+    return {
+        'message': 'users removed from groups'
+    }
 
 
 @app.route('/group/delete', methods=['POST'])
@@ -323,6 +329,9 @@ def delete_group():
         database.delete_group(request.json['group'])
     except error.API as err:
         return err.add_details('failed deleting group').to_dict()
+    return {
+        'message': 'group deleted'
+    }
 
 
 @app.route('/group/users', methods=['POST'])
