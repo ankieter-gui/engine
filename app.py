@@ -285,7 +285,7 @@ def share_report(report_id):
         "message": "permissions added"
     }
 
-
+# {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
 @app.route('/group/set', methods=['POST'])
 def set_group():
     try:
@@ -303,6 +303,7 @@ def set_group():
     }
 
 
+# {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
 @app.route('/group/unset', methods=['POST'])
 def unset_group():
     try:
@@ -320,6 +321,7 @@ def unset_group():
     }
 
 
+# {'group': 'nazwa grupy'}
 @app.route('/group/delete', methods=['POST'])
 def delete_group():
     try:
@@ -334,6 +336,7 @@ def delete_group():
     }
 
 
+# {'group': 'nazwa grupy'}
 @app.route('/group/users', methods=['POST'])
 def get_group_users():
     try:
