@@ -169,6 +169,7 @@ def delete_report(report_id):
         'reportId': report_id
     }
 
+
 @app.route('/data/<int:survey_id>', methods=['POST'])
 def get_data(survey_id):
     try:

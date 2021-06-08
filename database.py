@@ -14,7 +14,6 @@ db = SQLAlchemy(app)
 Role = Literal['s', 'u', 'g']
 Permission = Literal['o', 'w', 'r', 'n']
 
-
 class User(db.Model):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
@@ -23,10 +22,10 @@ class User(db.Model):
     Role = db.Column(db.String, default='g', nullable=False)
 
 
-class Group(db.Model):
-    __tablename__ = "Groups"
-    id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.String(25), nullable=False)
+#class Group(db.Model):
+#    __tablename__ = "Groups"
+#    id = db.Column(db.Integer, primary_key=True)
+#    Name = db.Column(db.String(25), primary_key=True)
 
 
 class Survey(db.Model):
@@ -51,20 +50,23 @@ class Report(db.Model):
 
 class UserGroup(db.Model):
     __tablename__ = "UserGroups"
-    GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
+    Group = db.Column(db.String(25))
+    #GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
 
 
 class SurveyGroup(db.Model):
     __tablename__ = "SurveyGroups"
     SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True)
-    GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
+    Group = db.Column(db.String(25))
+    #GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
 
 
 class ReportGroup(db.Model):
     __tablename__ = "ReportGroups"
     ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
-    GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
+    Group = db.Column(db.String(25))
+    #GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
 
 
 class SurveyPermission(db.Model):
@@ -113,25 +115,54 @@ def get_users() -> dict:
     return {"users": result}
 
 
-#def get_group(name: str) -> Group
+#def get_group(id: int) -> Group:
+#    group = Group.query.filter_by(id=id)
+#    if group is None:
+#        raise error.API('no such group')
+#    return group
 
 
-#def create_group(name: str):
+#def create_group(name: str) -> Group:
+#    group = Group.query.filter_by(Name=name)
+#    if group is not None:
+#        raise error.API('group already exists')
+#    group = Group(Name=name)
+#    db.session.add(group)
+#    db.session.commit()
+#    return group
 
 
-#def set_user_group(user: User, group: Group):
+def set_user_group(user: User, group: str):
+    user_group = UserGroup(UserId=user.id, Group=group)
+    db.session.add(user_group)
+    db.session.commit()
+    return user_group
 
 
-#def unset_user_group(user: User, group: Group)
+def unset_user_group(user: User, group: str):
+    user_group = UserGroup.query.filter_by(UserId=user.id, Group=group)
+    if user_group is None:
+        raise error.API('the user is not in the group')
+    user_group.delete()
+    db.session.commit()
 
 
-#def get_user_groups(user: User) -> list[Group]:
+def get_user_groups(user: User) -> list[str]:
+    user_groups = UserGroup.query.filter_by(UserId=user.id).all()
+    return [user_group.Group for user_group in user_groups]
 
 
-#def get_group_users(group: Group) -> list[User]:
+def get_group_users(group: str) -> list[User]:
+    user_groups = UserGroup.query.filter_by(Group=group).all()
+    users = []
+    for user_group in user_groups:
+        users.append(User.query.filter_by(id=user_group.User.id).first())
+    return users
 
 
-#def delete_group(group: Group):
+def delete_group(group: str):
+    user_groups = UserGroup.query.filter_by(Group=group).delete()
+    db.session.commit()
 
 
 def create_survey(user: User, name: str) -> Survey:
