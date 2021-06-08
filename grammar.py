@@ -14,12 +14,9 @@ REQUEST_CREATE_SURVEY = {
 }
 
 REQUEST_CHANGE_PERMISSIONS = {
-    [
-        {
-            'userId':     int,
-            'permission': str,
-        }
-    ]
+    'r': ([int], 'optional'),
+    'w': ([int], 'optional'),
+    'n': ([int], 'optional'),
 }
 
 def analyze(tp: typing.Any, obj: typing.Any) -> str:
