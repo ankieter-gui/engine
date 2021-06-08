@@ -325,7 +325,7 @@ def delete_group():
     try:
         if database.get_user().Role != 's':
             raise error.API('insufficient permissions')
-        grammar.check(REQUEST_GROUP, request.json)
+        grammar.check(grammar.REQUEST_GROUP, request.json)
         database.delete_group(request.json['group'])
     except error.API as err:
         return err.add_details('failed deleting group').to_dict()
@@ -339,7 +339,7 @@ def get_group_users():
     try:
         if database.get_user().Role not in ['s', 'u']:
             raise error.API('insufficient permissions')
-        grammar.check(REQUEST_GROUP, request.json)
+        grammar.check(grammar.REQUEST_GROUP, request.json)
         users = database.get_group_users(request.json['group'])
     except error.API as err:
         return err.add_details('failed finding group users').to_dict()
