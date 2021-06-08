@@ -12,10 +12,7 @@ import os
 db = SQLAlchemy(app)
 
 Role = Literal['s', 'u', 'g']
-
-# dodać 'n' -- none, pozwoli połączyć funkcję nadającą uprawnienia z tą,
-# która je zabiera
-Permission = Literal['o', 'w', 'r']
+Permission = Literal['o', 'w', 'r', 'n']
 
 
 class User(db.Model):
@@ -171,7 +168,7 @@ def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
 def get_survey_permission(survey: Survey, user: User) -> Permission:
     sp = SurveyPermission.query.filter_by(SurveyId=survey.id, UserId=user.id).first()
     if sp is None:
-        raise error.API('no such survey permission')
+        return 'n'
     return sp.Type
 
 
@@ -194,7 +191,7 @@ def get_report_survey(report: Report) -> Survey:
 def get_report_permission(report: Report, user: User) -> Permission:
     sp = ReportPermission.query.filter_by(ReportId=report.id, UserId=user.id).first()
     if sp is None:
-        raise error.API('no such report permission')
+        return 'n'
     return sp.Type
 
 
