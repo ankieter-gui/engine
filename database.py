@@ -306,5 +306,5 @@ def csv_to_db(survey: Survey, filename: str):
 
 
 if __name__ == '__main__':
-    delete_survey(1)
-    delete_report(1)
+    delete_survey(get_survey(1))
+    delete_report(get_report(1))

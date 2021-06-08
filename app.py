@@ -94,7 +94,9 @@ def create_report():
             json.dump(data, file)
     except error.API as err:
         return err.add_details('could not create report').as_dict()
-    return {"reportId": report.id}
+    return {
+        "reportId": report.id
+    }
 
 
 @app.route('/report/<int:report_id>/copy', methods=['GET'])
@@ -111,7 +113,9 @@ def copy_report(report_id):
             json.dump(data, file)
     except error.API as err:
         return err.add_details('could not copy the report').as_dict()
-    return {"reportId": report.id}
+    return {
+        "reportId": report.id
+    }
 
 
 @app.route('/report/<int:report_id>', methods=['POST'])
@@ -122,7 +126,9 @@ def set_report(report_id):
         return error.API("you have no permission to edit this report")
     with open(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
-    return {"reportId": report_id}
+    return {
+        "reportId": report.id
+    }
 
 
 @app.route('/report/<int:report_id>', methods=['GET'])
@@ -260,7 +266,7 @@ def share_survey(survey_id):
         user = database.get_user(CasLogin)
         database.set_survey_permission(survey, user, 'r')
     return {
-        "status": "permissions added"
+        "message": "permissions added"
     }
 
 
@@ -275,7 +281,7 @@ def share_report(report_id):
         user = database.get_user(CasLogin)
         database.set_survey_permission(report, user, 'r')
     return {
-        "status": "permissions added"
+        "message": "permissions added"
     }
 
 
