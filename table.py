@@ -33,11 +33,14 @@ FILTERS = {
 
 
 def share(s): return s.value_counts().to_dict()
+def mode(s):
+    s = s.value_counts().to_dict()
+    return max(s, key=s.get)
 AGGREGATORS = {
     'share':  Aggregator(share,    'INTEGER', 'REAL', 'TEXT'),
+    'mode':   Aggregator(mode,     'INTEGER', 'REAL', 'TEXT'),
     'max':    Aggregator('max',    'INTEGER', 'REAL'),
     'min':    Aggregator('min',    'INTEGER', 'REAL'),
-    'mode':   Aggregator('mode',   'INTEGER', 'REAL', 'TEXT'),
     'mean':   Aggregator('mean',   'INTEGER', 'REAL'),
     'median': Aggregator('median', 'INTEGER', 'REAL'),
     'std':    Aggregator('std',    'INTEGER', 'REAL'),
