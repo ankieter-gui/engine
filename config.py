@@ -30,10 +30,11 @@ chdir(ABSOLUTE_DIR_PATH)
 popen = lambda p, mode: open(pabs(p), mode)
 pabs = lambda p: path.join(ABSOLUTE_DIR_PATH, p)
 
+SALT_LENGTH=22
 
 app = Flask(__name__)
 app.config.from_mapping(
-    SECRET_KEY=urandom(22), #'sTzMzxFX8BcJt3wuvNvDeQ',
+    SECRET_KEY=urandom(SALT_LENGTH), #'sTzMzxFX8BcJt3wuvNvDeQ',
     FLASK_ADMIN_SWATCH='cerulean',
     SQLALCHEMY_DATABASE_URI='sqlite:///master.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,

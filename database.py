@@ -83,6 +83,15 @@ class ReportPermission(db.Model):
     Type = db.Column(db.String, default='r', nullable=False)
 
 
+class Link(db.Model):
+    __tablename__ = "Links"
+    id = db.Column(db.Integer, primary_key=True)
+    Salt = db.Column(db.String(SALT_LENGTH))
+    Type = db.Column(db.String, default='r', nullable=False)
+    Object = db.Column(db.String, nullable=False)
+    ObjectId = db.Column(db.Integer, nullable=False)
+
+
 ADMIN.add_view(ModelView(User, db.session))
 ADMIN.add_view(ModelView(Survey, db.session))
 
