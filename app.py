@@ -227,10 +227,10 @@ def rename_report(report_id):
         if 'title' not in request:
             raise error.API('no parameter title')
         report = database.get_report(report_id)
-        result.Name = request.json['title']
-        db.session.commit()
+        report.Name = request.json['title']
+        #db.session.commit()
     except error.API as err:
-        result = err.add_details('could not rename report').as_dict()
+        report err.add_details('could not rename report').as_dict()
     return {
         'message': 'report name has been changed',
         'reportId': report.id,
@@ -246,7 +246,7 @@ def rename_survey(survey_id):
             raise error.API('no parameter title')
         survey = database.get_survey(survey_id)
         survey.Name = request.json['title']
-        db.session.commit()
+        #db.session.commit()
     except error.API as err:
         result = err.add_details('could not rename survey').as_dict()
     return {
