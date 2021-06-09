@@ -8,6 +8,7 @@ import re
 import sqlite3
 import error
 import os
+from base64 import b64encode
 
 db = SQLAlchemy(app)
 
@@ -123,6 +124,30 @@ def get_report(id: int) -> Report:
     if report is None:
         raise error.API('no such report')
     return report
+
+
+def survey_generate_link(permission: Permission, survey_id: int) -> str:
+    share_link = Link.query.filter_by(Type=permission, Object='s', ObjectId=survey_id).first()
+    if share_link is not None:
+        return share_link.Salt + str(share_link.id)
+    else:
+        salt = urandom(SALT_LENGTH)
+        share_link = Link(Salt=b64encode(salt).decode('utf-8'), Type=permission, Object='s', ObjectId=survey_id)
+        db.session.add(share_link)
+        db.session.commit()
+        return share_link.Salt + str(share_link.id)
+
+
+def report_generate_link(permission: Permission, report_id: int) -> str:
+    share_link = Link.query.filter_by(Type=permission, Object='r', ObjectId=report_id).first()
+    if share_link is not None:
+        return share_link.Salt + str(share_link.id)
+    else:
+        salt = urandom(SALT_LENGTH)
+        share_link = Link(Salt=b64encode(salt).decode('utf-8'), Type=permission, Object='r', ObjectId=report_id)
+        db.session.add(share_link)
+        db.session.commit()
+        return share_link.Salt + str(share_link.id)
 
 
 def get_users() -> dict:

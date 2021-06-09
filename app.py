@@ -295,11 +295,11 @@ def link_to_survey(survey_id):
     try:
         json = request.json
         grammar.check(grammar.REQUEST_SURVEY_LINK, json)
-        # database.survey_generate_link(json['permission'], json['surveyId'])
+        link = database.survey_generate_link(json['permission'], json['surveyId'])
     except error.API as err:
         return err.add_details('failed link generate').as_dict()
     return {
-        'link': 'link'
+        'link': link
     }
 
 
@@ -309,11 +309,11 @@ def link_to_report(report_id):
     try:
         json = request.json
         grammar.check(grammar.REQUEST_REPORT_LINK, json)
-        # database.repor_generate_link(json['permission'], json['reportId'])
+        link = database.report_generate_link(json['permission'], json['reportId'])
     except error.API as err:
         return err.add_details('failed report generate').as_dict()
     return {
-        'link': 'link'
+        'link': link
     }
 
 @app.route('/link/<string:hash>', methods=['GET'])
