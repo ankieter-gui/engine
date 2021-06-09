@@ -130,7 +130,8 @@ def get_users() -> dict:
     result = []
     for u in users:
         result.append({
-            "CasLogin": u.CasLogin
+            "CasLogin": u.CasLogin,
+            "id": u.id
         })
     return {"users": result}
 
