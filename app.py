@@ -69,15 +69,11 @@ def get_dashboard():
     return {"objects": result}
 
 
-# ścieżki na następny przyrost
-#@app.route('/survey/<int:survey_id>', methods=['GET'])
-#@app.route('/survey/<int:survey_id>', methods=['POST'])
-#@app.route('/report/new', methods=['POST'])
-
 @app.route('/data/new', methods=['POST'])
+@on_errors('could not save survey data')
 def upload_results():
     if not request.files['file']:
-        return error.API("could not create survey file").as_dict()
+        raise error.API("empty survey data")
 
     file = request.files['file']
     name, ext = file.filename.rsplit('.', 1)
@@ -85,7 +81,7 @@ def upload_results():
     if 'name' in request.form:
         name = request.form['name']
     if ext.lower() != 'csv':
-        return error.API("expected a CSV file").as_dict()
+        raise error.API("expected a CSV file")
 
     survey = database.create_survey(database.get_user(), name)
 
@@ -103,51 +99,48 @@ def upload_results():
 
 
 @app.route('/report/new', methods=['POST'])
+@on_errors('could not create report')
 def create_report():
     # można pomyśleć o maksymalnej, dużej liczbie raportów dla każdego użytkownika
     # ze względu na bezpieczeństwo.
-    try:
-        grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
+    grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
-        data = request.json
-        user = database.get_user()
-        # czy użytkownik widzi tę ankietę?
-        survey = database.get_survey(data["surveyId"])
-        report = database.create_report(user, survey, data["title"])
-        with open(f'report/{report.id}.json', 'w') as file:
-            json.dump(data, file)
-    except error.API as err:
-        return err.add_details('could not create report').as_dict()
+    data = request.json
+    user = database.get_user()
+    # czy użytkownik widzi tę ankietę?
+    survey = database.get_survey(data["surveyId"])
+    report = database.create_report(user, survey, data["title"])
+    with open(f'report/{report.id}.json', 'w') as file:
+        json.dump(data, file)
     return {
         "reportId": report.id
     }
 
 
 @app.route('/report/<int:report_id>/copy', methods=['GET'])
+@on_errors('could not copy the report')
 def copy_report(report_id):
     data = get_report(report_id)
     if 'error' in data:
         return data
-    try:
-        user = database.get_user()
-        report = database.get_report(report_id)
-        survey = database.get_report_survey(report)
-        report = database.create_report(user, survey, report["title"])
-        with open(f'report/{report.id}.json', 'w') as file:
-            json.dump(data, file)
-    except error.API as err:
-        return err.add_details('could not copy the report').as_dict()
+    user = database.get_user()
+    report = database.get_report(report_id)
+    survey = database.get_report_survey(report)
+    report = database.create_report(user, survey, report["title"])
+    with open(f'report/{report.id}.json', 'w') as file:
+        json.dump(data, file)
     return {
         "reportId": report.id
     }
 
 
 @app.route('/report/<int:report_id>', methods=['POST'])
+@on_errors('could not save the report')
 def set_report(report_id):
     report = database.get_report(report_id)
     perm = database.get_report_permission(report, database.get_user())
     if perm not in ['o', 'w']:
-        return error.API("you have no permission to edit this report")
+        raise error.API("you have no permission to edit this report")
     with open(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
     return {
@@ -156,6 +149,7 @@ def set_report(report_id):
 
 
 @app.route('/report/<int:report_id>', methods=['GET'])
+@on_errors('could not open the report')
 def get_report(report_id):
     with open(f'report/{report_id}.json', 'r') as file:
         data = json.load(file)
@@ -163,15 +157,13 @@ def get_report(report_id):
 
 
 @app.route('/survey/<int:survey_id>', methods=['DELETE'])
+@on_errors('could not delete survey')
 def delete_survey(survey_id):
-    try:
-        survey = database.get_survey(survey_id)
-        perm = database.get_survey_permission(survey, database.get_user())
-        if perm != 'o':
-            raise error.API("you have no permission to delete this survey")
-        database.delete_survey(survey)
-    except error.API as err:
-        return err.add_details('could not delete survey').as_dict()
+    survey = database.get_survey(survey_id)
+    perm = database.get_survey_permission(survey, database.get_user())
+    if perm != 'o':
+        raise error.API("you have no permission to delete this survey")
+    database.delete_survey(survey)
     return {
         'message': 'report has been deleted',
         'surveyId': survey_id
@@ -179,15 +171,13 @@ def delete_survey(survey_id):
 
 
 @app.route('/report/<int:report_id>', methods=['DELETE'])
+@on_errors('could not delete report')
 def delete_report(report_id):
-    try:
-        report = database.get_report(report_id)
-        perm = database.get_report_permission(report, database.get_user())
-        if perm != 'o':
-            raise error.API("you have no permission to delete this report")
-        database.delete_report(report)
-    except error.API as err:
-        return err.add_details('could not delete report').as_dict()
+    report = database.get_report(report_id)
+    perm = database.get_report_permission(report, database.get_user())
+    if perm != 'o':
+        raise error.API("you have no permission to delete this report")
+    database.delete_report(report)
     return {
         'message': 'report has been deleted',
         'reportId': report_id
@@ -195,66 +185,56 @@ def delete_report(report_id):
 
 
 @app.route('/data/<int:survey_id>', methods=['POST'])
+@on_errors('could not obtain survey data')
 def get_data(survey_id):
-    try:
-        survey = database.get_survey(survey_id)
-        conn = database.open_survey(survey)
-        result = table.create(request.json, conn)
-    except error.API as err:
-        result = err.as_dict()
+    survey = database.get_survey(survey_id)
+    conn = database.open_survey(survey)
+    result = table.create(request.json, conn)
     conn.close()
     return result
 
 
 @app.route('/report/<int:report_id>/survey', methods=['GET'])
+@on_errors('could not find the source survey')
 def get_report_survey(report_id):
-    try:
-        report = database.get_report(report_id)
-        survey = database.get_report_survey(report)
-    except error.API as err:
-        return err.add_details('could not find the source survey').as_dict()
+    report = database.get_report(report_id)
+    survey = database.get_report_survey(report)
     return {
         "surveyId": survey.id
     }
 
 
 @app.route('/data/<int:survey_id>/types', methods=['GET'])
+@on_errors('could not get question types')
 def get_data_types(survey_id):
-    try:
-        survey = database.get_survey(survey_id)
-        conn = database.open_survey(survey)
-        types = database.get_types(conn)
-        conn.close()
-    except error.API as err:
-        return err.add_details('could not get question types').as_dict()
+    survey = database.get_survey(survey_id)
+    conn = database.open_survey(survey)
+    types = database.get_types(conn)
+    conn.close()
     return types
 
 
 @app.route('/data/<int:survey_id>/questions', methods=['GET'])
+@on_errors('could not get question order')
 def get_questions(survey_id):
-    try:
-        survey = database.get_survey(survey_id)
-        conn = database.open_survey(survey)
-        questions = database.get_columns(conn)
-        conn.close()
-    except error.API as err:
-        return err.add_details('could not get question order').as_dict()
+    survey = database.get_survey(survey_id)
+    conn = database.open_survey(survey)
+    questions = database.get_columns(conn)
+    conn.close()
     return {
         'questions': questions
     }
 
 
 @app.route('/report/<int:report_id>/rename', methods=['POST'])
+@on_errors('could not rename report')
 def rename_report(report_id):
-    try:
-        # uprawnienia
-        if 'title' not in request:
-            raise error.API('no parameter title')
-        report = database.get_report(report_id)
-        report.Name = request.json['title']
-        #db.session.commit()
-    except error.API as err:
-        return err.add_details('could not rename report').as_dict()
+    # uprawnienia
+    if 'title' not in request:
+        raise error.API('no parameter title')
+    report = database.get_report(report_id)
+    report.Name = request.json['title']
+    #db.session.commit()
     return {
         'message': 'report name has been changed',
         'reportId': report.id,
@@ -263,16 +243,14 @@ def rename_report(report_id):
 
 
 @app.route('/survey/<int:survey_id>/rename', methods=['POST'])
+@on_errors('could not rename survey')
 def rename_survey(survey_id):
-    try:
-        # uprawnienia
-        if 'title' not in request:
-            raise error.API('no parameter title')
-        survey = database.get_survey(survey_id)
-        survey.Name = request.json['title']
-        #db.session.commit()
-    except error.API as err:
-        result = err.add_details('could not rename survey').as_dict()
+    # uprawnienia
+    if 'title' not in request:
+        raise error.API('no parameter title')
+    survey = database.get_survey(survey_id)
+    survey.Name = request.json['title']
+    #db.session.commit()
     return {
         'message': 'survey name has been changed',
         'surveyId': survey.id,
@@ -281,12 +259,13 @@ def rename_survey(survey_id):
 
 
 @app.route('/survey/<int:survey_id>/share', methods=['POST'])
+@on_errors('could not share survey')
 def share_survey(survey_id):
     json = request.json
     survey = database.get_survey(survey_id)
     perm = database.get_survey_permission(survey, database.get_user())
     if perm != "o":
-        return error.API("you must be the owner to share this survey")
+        raise error.API("you must be the owner to share this survey")
     for p, users in json.items():
         for user in users:
             database.set_survey_permission(survey, database.get_user(user), p)
@@ -296,12 +275,13 @@ def share_survey(survey_id):
 
 
 @app.route('/report/<int:report_id>/share', methods=['POST'])
+@on_errors('could not share report')
 def share_report(report_id):
     json = request.json
     report = database.get_survey(report_id)
     perm = database.get_report_permission(report, database.get_user())
     if perm != "o":
-        return error.API("you must be the owner to share this report")
+        raise error.API("you must be the owner to share this report")
     for p, users in json.items():
         for user in users:
             database.set_report_permission(report, database.get_user(user), p)
@@ -313,48 +293,38 @@ def share_report(report_id):
 
 # {'group': 'nazwa grupy'}
 @app.route('/group/all', methods=['DELETE'])
+@on_errors('could not delete group')
+@for_roles('s', 'u')
 def delete_group():
-    try:
-        if database.get_user().Role not in ['s', 'u']:
-            raise error.API('insufficient permissions')
-        grammar.check(grammar.REQUEST_GROUP, request.json)
-        database.delete_group(request.json['group'])
-    except error.API as err:
-        return err.add_details('failed getting group').as_dict()
+    grammar.check(grammar.REQUEST_GROUP, request.json)
+    database.delete_group(request.json['group'])
     return {
         'message': 'group deleted'
     }
 
 
 @app.route('/group/all', methods=['GET', 'POST'])
+@on_errors('could not obtain list of groups')
+@for_roles('s', 'u')
 def get_groups():
-    try:
-        if database.get_user().Role not in ['s', 'u']:
-            raise error.API('insufficient permissions')
-
-        result = {}
-        for group in database.get_groups():
-            result[group] = []
-            for user in database.get_group_users(group):
-                result[group].append(user.id)
-    except error.API as err:
-        return err.add_details('failed getting list of groups').as_dict()
+    result = {}
+    for group in database.get_groups():
+        result[group] = []
+        for user in database.get_group_users(group):
+            result[group].append(user.id)
     return result
 
 
 # {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
 @app.route('/group/change', methods=['POST'])
+@on_errors('could not add users to groups')
+@for_roles('s')
 def set_group():
-    try:
-        if database.get_user().Role != 's':
-            raise error.API('insufficient permissions')
-        for group, *ids in request.json:
-            grammar.check([int], ids)
-            for id in ids:
-                user = database.get_user(id)
-                database.set_user_group(user, group)
-    except error.API as err:
-        return err.add_details('failed adding users to groups').as_dict()
+    for group, *ids in request.json:
+        grammar.check([int], ids)
+        for id in ids:
+            user = database.get_user(id)
+            database.set_user_group(user, group)
     return {
         'message': 'users added to groups'
     }
@@ -362,17 +332,14 @@ def set_group():
 
 # {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
 @app.route('/group/change', methods=['DELETE'])
+@on_errors('could not remove users from groups')
+@for_roles('s')
 def unset_group():
-    try:
-        if database.get_user().Role != 's':
-            raise error.API('insufficient permissions')
-        for group, *ids in request.json:
-            grammar.check([int], ids)
-            for id in ids:
-                user = database.get_user(id)
-                database.unset_user_group(user, group)
-    except error.API as err:
-        return err.add_details('failed removing users from groups').as_dict()
+    for group, *ids in request.json:
+        grammar.check([int], ids)
+        for id in ids:
+            user = database.get_user(id)
+            database.unset_user_group(user, group)
     return {
         'message': 'users removed from groups'
     }
@@ -380,51 +347,41 @@ def unset_group():
 
 # {'group': 'nazwa grupy'}
 @app.route('/group/users', methods=['POST'])
+@on_errors('could not obtain group users')
+@for_roles('s', 'u')
 def get_group_users():
-    try:
-        if database.get_user().Role not in ['s', 'u']:
-            raise error.API('insufficient permissions')
-        grammar.check(grammar.REQUEST_GROUP, request.json)
-        users = database.get_group_users(request.json['group'])
-    except error.API as err:
-        return err.add_details('failed getting group users').as_dict()
+    grammar.check(grammar.REQUEST_GROUP, request.json)
+    users = database.get_group_users(request.json['group'])
     return {
         request.json['group']: [user.id for user in users]
     }
 
 
 @app.route('/user/<int:user_id>/group', methods=['GET', 'POST'])
+@on_errors('could not obtain user groups')
+@for_roles('s', 'u')
 def get_user_groups(user_id):
-    try:
-        if database.get_user().Role not in ['s', 'u']:
-            raise error.API('insufficient permissions')
-
-        result = {}
-        user = database.get_user(user_id)
-        for group in database.get_user_groups(user):
-            result[group] = []
-            for user in database.get_group_users(group):
-                result[group].append(user.id)
-    except error.API as err:
-        return err.add_details('failed getting user groups').as_dict()
+    result = {}
+    user = database.get_user(user_id)
+    for group in database.get_user_groups(user):
+        result[group] = []
+        for user in database.get_group_users(group):
+            result[group].append(user.id)
     return result
 
 
 @app.route('/user',  methods=['GET'])
+@on_errors('could not obtain user data')
 def get_user_details():
-    try:
-        user = database.get_user()
-        return {
-            "logged":    True,
-            "username":  session['username'],
-            "id":        user.id,
-            'casLogin':  user.CasLogin,
-            'fetchData': user.FetchData,
-            'role':      user.Role,
-        }
-    except error.API as err:
-        return err.add_details('could not obtain user data').as_dict()
-
+    user = database.get_user()
+    return {
+        "logged":    True,
+        "username":  session['username'],
+        "id":        user.id,
+        'casLogin':  user.CasLogin,
+        'fetchData': user.FetchData,
+        'role':      user.Role,
+    }
 
 @app.route('/user/<int:user_id>',  methods=['GET'])
 @on_errors('could not obtain user data')
