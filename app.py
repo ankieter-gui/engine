@@ -295,7 +295,7 @@ def delete_group():
         grammar.check(grammar.REQUEST_GROUP, request.json)
         database.delete_group(request.json['group'])
     except error.API as err:
-        return err.add_details('failed deleting group').as_dict()
+        return err.add_details('failed getting group').as_dict()
     return {
         'message': 'group deleted'
     }
@@ -362,7 +362,7 @@ def get_group_users():
         grammar.check(grammar.REQUEST_GROUP, request.json)
         users = database.get_group_users(request.json['group'])
     except error.API as err:
-        return err.add_details('failed finding group users').as_dict()
+        return err.add_details('failed getting group users').as_dict()
     return {
         request.json['group']: [user.id for user in users]
     }
@@ -381,11 +381,11 @@ def get_user_groups(user_id):
             for user in database.get_group_users(group):
                 result[group].append(user.id)
     except error.API as err:
-        return err.add_details('failed finding user groups').as_dict()
+        return err.add_details('failed getting user groups').as_dict()
     return result
 
 
-@app.route('/user/all', methods=['get'])
+@app.route('/user/all', methods=['GET'])
 def get_user_list():
     return get_users()
 
