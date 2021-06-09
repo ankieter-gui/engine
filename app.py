@@ -230,7 +230,7 @@ def rename_report(report_id):
         result.Name = request.json['title']
         db.session.commit()
     except error.API as err:
-        result = err.add_info('could not rename report').as_dict()
+        result = err.add_details('could not rename report').as_dict()
     return {
         'message': 'report name has been changed',
         'reportId': report.id,
@@ -248,7 +248,7 @@ def rename_survey(survey_id):
         survey.Name = request.json['title']
         db.session.commit()
     except error.API as err:
-        result = err.add_info('could not rename survey').as_dict()
+        result = err.add_details('could not rename survey').as_dict()
     return {
         'message': 'survey name has been changed',
         'surveyId': survey.id,
@@ -385,14 +385,54 @@ def get_user_groups(user_id):
     return result
 
 
+@app.route('/user',  methods=['GET'])
+def user():
+    try:
+        user = database.get_user()
+        return {"id":user.id, "logged":True, "username":session['username']}
+    except:
+        return {"logged":False}
+
+
 @app.route('/user/all', methods=['GET'])
 def get_user_list():
-    return get_users()
+    return database.get_users()
 
 
 @app.route('/users', methods=['GET'])
 def get_users():
-    return database.get_users()
+    return get_user_list()
+
+
+@app.route('/user/data',  methods=['GET'])
+def get_user_data():
+    try:
+        user = database.get_user()
+    except error.API as err:
+        return err.add_details('coult not obtain user data').as_dict()
+    return {
+        'id': user.id,
+        'casLogin': user.CasLogin,
+        'fetchData': user.FetchData,
+        'role': user.Role,
+    }
+
+
+@app.route('/user/<int:user_id>/data',  methods=['GET'])
+def get_user_data(user_id):
+    try:
+        user = database.get_user()
+        if user.Role != 's':
+            raise error.API('insufficient permissions')
+        user = database.get_user(user_id)
+    except error.API as err:
+        return err.add_details('coult not obtain user data').as_dict()
+    return {
+        'id': user.id,
+        'casLogin': user.CasLogin,
+        'fetchData': user.FetchData,
+        'role': user.Role,
+    }
 
 
 @app.route('/')
@@ -423,15 +463,6 @@ def login():
 def logout():
     session.clear()
     return redirect(CAS_CLIENT.get_logout_url())
-
-
-@app.route('/user',  methods=['GET'])
-def user():
-    try:
-        user = database.get_user()
-        return {"id":user.id, "logged":True, "username":session['username']}
-    except:
-        return {"logged":False}
 
 
 @app.route('/bkg/<path:path>', methods=['GET'])
