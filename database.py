@@ -166,7 +166,7 @@ def get_group_users(group: str) -> list[User]:
     user_groups = UserGroup.query.filter_by(Group=group).all()
     users = []
     for user_group in user_groups:
-        users.append(User.query.filter_by(id=user_group.User.id).first())
+        users.append(User.query.filter_by(id=user_group.UserId).first())
     return users
 
 
