@@ -150,6 +150,27 @@ def report_generate_link(permission: Permission, report_id: int) -> str:
         return share_link.Salt + str(share_link.id)
 
 
+def set_permission_link(hash: str, username: str):
+    salt = hash[:SALT_LENGTH + 10]
+    share_link = Link.query.filter_by(Salt=salt).first()
+    if share_link is None:
+        raise error.API('wrong url')
+    user = User.query.filter_by(CasLogin=username).first()
+    object_type = share_link.Object
+    if object_type == 's':
+        survey = Survey.query.filter_by(id=share_link.ObjectId).first()
+        set_survey_permission(survey, user, share_link.Type)
+    else:
+        report = Report.query.filter_by(id=share_link.ObjectId).first()
+        set_report_permission(report, user, share_link.Type)
+    return {
+        'message': 'successfully added permission',
+        'user': session['username'],
+        'objectId': share_link.ObjectId,
+        'objectType': object_type
+    }
+
+
 def get_users() -> dict:
     users = User.query.all()
     result = []
