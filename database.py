@@ -184,7 +184,9 @@ def get_group_users(group: str) -> list[User]:
     user_groups = UserGroup.query.filter_by(Group=group).all()
     users = []
     for user_group in user_groups:
-        users.append(User.query.filter_by(id=user_group.UserId).first())
+        user = User.query.filter_by(id=user_group.UserId).first()
+        if user is not None:
+            users.append(user)
     return users
 
 
