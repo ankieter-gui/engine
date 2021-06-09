@@ -230,7 +230,7 @@ def rename_report(report_id):
         report.Name = request.json['title']
         #db.session.commit()
     except error.API as err:
-        report err.add_details('could not rename report').as_dict()
+        return err.add_details('could not rename report').as_dict()
     return {
         'message': 'report name has been changed',
         'reportId': report.id,
