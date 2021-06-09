@@ -13,7 +13,7 @@ def get_survey_quest_num(survey: Survey):
     return num
 
 
-def get_sample_tuples(n: int, *args: list[int]) -> list[tuple]:
+def get_sample_tuples(n: int, *args: int) -> list[tuple]:
     from itertools import product
     from functools import reduce
     n = min(n, reduce(lambda a, b: a*b, args))
@@ -30,8 +30,10 @@ if __name__ == "__main__":
     fake = faker.Faker(locale="pl_PL")
 
     USERS_AMOUNT = 20
-    GROUPS_AMOUNT = 3
     REPORTS_AMOUNT = 5
+
+    GROUPS = ['dziekani', 'wmi', 'wb', 'wpik']
+    GROUPS_AMOUNT = len(GROUPS)
 
     surveys_amount = 0
 
@@ -50,6 +52,7 @@ if __name__ == "__main__":
                 BackgroundImg = random.choice(bkgs))
             db.session.add(survey)
             survey.QuestionCount = get_survey_quest_num(survey)
+            db.session.commit()
             csv_to_db(survey, filename)
             surveys_amount += 1
 
@@ -59,23 +62,19 @@ if __name__ == "__main__":
         role = random.choice('gus')
         db.session.add(User(CasLogin=cas_login, Role=role, FetchData=False))
 
-    for _ in range(GROUPS_AMOUNT):
-        group_name = fake.company()
-        db.session.add(Group(Name=group_name))
-
     for i in range(REPORTS_AMOUNT):
         report_name = f'Raport {random.randint(1, 50)}'
         survey_id = random.randint(1, surveys_amount)
         db.session.add(Report(Name=report_name, SurveyId=survey_id))
 
     for g_id, u_id in get_sample_tuples(18, GROUPS_AMOUNT, USERS_AMOUNT):
-        db.session.add(UserGroup(GroupId=g_id, UserId=u_id))
+        db.session.add(UserGroup(Group=GROUPS[g_id-1], UserId=u_id))
 
     for s_id, g_id in get_sample_tuples(18, surveys_amount, GROUPS_AMOUNT):
-        db.session.add(SurveyGroup(SurveyId=s_id, GroupId=g_id))
+        db.session.add(SurveyGroup(SurveyId=s_id, Group=GROUPS[g_id-1]))
 
     for r_id, g_id in get_sample_tuples(18, REPORTS_AMOUNT, GROUPS_AMOUNT):
-        db.session.add(ReportGroup(ReportId=r_id, GroupId=g_id))
+        db.session.add(ReportGroup(ReportId=r_id, Group=GROUPS[g_id-1]))
 
     for s_id, u_id in get_sample_tuples(18, surveys_amount, USERS_AMOUNT):
         db.session.add(SurveyPermission(SurveyId=s_id, UserId=u_id, Type=random.choice('rwo')))
@@ -89,4 +88,4 @@ if __name__ == "__main__":
     db.session.commit()
 
     for survey in Survey.query.all():
-        set_survey_permission(survey.id, 1, 0)
+        set_survey_permission(survey, user, 'o')
