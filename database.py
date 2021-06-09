@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from pandas import read_csv
-from typing import Literal
+from typing import Literal, Any
 from flask import session
 from config import *
 import random
@@ -87,13 +87,16 @@ ADMIN.add_view(ModelView(User, db.session))
 ADMIN.add_view(ModelView(Survey, db.session))
 
 
-def get_user(login: str="") -> User:
+def get_user(login: Any = "") -> User:
     if not login:
         # zamiast tego blędu, jeśli nie ma loginu, to przydziel gościa
         if 'username' not in session:
             raise error.API('user not logged in')
         login = session['username']
-    user = User.query.filter_by(CasLogin=login).first()
+    if type(login) is str:
+        user = User.query.filter_by(CasLogin=login).first()
+    if type(login) is int:
+        user = User.query.filter_by(id=login).first()
     if user is None:
         raise error.API(f'no such user {login}')
     return user
