@@ -3,6 +3,7 @@ from pandas import read_csv
 from typing import Literal, Any
 from flask import session
 from config import *
+import secrets
 import random
 import re
 import sqlite3
@@ -126,49 +127,37 @@ def get_report(id: int) -> Report:
     return report
 
 
-def survey_generate_link(permission: Permission, survey_id: int) -> str:
-    share_link = Link.query.filter_by(Type=permission, Object='s', ObjectId=survey_id).first()
-    if share_link is not None:
-        return share_link.Salt + str(share_link.id)
-    else:
-        salt = urandom(SALT_LENGTH)
-        share_link = Link(Salt=b64encode(salt).decode('utf-8'), Type=permission, Object='s', ObjectId=survey_id)
-        db.session.add(share_link)
-        db.session.commit()
-        return share_link.Salt + str(share_link.id)
+def get_permission_link(permission: Permission, object: Literal['s', 'r'], object_id: int) -> str:
+    link = Link.query.filter_by(Type=permission, Object=object, ObjectId=object_id).first()
+    if link is not None:
+        return link.Salt + str(link.id)
+    salt = secrets.randbits(6*SALT_LENGTH)
+    link = Link(
+        Salt=b64encode(salt).decode('utf-8'),
+        Type=permission,
+        Object=object,
+        ObjectId=object_id
+    )
+    db.session.add(link)
+    db.session.commit()
+    return link.Salt + str(link.id)
 
 
-def report_generate_link(permission: Permission, report_id: int) -> str:
-    share_link = Link.query.filter_by(Type=permission, Object='r', ObjectId=report_id).first()
-    if share_link is not None:
-        return share_link.Salt + str(share_link.id)
-    else:
-        salt = urandom(SALT_LENGTH)
-        share_link = Link(Salt=b64encode(salt).decode('utf-8'), Type=permission, Object='r', ObjectId=report_id)
-        db.session.add(share_link)
-        db.session.commit()
-        return share_link.Salt + str(share_link.id)
-
-
-def set_permission_link(hash: str, username: str):
-    salt = hash[:SALT_LENGTH + 10]
-    share_link = Link.query.filter_by(Salt=salt).first()
-    if share_link is None:
+def set_permission_link(hash: str, user: User):
+    salt = hash[:SALT_LENGTH]
+    id = str(hash[SALT_LENGTH:])
+    link = Link.query.filter_by(Salt=salt, ObjectId=id).first()
+    if link is None:
         raise error.API('wrong url')
-    user = User.query.filter_by(CasLogin=username).first()
-    object_type = share_link.Object
+    object_type = link.Object
     if object_type == 's':
-        survey = Survey.query.filter_by(id=share_link.ObjectId).first()
-        set_survey_permission(survey, user, share_link.Type)
+        survey = get_survey(link.ObjectId)
+        set_survey_permission(survey, user, link.Type)
+    elif object_type == 'r':
+        report = get_report(id=link.ObjectId)
+        set_report_permission(report, user, link.Type)
     else:
-        report = Report.query.filter_by(id=share_link.ObjectId).first()
-        set_report_permission(report, user, share_link.Type)
-    return {
-        'message': 'successfully added permission',
-        'user': session['username'],
-        'objectId': share_link.ObjectId,
-        'objectType': object_type
-    }
+        raise error.API(f'unknown object type "{object_type}"')
 
 
 def get_users() -> dict:

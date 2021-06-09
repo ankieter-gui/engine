@@ -295,12 +295,14 @@ def share_report(report_id):
 @on_errors('could not create link to survey')
 @for_roles('s', 'u')
 def link_to_survey(survey_id):
-    perm = database.get_survey_permission(database.get_survey(survey_id), database.get_user())
+    survey = database.get_survey(survey_id)
+    user = database.get_user()
+    perm = database.get_survey_permission(survey, user)
     if perm != 'o':
-        return error.API('you have to be owner to share this report').as_dict()
+        raise error.API('only the owner can share a survey')
     json = request.json
     grammar.check(grammar.REQUEST_SURVEY_LINK, json)
-    link = database.survey_generate_link(json['permission'], json['surveyId'])
+    link = database.survey_generate_link(json['permission'], 's', json['surveyId'])
     return {
         'link': link
     }
@@ -311,12 +313,14 @@ def link_to_survey(survey_id):
 @on_errors('could not create link to report')
 @for_roles('s', 'u')
 def link_to_report(report_id):
-    perm = database.get_report_permission(database.get_report(report_id), database.get_user())
+    report = database.get_report(report_id)
+    user = database.get_user()
+    perm = database.get_report_permission(report, user)
     if perm != 'o':
-        return error.API('you have to be owner to share this report').as_dict()
+        raise error.API('only the owner can share a report')
     json = request.json
     grammar.check(grammar.REQUEST_REPORT_LINK, json)
-    link = database.report_generate_link(json['permission'], json['reportId'])
+    link = database.report_generate_link(json['permission'], 'r', json['reportId'])
     return {
         'link': link
     }
@@ -326,9 +330,7 @@ def link_to_report(report_id):
 @on_errors('could not set permission link')
 @for_roles('s', 'u')
 def set_permission_link(hash):
-    result = database.set_permission_link(hash, session['username'])
-    return result
-
+    return database.set_permission_link(hash, database.get_user())
 
 
 # {'group': 'nazwa grupy'}
