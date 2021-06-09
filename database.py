@@ -159,6 +159,8 @@ def unset_user_group(user: User, group: str):
 
 def get_user_groups(user: User) -> list[str]:
     user_groups = UserGroup.query.filter_by(UserId=user.id).all()
+    if user_groups is None:
+        return []
     return [user_group.Group for user_group in user_groups]
 
 
