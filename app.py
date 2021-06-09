@@ -419,7 +419,7 @@ def get_user_data():
 
 
 @app.route('/user/<int:user_id>/data',  methods=['GET'])
-def get_user_data(user_id):
+def get__user_id_data(user_id):
     try:
         user = database.get_user()
         if user.Role != 's':
