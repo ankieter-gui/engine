@@ -205,6 +205,9 @@ def get_groups() -> list[str]:
 
 
 def set_user_group(user: User, group: str):
+    user_group = UserGroup.query.filter_by(UserId=user.id, Group=group).first()
+    if user_group is not None:
+        return user_group
     user_group = UserGroup(UserId=user.id, Group=group)
     db.session.add(user_group)
     db.session.commit()
