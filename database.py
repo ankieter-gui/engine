@@ -95,7 +95,7 @@ def get_user(login: str="") -> User:
         login = session['username']
     user = User.query.filter_by(CasLogin=login).first()
     if user is None:
-        raise error.API('no such user')
+        raise error.API(f'no such user {login}')
     return user
 
 
