@@ -302,7 +302,7 @@ def link_to_survey(survey_id):
         raise error.API('only the owner can share a survey')
     json = request.json
     grammar.check(grammar.REQUEST_SURVEY_LINK, json)
-    link = database.survey_generate_link(json['permission'], 's', json['surveyId'])
+    link = database.get_permission_link(json['permission'], 's', json['surveyId'])
     return {
         'link': link
     }
@@ -320,7 +320,7 @@ def link_to_report(report_id):
         raise error.API('only the owner can share a report')
     json = request.json
     grammar.check(grammar.REQUEST_REPORT_LINK, json)
-    link = database.report_generate_link(json['permission'], 'r', json['reportId'])
+    link = database.get_permission_link(json['permission'], 'r', json['reportId'])
     return {
         'link': link
     }
