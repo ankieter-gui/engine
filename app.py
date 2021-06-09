@@ -357,8 +357,8 @@ def get_groups():
 @on_errors('could not add users to groups')
 @for_roles('s')
 def set_group():
-    for group, *ids in request.json:
-        #grammar.check([int], ids)
+    for group, ids in request.json.items():
+        grammar.check([int], ids)
         for id in ids:
             user = database.get_user(id)
             database.set_user_group(user, group)
@@ -372,8 +372,8 @@ def set_group():
 @on_errors('could not remove users from groups')
 @for_roles('s')
 def unset_group():
-    for group, *ids in request.json:
-        #grammar.check([int], ids)
+    for group, ids in request.json.items():
+        grammar.check([int], ids)
         for id in ids:
             user = database.get_user(id)
             database.unset_user_group(user, group)
