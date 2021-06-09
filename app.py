@@ -278,7 +278,7 @@ def share_survey(survey_id):
 @on_errors('could not share report')
 def share_report(report_id):
     json = request.json
-    report = database.get_survey(report_id)
+    report = database.get_report(report_id)
     perm = database.get_report_permission(report, database.get_user())
     if perm != "o":
         raise error.API("you must be the owner to share this report")
