@@ -290,7 +290,7 @@ def share_report(report_id):
 @app.route('/group/all', methods=['DELETE'])
 def delete_group():
     try:
-        if database.get_user().Role != 's':
+        if database.get_user().Role not in ['s', 'u']:
             raise error.API('insufficient permissions')
         grammar.check(grammar.REQUEST_GROUP, request.json)
         database.delete_group(request.json['group'])
