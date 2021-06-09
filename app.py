@@ -148,6 +148,15 @@ def set_report(report_id):
     }
 
 
+@app.route('/report/<int:report_id>/users', methods=['GET'])
+@on_errors('could not get the report users')
+@for_roles('s', 'u')
+def get_report_users(report_id):
+    report = database.get_report(report_id)
+    return database.get_report_users(report)
+
+
+
 @app.route('/report/<int:report_id>', methods=['GET'])
 @on_errors('could not open the report')
 def get_report(report_id):
