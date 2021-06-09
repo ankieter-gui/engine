@@ -235,7 +235,10 @@ def set_survey_permission(survey: Survey, user: User, permission: Permission):
     if sp is None:
         sp = SurveyPermission(SurveyId=survey.id, UserId=user.id)
         db.session.add(sp)
-    sp.Type = permission
+    if permission != "n":
+        sp.Type = permission
+    else:
+        db.session.delete(sp)
     db.session.commit()
 
 
@@ -258,7 +261,10 @@ def set_report_permission(report: Report, user: User, permission: Permission):
     if rp is None:
         rp = ReportPermission(ReportId=report.id, UserId=user.id)
         db.session.add(rp)
-    rp.Type = permission
+    if permission != "n":
+        rp.Type = permission
+    else:
+        db.session.delete(rp)
     db.session.commit()
 
 

@@ -258,15 +258,15 @@ def rename_survey(survey_id):
 
 
 @app.route('/survey/<int:survey_id>/share', methods=['POST'])
-def share_survey(survey_id):
+def share_survey(survey_id):    
     json = request.json
     survey = database.get_survey(survey_id)
     perm = database.get_survey_permission(survey, database.get_user())
     if perm != "o":
         return error.API("you must be the owner to share this survey")
-    for CasLogin in json.values():
-        user = database.get_user(CasLogin)
-        database.set_survey_permission(survey, user, 'r')
+    for p, users in json.items():
+        for user in users:
+            database.set_survey_permission(survey, database.get_user(user), p)
     return {
         "message": "permissions added"
     }
@@ -279,12 +279,13 @@ def share_report(report_id):
     perm = database.get_report_permission(report, database.get_user())
     if perm != "o":
         return error.API("you must be the owner to share this report")
-    for CasLogin in json.values():
-        user = database.get_user(CasLogin)
-        database.set_survey_permission(report, user, 'r')
+    for p, users in json.items():
+        for user in users:
+            database.set_report_permission(report, database.get_user(user), p)
     return {
         "message": "permissions added"
     }
+
 
 
 # {'group': 'nazwa grupy'}
