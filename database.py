@@ -112,8 +112,15 @@ def get_users() -> dict:
     users = User.query.all()
     result = []
     for u in users:
-        result.append({"CasLogin": u.CasLogin})
+        result.append({
+            "CasLogin": u.CasLogin
+        })
     return {"users": result}
+
+
+def get_groups() -> list[str]:
+    user_groups = UserGroup.query.with_entities(UserGroup.Group).distinct()
+    return [ug.Group for ug in user_groups]
 
 
 #def get_group(id: int) -> Group:

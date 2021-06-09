@@ -347,7 +347,7 @@ def get_group_users():
     except error.API as err:
         return err.add_details('failed finding group users').to_dict()
     return {
-        'users': [user.id for user in users]
+        request.json['group']: [user.id for user in users]
     }
 
 
@@ -356,13 +356,32 @@ def get_user_groups(user_id):
     try:
         if database.get_user().Role not in ['s', 'u']:
             raise error.API('insufficient permissions')
+
+        result = {}
         user = database.get_user(user_id)
-        groups = database.get_user_groups(user)
+        for group in database.get_user_groups(user):
+            result[group] = []
+            for user in database.get_group_users(group):
+                result[group].append(user.id)
     except error.API as err:
         return err.add_details('failed finding user groups').to_dict()
-    return {
-        'groups': groups
-    }
+    return result
+
+
+@app.route('/group/list')
+def get_groups(user_id):
+    try:
+        if database.get_user().Role not in ['s', 'u']:
+            raise error.API('insufficient permissions')
+
+        result = {}
+        for group in database.get_groups():
+            result[group] = []
+            for user in database.get_group_users(group):
+                result[group].append(user.id)
+    except error.API as err:
+        return err.add_details('failed finding user groups').to_dict()
+    return result
 
 
 @app.route('/users', methods=['GET'])
