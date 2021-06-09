@@ -89,7 +89,8 @@ def create_report():
         data = request.json
         user = database.get_user()
         # czy użytkownik widzi tę ankietę?
-        report = database.create_report(user, data["surveyId"], data["title"])
+        survey = database.get_survey(data["surveyId"])
+        report = database.create_report(user, survey, data["title"])
         with open(f'report/{report.id}.json', 'w') as file:
             json.dump(data, file)
     except error.API as err:
