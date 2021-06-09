@@ -386,12 +386,38 @@ def get_user_groups(user_id):
 
 
 @app.route('/user',  methods=['GET'])
-def user():
+def get_user_details():
     try:
         user = database.get_user()
-        return {"id":user.id, "logged":True, "username":session['username']}
-    except:
-        return {"logged":False}
+        return {
+            "logged":    True,
+            "username":  session['username'],
+            "id":        user.id,
+            'casLogin':  user.CasLogin,
+            'fetchData': user.FetchData,
+            'role':      user.Role,
+        }
+    except error.API as err:
+        return err.add_details('could not obtain user data').as_dict()
+
+
+@app.route('/user/<int:user_id>',  methods=['GET'])
+def get_user_id_details(user_id):
+    try:
+        user = database.get_user()
+        if user.Role != 's':
+            raise error.API('insufficient permissions')
+        user = database.get_user(user_id)
+        return {
+            "logged":    True,
+            "username":  session['username'],
+            "id":        user.id,
+            'casLogin':  user.CasLogin,
+            'fetchData': user.FetchData,
+            'role':      user.Role,
+        }
+    except error.API as err:
+        return err.add_details('could not obtain user data').as_dict()
 
 
 @app.route('/user/all', methods=['GET'])
@@ -402,37 +428,6 @@ def get_user_list():
 @app.route('/users', methods=['GET'])
 def get_users():
     return get_user_list()
-
-
-@app.route('/user/data',  methods=['GET'])
-def get_user_data():
-    try:
-        user = database.get_user()
-    except error.API as err:
-        return err.add_details('coult not obtain user data').as_dict()
-    return {
-        'id': user.id,
-        'casLogin': user.CasLogin,
-        'fetchData': user.FetchData,
-        'role': user.Role,
-    }
-
-
-@app.route('/user/<int:user_id>/data',  methods=['GET'])
-def get__user_id_data(user_id):
-    try:
-        user = database.get_user()
-        if user.Role != 's':
-            raise error.API('insufficient permissions')
-        user = database.get_user(user_id)
-    except error.API as err:
-        return err.add_details('coult not obtain user data').as_dict()
-    return {
-        'id': user.id,
-        'casLogin': user.CasLogin,
-        'fetchData': user.FetchData,
-        'role': user.Role,
-    }
 
 
 @app.route('/')
