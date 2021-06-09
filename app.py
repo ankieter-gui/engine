@@ -328,7 +328,7 @@ def set_group():
             grammar.check([int], ids)
             for id in ids:
                 user = database.get_user(id)
-                database.set_user_group(user.id, group)
+                database.set_user_group(user, group)
     except error.API as err:
         return err.add_details('failed adding users to groups').as_dict()
     return {
@@ -346,7 +346,7 @@ def unset_group():
             grammar.check([int], ids)
             for id in ids:
                 user = database.get_user(id)
-                database.unset_user_group(user.id, group)
+                database.unset_user_group(user, group)
     except error.API as err:
         return err.add_details('failed removing users from groups').as_dict()
     return {
