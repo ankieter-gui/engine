@@ -11,24 +11,27 @@ import daemon
 import table
 import error
 
-def api_error(f, details):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        try:
+def on_errors(details):
+    def on_error_decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            try:
+                return f(*args, **kwargs)
+            except error.API as err:
+                return err.add_details(details).as_dict()
+        return decorated_function
+    return on_error_decorator
+
+
+def for_roles(*roles):
+    def for_roles_decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if database.get_user().Role not in roles:
+                raise error.API('insufficient privileges')
             return f(*args, **kwargs)
-        except error.API as err:
-            err.add_details(details).as_dict()
-    return decorated_function
-
-
-def accepted_roles(f, roles):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        user = database.get_user()
-        if user.Role not in roles:
-            raise error.API('insufficient privileges')
-        return f(*args, **kwargs)
-    return decorated_function
+        return decorated_function
+    return for_roles_decorator
 
 
 @app.route('/dashboard', methods=['GET'])
@@ -424,22 +427,18 @@ def get_user_details():
 
 
 @app.route('/user/<int:user_id>',  methods=['GET'])
+@on_errors('could not obtain user data')
+@for_roles('s')
 def get_user_id_details(user_id):
-    try:
-        user = database.get_user()
-        if user.Role != 's':
-            raise error.API('insufficient permissions')
-        user = database.get_user(user_id)
-        return {
-            "logged":    True,
-            "username":  session['username'],
-            "id":        user.id,
-            'casLogin':  user.CasLogin,
-            'fetchData': user.FetchData,
-            'role':      user.Role,
-        }
-    except error.API as err:
-        return err.add_details('could not obtain user data').as_dict()
+    user = database.get_user(user_id)
+    return {
+        "logged":    True,
+        "username":  session['username'],
+        "id":        user.id,
+        'casLogin':  user.CasLogin,
+        'fetchData': user.FetchData,
+        'role':      user.Role,
+    }
 
 
 @app.route('/user/all', methods=['GET'])

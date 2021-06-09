@@ -85,6 +85,7 @@ if __name__ == "__main__":
     pesel = input('Podaj swój pesel\n')
     user = User.query.filter_by(id=1).first()
     user.CasLogin = pesel
+    user.Role = 's'
     db.session.commit()
 
     for survey in Survey.query.all():
