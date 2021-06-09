@@ -385,7 +385,7 @@ def get_user_groups(user_id):
     return result
 
 
-@app.route('/user/all', methods['get'])
+@app.route('/user/all', methods=['get'])
 def get_user_list():
     return get_users()
 
