@@ -292,13 +292,15 @@ def share_report(report_id):
 
 # e.g. {'permission': 'r', 'surveyId': 1}
 @app.route('/survey/<int:survey_id>/link', methods=['POST'])
+@on_errors('could not create link to survey')
+@for_roles('s', 'u')
 def link_to_survey(survey_id):
-    try:
-        json = request.json
-        grammar.check(grammar.REQUEST_SURVEY_LINK, json)
-        link = database.survey_generate_link(json['permission'], json['surveyId'])
-    except error.API as err:
-        return err.add_details('failed link generate').as_dict()
+    perm = database.get_survey_permission(database.get_survey(survey_id), database.get_user())
+    if perm != 'o':
+        return error.API('you have to be owner to share this report').as_dict()
+    json = request.json
+    grammar.check(grammar.REQUEST_SURVEY_LINK, json)
+    link = database.survey_generate_link(json['permission'], json['surveyId'])
     return {
         'link': link
     }
@@ -306,24 +308,25 @@ def link_to_survey(survey_id):
 
 # e.g. {'permission': 'r', 'reportId': 1}
 @app.route('/report/<int:report_id>/link', methods=['POST'])
+@on_errors('could not create link to report')
+@for_roles('s', 'u')
 def link_to_report(report_id):
-    try:
-        json = request.json
-        grammar.check(grammar.REQUEST_REPORT_LINK, json)
-        link = database.report_generate_link(json['permission'], json['reportId'])
-    except error.API as err:
-        return err.add_details('failed report generate').as_dict()
+    perm = database.get_report_permission(database.get_report(report_id), database.get_user())
+    if perm != 'o':
+        return error.API('you have to be owner to share this report').as_dict()
+    json = request.json
+    grammar.check(grammar.REQUEST_REPORT_LINK, json)
+    link = database.report_generate_link(json['permission'], json['reportId'])
     return {
         'link': link
     }
 
 
 @app.route('/link/<hash>', methods=['GET'])
+@on_errors('could not set permission link')
+@for_roles('s', 'u')
 def set_permission_link(hash):
-    try:
-        result = database.set_permission_link(hash, session['username'])
-    except error.API as err:
-        return err.add_details('failed to set permission').as_dict()
+    result = database.set_permission_link(hash, session['username'])
     return result
 
 
