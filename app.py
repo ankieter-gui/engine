@@ -357,7 +357,7 @@ def get_groups():
 @on_errors('could not add users to groups')
 @for_roles('s')
 def set_group():
-    for group, *ids in request.json:
+    for group, ids in request.json:
         grammar.check([int], ids)
         for id in ids:
             user = database.get_user(id)
