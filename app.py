@@ -1,3 +1,4 @@
+from functools import wraps
 from flask import send_from_directory, redirect, url_for, request, session, g
 from config import *
 import json
@@ -9,6 +10,25 @@ import grammar
 import daemon
 import table
 import error
+
+def api_error(f, details):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        try:
+            return f(*args, **kwargs)
+        except error.API as err:
+            err.add_details(details).as_dict()
+    return decorated_function
+
+
+def accepted_roles(f, roles):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user = database.get_user()
+        if user.Role not in roles:
+            raise error.API('insufficient privileges')
+        return f(*args, **kwargs)
+    return decorated_function
 
 
 @app.route('/dashboard', methods=['GET'])
@@ -258,7 +278,7 @@ def rename_survey(survey_id):
 
 
 @app.route('/survey/<int:survey_id>/share', methods=['POST'])
-def share_survey(survey_id):    
+def share_survey(survey_id):
     json = request.json
     survey = database.get_survey(survey_id)
     perm = database.get_survey_permission(survey, database.get_user())
