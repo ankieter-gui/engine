@@ -27,6 +27,16 @@ REQUEST_USER = {
     'userId': int,
 }
 
+REQUEST_SURVEY_LINK = {
+    'permission': str,
+    'surveyId': int
+}
+
+REQUEST_REPORT_LINK = {
+    'permission': str,
+    'reportId': int
+}
+
 def analyze(tp: typing.Any, obj: typing.Any) -> str:
     if type(tp) is type:
         if type(obj) is tp:

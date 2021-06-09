@@ -1,4 +1,3 @@
-from functools import wraps
 from flask import send_from_directory, redirect, url_for, request, session, g
 from config import *
 import json
@@ -42,17 +41,17 @@ def get_dashboard():
     for sp in survey_permissions:
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
-            'type':          'survey',
-            'endsOn':        survey.EndsOn.timestamp() if survey.EndsOn is not None else None,
-            'startedOn':     survey.StartedOn.timestamp() if survey.StartedOn is not None else None,
-            'id':            survey.id,
-            'name':          survey.Name,
-            'ankieterId':    survey.AnkieterId,
-            'isActive':      survey.IsActive,
+            'type': 'survey',
+            'endsOn': survey.EndsOn.timestamp() if survey.EndsOn is not None else None,
+            'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None else None,
+            'id': survey.id,
+            'name': survey.Name,
+            'ankieterId': survey.AnkieterId,
+            'isActive': survey.IsActive,
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
-            'userId':        sp.UserId,
-            'answersCount':  database.get_answers_count(survey)
+            'userId': sp.UserId,
+            'answersCount': database.get_answers_count(survey)
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
@@ -60,11 +59,11 @@ def get_dashboard():
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
         result.append({
             'type': 'report',
-            'id':              report.id,
-            'name':            report.Name,
-            'connectedSurvey': {"id": report.SurveyId, "name":survey.Name },
-            'backgroundImg':   report.BackgroundImg,
-            'userId':          rp.UserId
+            'id': report.id,
+            'name': report.Name,
+            'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
+            'backgroundImg': report.BackgroundImg,
+            'userId': rp.UserId
         })
     return {"objects": result}
 
@@ -287,6 +286,34 @@ def share_report(report_id):
             database.set_report_permission(report, database.get_user(user), p)
     return {
         "message": "permissions added"
+    }
+
+
+# e.g. {'permission': 'r', 'surveyId': 1}
+@app.route('/survey/<int:survey_id>/link', methods=['POST'])
+def link_to_survey(survey_id):
+    try:
+        json = request.json
+        grammar.check(grammar.REQUEST_SURVEY_LINK, json)
+        # database.survey_generate_link(json['permission'], json['surveyId'])
+    except error.API as err:
+        return err.add_details('failed link generate').as_dict()
+    return {
+        'link': 'link'
+    }
+
+
+# e.g. {'permission': 'r', 'reportId': 1}
+@app.route('/report/<int:report_id>/link', methods=['POST'])
+def link_to_report(report_id):
+    try:
+        json = request.json
+        grammar.check(grammar.REQUEST_REPORT_LINK, json)
+        # database.repor_generate_link(json['permission'], json['reportId'])
+    except error.API as err:
+        return err.add_details('failed report generate').as_dict()
+    return {
+        'link': 'link'
     }
 
 
