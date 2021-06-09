@@ -147,7 +147,7 @@ def delete_survey(survey_id):
             raise error.API("you have no permission to delete this survey")
         database.delete_survey(survey)
     except error.API as err:
-        return err.add_details('could not delete survey').to_dict()
+        return err.add_details('could not delete survey').as_dict()
     return {
         'message': 'report has been deleted',
         'surveyId': survey_id
@@ -163,7 +163,7 @@ def delete_report(report_id):
             raise error.API("you have no permission to delete this report")
         database.delete_report(report)
     except error.API as err:
-        return err.add_details('could not delete report').to_dict()
+        return err.add_details('could not delete report').as_dict()
     return {
         'message': 'report has been deleted',
         'reportId': report_id
@@ -285,8 +285,40 @@ def share_report(report_id):
         "message": "permissions added"
     }
 
+
+# {'group': 'nazwa grupy'}
+@app.route('/group/all', methods=['DELETE'])
+def delete_group():
+    try:
+        if database.get_user().Role != 's':
+            raise error.API('insufficient permissions')
+        grammar.check(grammar.REQUEST_GROUP, request.json)
+        database.delete_group(request.json['group'])
+    except error.API as err:
+        return err.add_details('failed deleting group').as_dict()
+    return {
+        'message': 'group deleted'
+    }
+
+
+@app.route('/group/all', methods=['GET', 'POST'])
+def get_groups():
+    try:
+        if database.get_user().Role not in ['s', 'u']:
+            raise error.API('insufficient permissions')
+
+        result = {}
+        for group in database.get_groups():
+            result[group] = []
+            for user in database.get_group_users(group):
+                result[group].append(user.id)
+    except error.API as err:
+        return err.add_details('failed getting list of groups').as_dict()
+    return result
+
+
 # {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
-@app.route('/group/set', methods=['POST'])
+@app.route('/group/change', methods=['POST'])
 def set_group():
     try:
         if database.get_user().Role != 's':
@@ -297,14 +329,14 @@ def set_group():
                 user = database.get_user(id)
                 database.set_user_group(user.id, group)
     except error.API as err:
-        return err.add_details('failed adding users to groups').to_dict()
+        return err.add_details('failed adding users to groups').as_dict()
     return {
         'message': 'users added to groups'
     }
 
 
 # {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
-@app.route('/group/unset', methods=['POST'])
+@app.route('/group/change', methods=['DELETE'])
 def unset_group():
     try:
         if database.get_user().Role != 's':
@@ -315,24 +347,9 @@ def unset_group():
                 user = database.get_user(id)
                 database.unset_user_group(user.id, group)
     except error.API as err:
-        return err.add_details('failed removing users from groups').to_dict()
+        return err.add_details('failed removing users from groups').as_dict()
     return {
         'message': 'users removed from groups'
-    }
-
-
-# {'group': 'nazwa grupy'}
-@app.route('/group/delete', methods=['POST'])
-def delete_group():
-    try:
-        if database.get_user().Role != 's':
-            raise error.API('insufficient permissions')
-        grammar.check(grammar.REQUEST_GROUP, request.json)
-        database.delete_group(request.json['group'])
-    except error.API as err:
-        return err.add_details('failed deleting group').to_dict()
-    return {
-        'message': 'group deleted'
     }
 
 
@@ -345,13 +362,13 @@ def get_group_users():
         grammar.check(grammar.REQUEST_GROUP, request.json)
         users = database.get_group_users(request.json['group'])
     except error.API as err:
-        return err.add_details('failed finding group users').to_dict()
+        return err.add_details('failed finding group users').as_dict()
     return {
         request.json['group']: [user.id for user in users]
     }
 
 
-@app.route('/group/list/<int:user_id>')
+@app.route('/user/<int:user_id>/group', methods=['GET', 'POST'])
 def get_user_groups(user_id):
     try:
         if database.get_user().Role not in ['s', 'u']:
@@ -364,24 +381,13 @@ def get_user_groups(user_id):
             for user in database.get_group_users(group):
                 result[group].append(user.id)
     except error.API as err:
-        return err.add_details('failed finding user groups').to_dict()
+        return err.add_details('failed finding user groups').as_dict()
     return result
 
 
-@app.route('/group/list')
-def get_groups(user_id):
-    try:
-        if database.get_user().Role not in ['s', 'u']:
-            raise error.API('insufficient permissions')
-
-        result = {}
-        for group in database.get_groups():
-            result[group] = []
-            for user in database.get_group_users(group):
-                result[group].append(user.id)
-    except error.API as err:
-        return err.add_details('failed finding user groups').to_dict()
-    return result
+@app.route('/user/all', methods['get'])
+def get_user_list():
+    return get_users()
 
 
 @app.route('/users', methods=['GET'])
