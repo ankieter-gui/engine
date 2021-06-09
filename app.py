@@ -316,6 +316,16 @@ def link_to_report(report_id):
         'link': 'link'
     }
 
+@app.route('/link/<string:hash>', methods=['GET'])
+def set_permission_link(hash):
+    try:
+        database.set_permisson_link(hash)
+    except error.API as err:
+        return err.add_details('failed to set permission').as_dict()
+    return {
+        'message': 'succes'
+    }
+
 
 
 # {'group': 'nazwa grupy'}
