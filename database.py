@@ -93,7 +93,10 @@ def get_user(login: str="") -> User:
         if 'username' not in session:
             raise error.API('user not logged in')
         login = session['username']
-    return User.query.filter_by(CasLogin=login).first()
+    user = User.query.filter_by(CasLogin=login).first()
+    if user is None:
+        raise error.API('no such user')
+    return user
 
 
 def get_survey(id: int) -> Survey:
