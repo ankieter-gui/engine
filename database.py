@@ -25,9 +25,11 @@ class User(db.Model):
 
     def as_dict(self):
         return {
-            "id": self.id,
-            "casLogin": self.CasLogin,
-            "role": self.Role
+            "id":        self.id,
+            "casLogin":  self.CasLogin,
+            "fetchData": self.FetchData,
+            "role":      self.Role,
+            "logged":    self.Role != 'g',
         }
 
 

@@ -430,29 +430,13 @@ def get_user_groups(user_id):
 @app.route('/user',  methods=['GET'])
 @on_errors('could not obtain user data')
 def get_user_details():
-    user = database.get_user()
-    return {
-        "logged":    True,
-        "username":  session['username'],
-        "id":        user.id,
-        'casLogin':  user.CasLogin,
-        'fetchData': user.FetchData,
-        'role':      user.Role,
-    }
+    return database.get_user().as_dict()
 
 @app.route('/user/<int:user_id>',  methods=['GET'])
 @on_errors('could not obtain user data')
 @for_roles('s')
 def get_user_id_details(user_id):
-    user = database.get_user(user_id)
-    return {
-        "logged":    True,
-        "username":  session['username'],
-        "id":        user.id,
-        'casLogin':  user.CasLogin,
-        'fetchData': user.FetchData,
-        'role':      user.Role,
-    }
+    return database.get_user(user_id).as_dict()
 
 
 @app.route('/user/new', methods=['POST'])
