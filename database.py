@@ -161,8 +161,9 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
         return link.Salt + str(link.id)
     salt = secrets.randbits(5*SALT_LENGTH)
     salt = salt.to_bytes(5*SALT_LENGTH//8+1, byteorder='big')
+    salt = b32encode(salt).decode('utf-8')[SALT_LENGTH:]
     link = Link(
-        Salt=b32encode(salt).decode('utf-8'),
+        Salt=salt,
         Type=permission,
         Object=object,
         ObjectId=object_id
@@ -175,8 +176,8 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
 def set_permission_link(hash: str, user: User):
     perm_order = ['r', 'w', 'o']
     salt = hash[:SALT_LENGTH]
-    id = str(hash[SALT_LENGTH:])
-    link = Link.query.filter_by(Salt=salt, ObjectId=id).first()
+    id = int(hash[SALT_LENGTH:])
+    link = Link.query.filter_by(Salt=salt, id=id).first()
     if link is None:
         raise error.API('wrong url')
     object_type = link.Object
