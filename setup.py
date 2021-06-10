@@ -92,7 +92,7 @@ if __name__ == "__main__":
         set_survey_permission(survey, user, 'o')
 
     user = User.query.filter_by(id=2).first()
-    user.CasLogin = 'guest'
+    user.CasLogin = GUEST_NAME
     user.Role = 'g'
 
     db.session.commit()

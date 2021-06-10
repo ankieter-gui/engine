@@ -11,6 +11,9 @@ APP_URL='http://localhost:5000'
 # seconds of between subsequent daemon wakeups (for eg. the gatherer daemon)
 DINTERVAL=5*60
 
+# guest account username
+GUEST_NAME='Goście'
+
 # must be True or False; change to True for detailed logs during app runtime
 DEBUG=True
 

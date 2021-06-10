@@ -109,7 +109,8 @@ def get_user(login: Any = "") -> User:
     if not login:
         # zamiast tego blędu, jeśli nie ma loginu, to przydziel gościa
         if 'username' not in session:
-            raise error.API('user not logged in')
+            session['username'] = GUEST_NAME
+            return User.query.filter_by(Role='g').first()
         login = session['username']
     if type(login) is str:
         user = User.query.filter_by(CasLogin=login).first()
