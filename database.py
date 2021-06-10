@@ -162,7 +162,7 @@ def set_permission_link(hash: str, user: User):
 
 
 def get_report_users(report: Report) -> dict:
-    perms = ReportPermissions.query.filter_by(ReportId=report.id).all()
+    perms = ReportPermission.query.filter_by(ReportId=report.id).all()
     result = {}
     for perm in perms:
         result[perm.UserId] = perm.Type

@@ -62,6 +62,7 @@ def get_dashboard():
             'type': 'report',
             'id': report.id,
             'name': report.Name,
+            "sharedTo":database.get_report_users(report),
             'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
             'backgroundImg': report.BackgroundImg,
             'userId': rp.UserId
