@@ -126,7 +126,7 @@ def copy_report(report_id):
     user = database.get_user()
     report = database.get_report(report_id)
     survey = database.get_report_survey(report)
-    report = database.create_report(user, survey, report["title"])
+    report = database.create_report(user, survey, report.Name)
     with open(f'report/{report.id}.json', 'w') as file:
         json.dump(data, file)
     return {
