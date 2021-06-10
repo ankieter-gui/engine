@@ -120,6 +120,20 @@ def get_user(login: Any = "") -> User:
     return user
 
 
+def delete_user(user: User):
+    sur_perms = SurveyPermissions.query.filter_by(UserId=user.id).all()
+    rep_perms = ReportPermissions.query.filter_by(UserId=user.id).all()
+    groups = UserGroup.query.filter_by(UserId=user.id).all()
+    for sp in sur_perms:
+        db.session.delete(sp)
+    for rp in rep_perms:
+        db.session.delete(rp)
+    for g in groups:
+        db.session.delete(g)
+    db.session.delete(user)
+    db.session.commit()
+
+
 def get_survey(id: int) -> Survey:
     survey = Survey.query.filter_by(id=id).first()
     if survey is None:
