@@ -472,14 +472,6 @@ def get_users():
     return get_user_list()
 
 
-@app.route('/')
-def index():
-    user = database.get_user() # sic
-    return redirect("http://localhost:4200")
-    #return '''<p>Witaj {}</p></br><a href="{}">Wyloguj</a>'''.format('123456789', url_for('logout'))
-    #return redirect(url_for('login'))
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     ticket = request.args.get('ticket')
@@ -504,6 +496,11 @@ def logout():
 @app.route('/bkg/<path:path>', methods=['GET'])
 def get_bkg(path):
     return send_from_directory('bkg', path)
+
+
+@app.route('/<path:path>', methods=['GET'])
+def get_page(path):
+    return send_from_directory('page', 'index.html')
 
 
 if __name__ == '__main__':
