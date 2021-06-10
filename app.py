@@ -430,7 +430,7 @@ def get_user_details():
         "logged":    True,
         "username":  session['username'],
         "id":        user.id,
-        'CasLogin':  user.CasLogin,
+        'casLogin':  user.CasLogin,
         'fetchData': user.FetchData,
         'role':      user.Role,
     }
