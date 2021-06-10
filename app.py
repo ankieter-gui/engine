@@ -340,9 +340,9 @@ def link_to_report(report_id):
 @on_errors('could not set permission link')
 @for_roles('s', 'u')
 def set_permission_link(hash):
-    id, object = database.set_permission_link(hash, database.get_user())
+    perm, object, id = database.set_permission_link(hash, database.get_user())
     return {
-        'message': 'permission set',
+        'permission': perm,
         'object': object,
         'id': id,
     }

@@ -186,16 +186,16 @@ def set_permission_link(hash: str, user: User):
         survey = get_survey(link.ObjectId)
         perm = get_survey_permission(survey, user)
         if perm_order.index(perm) >= perm_order.index(link.Type):
-            return survey.id, 'survey'
+            return link.Type, 'survey', survey.id
         set_survey_permission(survey, user, link.Type)
-        return survey.id, 'survey'
+        return link.Type, 'survey', survey.id
     elif object_type == 'r':
         report = get_report(id=link.ObjectId)
         perm = get_report_permission(report, user)
         if perm_order.index(perm) >= perm_order.index(link.Type):
-            return report.id, 'report'
+            return link.Type, 'report', report.id
         set_report_permission(report, user, link.Type)
-        return report.id, 'report'
+        return link.Type, 'report', report.id
     else:
         raise error.API(f'unknown object type "{object_type}"')
 
