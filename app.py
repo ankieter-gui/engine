@@ -450,7 +450,7 @@ def get_user_id_details(user_id):
     }
 
 
-@app.route('/user/<int:user_id>', methods=['POST'])
+@app.route('/user/new', methods=['POST'])
 @on_errors('could not create user')
 @for_roles('s')
 def create_user(user_id):
