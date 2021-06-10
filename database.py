@@ -128,8 +128,8 @@ def create_user(CasLogin: str, Role: str) -> User:
 
 
 def delete_user(user: User):
-    sur_perms = SurveyPermissions.query.filter_by(UserId=user.id).all()
-    rep_perms = ReportPermissions.query.filter_by(UserId=user.id).all()
+    sur_perms = SurveyPermission.query.filter_by(UserId=user.id).all()
+    rep_perms = ReportPermission.query.filter_by(UserId=user.id).all()
     groups = UserGroup.query.filter_by(UserId=user.id).all()
     for sp in sur_perms:
         db.session.delete(sp)
@@ -163,6 +163,7 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
     salt = salt.to_bytes(5*SALT_LENGTH//8+1, byteorder='big')
     salt = b32encode(salt).decode('utf-8')[:SALT_LENGTH]
     salt = salt.lower()
+    print(salt)
     link = Link(
         Salt=salt,
         Type=permission,
