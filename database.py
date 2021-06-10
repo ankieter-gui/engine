@@ -110,6 +110,7 @@ def get_user(login: Any = "") -> User:
         # zamiast tego blędu, jeśli nie ma loginu, to przydziel gościa
         if 'username' not in session:
             session['username'] = GUEST_NAME
+        if session['username'] == GUEST_NAME:
             return User.query.filter_by(Role='g').first()
         login = session['username']
     if type(login) is str:
