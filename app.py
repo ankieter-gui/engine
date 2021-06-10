@@ -363,7 +363,7 @@ def get_groups():
     for group in database.get_groups():
         result[group] = []
         for user in database.get_group_users(group):
-            result[group].append(user.id)
+            result[group].append(user.as_dict())
     return result
 
 

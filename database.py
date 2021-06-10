@@ -23,6 +23,13 @@ class User(db.Model):
     FetchData = db.Column(db.Boolean, nullable=False)
     Role = db.Column(db.String, default='g', nullable=False)
 
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "casLogin": self.CasLogin,
+            "role": self.Role
+        }
+
 
 #class Group(db.Model):
 #    __tablename__ = "Groups"
