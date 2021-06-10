@@ -458,7 +458,7 @@ def get_user_id_details(user_id):
 @app.route('/user/new', methods=['POST'])
 @on_errors('could not create user')
 @for_roles('s')
-def create_user(user_id):
+def create_user():
     data = request.json
     user = database.create_user(data["casLogin"], data["role"])
     return {"id": user.id}
