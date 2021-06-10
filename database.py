@@ -182,7 +182,7 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
 
 
 def set_permission_link(hash: str, user: User):
-    perm_order = ['r', 'w', 'o']
+    perm_order = ['n', 'r', 'w', 'o']
     salt = hash[:SALT_LENGTH]
     id = int(hash[SALT_LENGTH:])
     link = Link.query.filter_by(Salt=salt, id=id).first()
