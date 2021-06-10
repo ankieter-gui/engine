@@ -51,6 +51,7 @@ if __name__ == "__main__":
                 IsActive      = random.randint(0, 1),
                 BackgroundImg = random.choice(bkgs))
             db.session.add(survey)
+            db.session.commit()
             survey.QuestionCount = get_survey_quest_num(survey)
             db.session.commit()
             csv_to_db(survey, filename)
