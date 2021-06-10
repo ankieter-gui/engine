@@ -154,7 +154,7 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
         return link.Salt + str(link.id)
     salt = secrets.randbits(5*SALT_LENGTH)
     salt = salt.to_bytes(5*SALT_LENGTH//8+1, byteorder='big')
-    salt = str(b32encode(salt))
+    salt = b32encode(salt).decode('utf-8')[:SALT_LENGTH]
     link = Link(
         Salt=salt,
         Type=permission,
