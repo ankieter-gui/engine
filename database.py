@@ -23,6 +23,13 @@ class User(db.Model):
     FetchData = db.Column(db.Boolean, nullable=False)
     Role = db.Column(db.String, default='g', nullable=False)
 
+    def as_dict(self):
+        return {
+            "id": self.id,
+            "casLogin": self.CasLogin,
+            "role": self.Role
+        }
+
 
 #class Group(db.Model):
 #    __tablename__ = "Groups"
@@ -161,12 +168,19 @@ def set_permission_link(hash: str, user: User):
         raise error.API(f'unknown object type "{object_type}"')
 
 
+def get_report_users(report: Report) -> dict:
+    perms = ReportPermission.query.filter_by(ReportId=report.id).all()
+    result = {}
+    for perm in perms:
+        result[perm.UserId] = perm.Type
+    return result
+
 def get_users() -> dict:
     users = User.query.all()
     result = []
     for u in users:
         result.append({
-            "CasLogin": u.CasLogin,
+            "casLogin": u.CasLogin,
             "id": u.id
         })
     return {"users": result}

@@ -62,6 +62,7 @@ def get_dashboard():
             'type': 'report',
             'id': report.id,
             'name': report.Name,
+            "sharedTo":database.get_report_users(report),
             'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
             'backgroundImg': report.BackgroundImg,
             'userId': rp.UserId
@@ -146,6 +147,15 @@ def set_report(report_id):
     return {
         "reportId": report.id
     }
+
+
+@app.route('/report/<int:report_id>/users', methods=['GET'])
+@on_errors('could not get the report users')
+@for_roles('s', 'u')
+def get_report_users(report_id):
+    report = database.get_report(report_id)
+    return database.get_report_users(report)
+
 
 
 @app.route('/report/<int:report_id>', methods=['GET'])
@@ -353,7 +363,7 @@ def get_groups():
     for group in database.get_groups():
         result[group] = []
         for user in database.get_group_users(group):
-            result[group].append(user.id)
+            result[group].append(user.as_dict())
     return result
 
 
