@@ -122,14 +122,14 @@ def get_user(login: Any = "") -> User:
 
 def create_user(CasLogin: str, Role: str) -> User:
     user = User(CasLogin=CasLogin, Role=Role, FetchData=True)
-    git.session.add(user)
-    git.session.commit()
+    db.session.add(user)
+    db.session.commit()
     return user
 
 
 def delete_user(user: User):
-    sur_perms = SurveyPermission.query.filter_by(UserId=user.id).all()
-    rep_perms = ReportPermission.query.filter_by(UserId=user.id).all()
+    sur_perms = SurveyPermissions.query.filter_by(UserId=user.id).all()
+    rep_perms = ReportPermissions.query.filter_by(UserId=user.id).all()
     groups = UserGroup.query.filter_by(UserId=user.id).all()
     for sp in sur_perms:
         db.session.delete(sp)
@@ -175,8 +175,8 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
 def set_permission_link(hash: str, user: User):
     perm_order = ['r', 'w', 'o']
     salt = hash[:SALT_LENGTH]
-    id = int(hash[SALT_LENGTH:])
-    link = Link.query.filter_by(Salt=salt, id=id).first()
+    id = str(hash[SALT_LENGTH:])
+    link = Link.query.filter_by(Salt=salt, ObjectId=id).first()
     if link is None:
         raise error.API('wrong url')
     object_type = link.Object
@@ -433,6 +433,9 @@ def csv_to_db(survey: Survey, filename: str):
         df = read_csv(f"raw/{filename}", sep=",")
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
+        for column in df.filter(regex="czas wypełniania").columns:
+            df.drop(column, axis=1, inplace=True)
+
         columns = df.columns.values
         repeats = df.filter(regex=r'\.\d+$').columns.values
         uniques = [c for c in columns if c not in repeats]
@@ -443,6 +446,7 @@ def csv_to_db(survey: Survey, filename: str):
             group.append(u)
             df[u] = df[group].aggregate(shame, axis='columns')
             df = df.drop(group[:-1], axis='columns')
+
 
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey.id} created succesfully")
