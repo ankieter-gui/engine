@@ -152,6 +152,7 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
 
 
 def set_permission_link(hash: str, user: User):
+    perm_order = ['r', 'w', 'o']
     salt = hash[:SALT_LENGTH]
     id = str(hash[SALT_LENGTH:])
     link = Link.query.filter_by(Salt=salt, ObjectId=id).first()
@@ -160,9 +161,15 @@ def set_permission_link(hash: str, user: User):
     object_type = link.Object
     if object_type == 's':
         survey = get_survey(link.ObjectId)
+        perm = get_survey_permission(survey, user)
+        if perm_order.index(perm) >= perm_order.index(link.Type):
+            return
         set_survey_permission(survey, user, link.Type)
     elif object_type == 'r':
         report = get_report(id=link.ObjectId)
+        perm = get_report_permission(report, user)
+        if perm_order.index(perm) >= perm_order.index(link.Type):
+            return
         set_report_permission(report, user, link.Type)
     else:
         raise error.API(f'unknown object type "{object_type}"')
