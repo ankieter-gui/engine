@@ -498,7 +498,7 @@ def get_bkg(path):
     return send_from_directory('bkg', path)
 
 
-@app.route('/page/<path:path>', methods['GET'])
+@app.route('/page/<path:path>', methods=['GET'])
 def get_page_files(path):
     return send_from_directory('page', path)
 
