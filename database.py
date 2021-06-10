@@ -120,6 +120,20 @@ def get_user(login: Any = "") -> User:
     return user
 
 
+def delete_user(user: User):
+    sur_perms = SurveyPermissions.query.filter_by(UserId=user.id).all()
+    rep_perms = ReportPermissions.query.filter_by(UserId=user.id).all()
+    groups = UserGroup.query.filter_by(UserId=user.id).all()
+    for sp in sur_perms:
+        db.session.delete(sp)
+    for rp in rep_perms:
+        db.session.delete(rp)
+    for g in groups:
+        db.session.delete(g)
+    db.session.delete(user)
+    db.session.commit()
+
+
 def get_survey(id: int) -> Survey:
     survey = Survey.query.filter_by(id=id).first()
     if survey is None:
@@ -140,9 +154,8 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
         return link.Salt + str(link.id)
     salt = secrets.randbits(5*SALT_LENGTH)
     salt = salt.to_bytes(5*SALT_LENGTH//8+1, byteorder='big')
-    salt = str(b32encode(salt).decode('utf-8'))
     link = Link(
-        Salt=salt,
+        Salt=b32encode(salt).decode('utf-8'),
         Type=permission,
         Object=object,
         ObjectId=object_id

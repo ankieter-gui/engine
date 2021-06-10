@@ -450,6 +450,17 @@ def get_user_id_details(user_id):
     }
 
 
+@app.route('/user/<int:user_id>',  methods=['DELETE'])
+@on_errors('could not delete data')
+@for_roles('s')
+def delete_user(user_id):
+    user = database.get_user(user_id)
+    if database.get_user().Role != 's':
+        raise error.API("you must be superuser to delete users")
+    database.delete_user(user.id)
+    return {"delete": user.id}
+
+
 @app.route('/user/all', methods=['GET'])
 def get_user_list():
     return database.get_users()
