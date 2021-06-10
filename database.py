@@ -128,8 +128,8 @@ def create_user(CasLogin: str, Role: str) -> User:
 
 
 def delete_user(user: User):
-    sur_perms = SurveyPermissions.query.filter_by(UserId=user.id).all()
-    rep_perms = ReportPermissions.query.filter_by(UserId=user.id).all()
+    sur_perms = SurveyPermission.query.filter_by(UserId=user.id).all()
+    rep_perms = ReportPermission.query.filter_by(UserId=user.id).all()
     groups = UserGroup.query.filter_by(UserId=user.id).all()
     for sp in sur_perms:
         db.session.delete(sp)
