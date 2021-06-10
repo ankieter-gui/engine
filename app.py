@@ -41,6 +41,7 @@ def get_dashboard():
     result = []
     for sp in survey_permissions:
         survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
+        author = database.get_user(survey.AuthorId)
         result.append({
             'type': 'survey',
             'endsOn': survey.EndsOn.timestamp() if survey.EndsOn is not None else None,
@@ -52,12 +53,14 @@ def get_dashboard():
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
             'userId': sp.UserId,
-            'answersCount': database.get_answers_count(survey)
+            'answersCount': database.get_answers_count(survey),
+            'author': author.Name
         })
     report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
     for rp in report_permissions:
         report = database.Report.query.filter_by(id=rp.ReportId).first()
-        survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
+        survey = database.get_survey(report.SurveyId)
+        author = database.get_user(report.AuthorId)
         result.append({
             'type': 'report',
             'id': report.id,
@@ -65,7 +68,8 @@ def get_dashboard():
             "sharedTo":database.get_report_users(report),
             'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
             'backgroundImg': report.BackgroundImg,
-            'userId': rp.UserId
+            'userId': rp.UserId,
+            'author': author.Name
         })
     return {"objects": result}
 
@@ -110,7 +114,7 @@ def create_report():
     user = database.get_user()
     # czy użytkownik widzi tę ankietę?
     survey = database.get_survey(data["surveyId"])
-    report = database.create_report(user, survey, data["title"])
+    report = database.create_report(user, survey, data["title"], user.id)
     with open(f'report/{report.id}.json', 'w') as file:
         json.dump(data, file)
     return {
@@ -127,7 +131,7 @@ def copy_report(report_id):
     user = database.get_user()
     report = database.get_report(report_id)
     survey = database.get_report_survey(report)
-    report = database.create_report(user, survey, report.Name)
+    report = database.create_report(user, survey, report.Name, report.AuthorId)
     with open(f'report/{report.id}.json', 'w') as file:
         json.dump(data, file)
     return {

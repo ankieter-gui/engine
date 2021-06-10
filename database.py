@@ -49,6 +49,7 @@ class Survey(db.Model):
     IsActive = db.Column(db.Integer, nullable=True)
     QuestionCount = db.Column(db.Integer, nullable=True)
     BackgroundImg = db.Column(db.String(50), default=None)
+    AuthorId = db.Column(db.Integer, db.ForeignKey('Users.id'))
 
 
 class Report(db.Model):
@@ -57,6 +58,7 @@ class Report(db.Model):
     Name = db.Column(db.String(80), nullable=False)
     SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), nullable=False)
     BackgroundImg = db.Column(db.String(50))
+    AuthorId = db.Column(db.Integer, db.ForeignKey('Users.id'))
 
 
 class UserGroup(db.Model):
@@ -286,7 +288,7 @@ def delete_group(group: str):
 
 
 def create_survey(user: User, name: str) -> Survey:
-    survey = Survey(Name=name, QuestionCount=0)
+    survey = Survey(Name=name, QuestionCount=0, AuthorId=user.id)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
     survey.BackgroundImg = random.choice(bkgs)
@@ -361,8 +363,8 @@ def set_report_permission(report: Report, user: User, permission: Permission):
     db.session.commit()
 
 
-def create_report(user: User, survey: Survey, name: str) -> Report:
-    report = Report(Name=name, SurveyId=survey.id)
+def create_report(user: User, survey: Survey, name: str, author: int) -> Report:
+    report = Report(Name=name, SurveyId=survey.id, AuthorId=author)
     report.BackgroundImg = Survey.query.filter_by(id=survey.id).first().BackgroundImg
     db.session.add(report)
     db.session.commit()
