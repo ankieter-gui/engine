@@ -87,11 +87,11 @@ if __name__ == "__main__":
     user.CasLogin = pesel
     user.Role = 's'
 
+    for survey in Survey.query.all():
+        set_survey_permission(survey, user, 'o')
+
     user = User.query.filter_by(id=2).first()
     user.CasLogin = 'guest'
     user.Role = 'g'
 
     db.session.commit()
-
-    for survey in Survey.query.all():
-        set_survey_permission(survey, user, 'o')
