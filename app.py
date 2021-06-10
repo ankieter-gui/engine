@@ -450,13 +450,21 @@ def get_user_id_details(user_id):
     }
 
 
+@app.route('/user/<int:user_id>', methods=['POST'])
+@on_errors('could not create user')
+@for_roles('s')
+def create_user(user_id):
+    data = request.json
+    user = database.create_user(data["casLogin"], data["role"])
+    return {"id": user.id}
+
+
+
 @app.route('/user/<int:user_id>',  methods=['DELETE'])
 @on_errors('could not delete data')
 @for_roles('s')
 def delete_user(user_id):
     user = database.get_user(user_id)
-    if database.get_user().Role != 's':
-        raise error.API("you must be superuser to delete users")
     database.delete_user(user.id)
     return {"delete": user.id}
 
