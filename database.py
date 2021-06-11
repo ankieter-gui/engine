@@ -195,6 +195,7 @@ def set_permission_link(hash: str, user: User):
     elif object_type == 'r':
         report = get_report(id=link.ObjectId)
         perm = get_report_permission(report, user)
+        print(perm_order)
         if perm_order.index(perm) >= perm_order.index(link.Type):
             return link.Type, 'report', report.id
         set_report_permission(report, user, link.Type)
@@ -276,6 +277,12 @@ def get_group_users(group: str) -> list[User]:
         if user is not None:
             users.append(user)
     return users
+
+def rename_report(report: Report, name: str):
+    rep = Report.query.filter_by(id=report.id).first()
+    rep.Name=name
+    db.session.commit()
+    return rep.id
 
 
 def delete_group(group: str):
