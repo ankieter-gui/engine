@@ -244,11 +244,10 @@ def get_questions(survey_id):
 @on_errors('could not rename report')
 def rename_report(report_id):
     # uprawnienia
-    if 'title' not in request:
+    if 'title' not in request.json:
         raise error.API('no parameter title')
     report = database.get_report(report_id)
-    report.Name = request.json['title']
-    #db.session.commit()
+    rep = database.rename_report(report, request.json['title'])
     return {
         'message': 'report name has been changed',
         'reportId': report.id,
