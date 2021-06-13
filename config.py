@@ -38,7 +38,7 @@ SALT_LENGTH=22
 
 app = Flask(__name__)
 app.config.from_mapping(
-    SECRET_KEY=urandom(SALT_LENGTH), #'sTzMzxFX8BcJt3wuvNvDeQ',
+    SECRET_KEY=urandom(SALT_LENGTH) if not DEBUG else 'sTzMzxFX8BcJt3wuvNvDeQ',
     FLASK_ADMIN_SWATCH='cerulean',
     SQLALCHEMY_DATABASE_URI='sqlite:///master.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
