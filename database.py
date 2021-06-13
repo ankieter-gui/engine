@@ -216,7 +216,7 @@ def get_report_users(report: Report) -> dict:
     return result
 
 
-def get_survey_users(report: Survey) -> dict:
+def get_survey_users(survey: Survey) -> dict:
     perms = SurveyPermission.query.filter_by(SurveyId=survey.id).all()
     result = {}
     for perm in perms:
