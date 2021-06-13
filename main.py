@@ -534,7 +534,7 @@ def logout():
     return redirect(CAS_CLIENT.get_logout_url())
 
 
-@app.route('/api/bkg/<path:path>', methods=['GET'])
+@app.route('/bkg/<path:path>', methods=['GET'])
 def get_bkg(path):
     return send_from_directory('bkg', path)
 
