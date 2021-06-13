@@ -421,6 +421,7 @@ def get_answers(survey_id: int) -> Dict:
     result = {}
     for b in xml.getroot().iter("single"):
         header = b.find('header').text
+        header = re.sub('</?\w[^>]*>', '', header)
         if header not in result:
             result[header]={}
         for item in b.find('answers'):
