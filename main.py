@@ -284,6 +284,25 @@ def link_to_report(report_id):
     }
 
 
+@app.route('/report/<int:report_id>/data', methods=['POST'])
+@on_errors('could not obtain survey data')
+def get_data(report_id):
+    report = database.get_report(report_id)
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('insufficient permissions')
+
+    survey = database.get_report_survey(report)
+
+    conn = database.open_survey(survey)
+    result = table.create(request.json, conn)
+    conn.close()
+
+    return result
+
+
 @app.route('/report/<int:report_id>/copy', methods=['GET'])
 @on_errors('could not copy the report')
 def copy_report(report_id):
