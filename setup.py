@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Dict
 from database import *
 import faker
 import random
@@ -13,7 +14,7 @@ def get_survey_quest_num(survey: Survey):
     return num
 
 
-def get_sample_tuples(n: int, *args: int) -> list[tuple]:
+def get_sample_tuples(n: int, *args: int) -> List[tuple]:
     from itertools import product
     from functools import reduce
     n = min(n, reduce(lambda a, b: a*b, args))
