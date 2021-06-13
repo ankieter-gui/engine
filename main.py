@@ -38,7 +38,7 @@ def for_roles(*roles):
     return for_roles_decorator
 
 
-@app.route('/dashboard', methods=['GET'])
+@app.route('/api/dashboard', methods=['GET'])
 def get_dashboard():
     user = database.get_user()
     survey_permissions = database.SurveyPermission.query.filter_by(UserId=user.id).all()
@@ -80,12 +80,12 @@ def get_dashboard():
     return {"objects": result}
 
 
-@app.route('/users', methods=['GET'])
+@app.route('/api/users', methods=['GET'])
 def get_users():
     return get_user_list()
 
 
-@app.route('/user/new', methods=['POST'])
+@app.route('/api/user/new', methods=['POST'])
 @on_errors('could not create user')
 @for_roles('s')
 def create_user():
@@ -94,12 +94,12 @@ def create_user():
     return {"id": user.id}
 
 
-@app.route('/user/all', methods=['GET'])
+@app.route('/api/user/all', methods=['GET'])
 def get_user_list():
     return database.get_users()
 
 
-@app.route('/user/<int:user_id>/group', methods=['GET', 'POST'])
+@app.route('/api/user/<int:user_id>/group', methods=['GET', 'POST'])
 @on_errors('could not obtain user groups')
 @for_roles('s', 'u')
 def get_user_groups(user_id):
@@ -112,14 +112,14 @@ def get_user_groups(user_id):
     return result
 
 
-@app.route('/user/<int:user_id>', methods=['GET'])
+@app.route('/api/user/<int:user_id>', methods=['GET'])
 @on_errors('could not obtain user data')
 @for_roles('s')
 def get_user_id_details(user_id):
     return database.get_user(user_id).as_dict()
 
 
-@app.route('/user/<int:user_id>', methods=['DELETE'])
+@app.route('/api/user/<int:user_id>', methods=['DELETE'])
 @on_errors('could not delete data')
 @for_roles('s')
 def delete_user(user_id):
@@ -128,13 +128,13 @@ def delete_user(user_id):
     return {"delete": user.id}
 
 
-@app.route('/user', methods=['GET'])
+@app.route('/api/user', methods=['GET'])
 @on_errors('could not obtain user data')
 def get_user_details():
     return database.get_user().as_dict()
 
 
-@app.route('/survey/<int:survey_id>/share', methods=['POST'])
+@app.route('/api/survey/<int:survey_id>/share', methods=['POST'])
 @on_errors('could not share survey')
 def share_survey(survey_id):
     json = request.json
@@ -150,7 +150,7 @@ def share_survey(survey_id):
     }
 
 
-@app.route('/survey/<int:survey_id>/rename', methods=['POST'])
+@app.route('/api/survey/<int:survey_id>/rename', methods=['POST'])
 @on_errors('could not rename survey')
 def rename_survey(survey_id):
     # uprawnienia
@@ -167,7 +167,7 @@ def rename_survey(survey_id):
 
 
 # e.g. {'permission': 'r', 'surveyId': 1}
-@app.route('/survey/<int:survey_id>/link', methods=['POST'])
+@app.route('/api/survey/<int:survey_id>/link', methods=['POST'])
 @on_errors('could not create link to survey')
 @for_roles('s', 'u')
 def link_to_survey(survey_id):
@@ -184,7 +184,7 @@ def link_to_survey(survey_id):
     }
 
 
-@app.route('/survey/<int:survey_id>', methods=['DELETE'])
+@app.route('/api/survey/<int:survey_id>', methods=['DELETE'])
 @on_errors('could not delete survey')
 def delete_survey(survey_id):
     survey = database.get_survey(survey_id)
@@ -198,7 +198,7 @@ def delete_survey(survey_id):
     }
 
 
-@app.route('/report/new', methods=['POST'])
+@app.route('/api/report/new', methods=['POST'])
 @on_errors('could not create report')
 def create_report():
     # można pomyśleć o maksymalnej, dużej liczbie raportów dla każdego użytkownika
@@ -217,7 +217,7 @@ def create_report():
     }
 
 
-@app.route('/report/<int:report_id>/users', methods=['GET'])
+@app.route('/api/report/<int:report_id>/users', methods=['GET'])
 @on_errors('could not get the report users')
 @for_roles('s', 'u')
 def get_report_users(report_id):
@@ -225,7 +225,7 @@ def get_report_users(report_id):
     return database.get_report_users(report)
 
 
-@app.route('/report/<int:report_id>/survey', methods=['GET'])
+@app.route('/api/report/<int:report_id>/survey', methods=['GET'])
 @on_errors('could not find the source survey')
 def get_report_survey(report_id):
     report = database.get_report(report_id)
@@ -235,7 +235,7 @@ def get_report_survey(report_id):
     }
 
 
-@app.route('/report/<int:report_id>/share', methods=['POST'])
+@app.route('/api/report/<int:report_id>/share', methods=['POST'])
 @on_errors('could not share report')
 def share_report(report_id):
     json = request.json
@@ -251,7 +251,7 @@ def share_report(report_id):
     }
 
 
-@app.route('/report/<int:report_id>/rename', methods=['POST'])
+@app.route('/api/report/<int:report_id>/rename', methods=['POST'])
 @on_errors('could not rename report')
 def rename_report(report_id):
     # uprawnienia
@@ -267,7 +267,7 @@ def rename_report(report_id):
 
 
 # e.g. {'permission': 'r', 'reportId': 1}
-@app.route('/report/<int:report_id>/link', methods=['POST'])
+@app.route('/api/report/<int:report_id>/link', methods=['POST'])
 @on_errors('could not create link to report')
 @for_roles('s', 'u')
 def link_to_report(report_id):
@@ -284,7 +284,7 @@ def link_to_report(report_id):
     }
 
 
-@app.route('/report/<int:report_id>/data', methods=['POST'])
+@app.route('/api/report/<int:report_id>/data', methods=['POST'])
 @on_errors('could not obtain survey data for the report')
 def get_report_data(report_id):
     report = database.get_report(report_id)
@@ -303,7 +303,7 @@ def get_report_data(report_id):
     return result
 
 
-@app.route('/report/<int:report_id>/copy', methods=['GET'])
+@app.route('/api/report/<int:report_id>/copy', methods=['GET'])
 @on_errors('could not copy the report')
 def copy_report(report_id):
     data = get_report(report_id)
@@ -320,7 +320,7 @@ def copy_report(report_id):
     }
 
 
-@app.route('/report/<int:report_id>', methods=['POST'])
+@app.route('/api/report/<int:report_id>', methods=['POST'])
 @on_errors('could not save the report')
 def set_report(report_id):
     report = database.get_report(report_id)
@@ -334,7 +334,7 @@ def set_report(report_id):
     }
 
 
-@app.route('/report/<int:report_id>', methods=['GET'])
+@app.route('/api/report/<int:report_id>', methods=['GET'])
 @on_errors('could not open the report')
 def get_report(report_id):
     with open(f'report/{report_id}.json', 'r') as file:
@@ -342,7 +342,7 @@ def get_report(report_id):
     return data
 
 
-@app.route('/report/<int:report_id>', methods=['DELETE'])
+@app.route('/api/report/<int:report_id>', methods=['DELETE'])
 @on_errors('could not delete report')
 def delete_report(report_id):
     report = database.get_report(report_id)
@@ -357,7 +357,7 @@ def delete_report(report_id):
 
 
 # {'group': 'nazwa grupy'}
-@app.route('/group/users', methods=['POST'])
+@app.route('/api/group/users', methods=['POST'])
 @on_errors('could not obtain group users')
 @for_roles('s', 'u')
 def get_group_users():
@@ -369,7 +369,7 @@ def get_group_users():
 
 
 # {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
-@app.route('/group/change', methods=['POST'])
+@app.route('/api/group/change', methods=['POST'])
 @on_errors('could not add users to groups')
 @for_roles('s')
 def set_group():
@@ -384,7 +384,7 @@ def set_group():
 
 
 # {'nazwa grupy': [user_id_1, user_id_2, ...], 'nazwa grupy': ...}
-@app.route('/group/change', methods=['DELETE'])
+@app.route('/api/group/change', methods=['DELETE'])
 @on_errors('could not remove users from groups')
 @for_roles('s')
 def unset_group():
@@ -398,7 +398,7 @@ def unset_group():
     }
 
 
-@app.route('/group/all', methods=['GET', 'POST'])
+@app.route('/api/group/all', methods=['GET', 'POST'])
 @on_errors('could not obtain list of groups')
 @for_roles('s', 'u')
 def get_groups():
@@ -411,7 +411,7 @@ def get_groups():
 
 
 # {'group': 'nazwa grupy'}
-@app.route('/group/all', methods=['DELETE'])
+@app.route('/api/group/all', methods=['DELETE'])
 @on_errors('could not delete group')
 @for_roles('s', 'u')
 def delete_group():
@@ -422,7 +422,7 @@ def delete_group():
     }
 
 
-@app.route('/data/new', methods=['POST'])
+@app.route('/api/data/new', methods=['POST'])
 @on_errors('could not save survey data')
 def upload_results():
     if not request.files['file']:
@@ -451,7 +451,7 @@ def upload_results():
     }
 
 
-@app.route('/data/<int:survey_id>/types', methods=['GET'])
+@app.route('/api/data/<int:survey_id>/types', methods=['GET'])
 @on_errors('could not get question types')
 def get_data_types(survey_id):
     survey = database.get_survey(survey_id)
@@ -461,7 +461,7 @@ def get_data_types(survey_id):
     return types
 
 
-@app.route('/data/<int:survey_id>/questions', methods=['GET'])
+@app.route('/api/data/<int:survey_id>/questions', methods=['GET'])
 @on_errors('could not get question order')
 def get_questions(survey_id):
     survey = database.get_survey(survey_id)
@@ -473,7 +473,7 @@ def get_questions(survey_id):
     }
 
 
-@app.route('/data/<int:survey_id>', methods=['POST'])
+@app.route('/api/data/<int:survey_id>', methods=['POST'])
 @on_errors('could not obtain survey data')
 def get_data(survey_id):
     survey = database.get_survey(survey_id)
@@ -483,7 +483,7 @@ def get_data(survey_id):
     return result
 
 
-@app.route('/link/<hash>', methods=['GET'])
+@app.route('/api/link/<hash>', methods=['GET'])
 @on_errors('could not set permission link')
 @for_roles('s', 'u')
 def set_permission_link(hash):
@@ -495,7 +495,7 @@ def set_permission_link(hash):
     }
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@app.route('/api/login', methods=['GET', 'POST'])
 def login():
     ticket = request.args.get('ticket')
     if not ticket:
@@ -513,16 +513,21 @@ def login():
 
 
 if DEBUG:
-    @app.route('/login/<string:username>', methods=['GET', 'POST'])
+    @app.route('/api/login/<string:username>', methods=['GET', 'POST'])
     def debug_login(username):
         session['username'] = username
         return redirect(url_for('get_page'))
 
 
-@app.route('/logout')
+@app.route('/api/logout')
 def logout():
     session.clear()
     return redirect(CAS_CLIENT.get_logout_url())
+
+
+@app.route('/api/bkg/<path:path>', methods=['GET'])
+def get_bkg(path):
+    return send_from_directory('bkg', path)
 
 
 @app.route('/')
@@ -531,15 +536,10 @@ def get_page():
     return redirect('http://localhost:4200')
 
 
-@app.route('/bkg/<path:path>', methods=['GET'])
-def get_bkg(path):
-    return send_from_directory('bkg', path)
-
-
 '''@app.route('/page/<path:path>', methods=['GET'])
 def get_page_files(path):
     return send_from_directory('page', path)
-
+'''
 
 @app.route('/<path:path>', methods=['GET'])
 def get_page(path):
