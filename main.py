@@ -285,8 +285,8 @@ def link_to_report(report_id):
 
 
 @app.route('/report/<int:report_id>/data', methods=['POST'])
-@on_errors('could not obtain survey data')
-def get_data(report_id):
+@on_errors('could not obtain survey data for the report')
+def get_report_data(report_id):
     report = database.get_report(report_id)
     user = database.get_user()
 
