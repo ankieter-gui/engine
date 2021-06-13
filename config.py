@@ -14,7 +14,8 @@ DINTERVAL=5*60
 # guest account username
 GUEST_NAME='Goście'
 
-# must be True or False; change to True for detailed logs during app runtime
+# must be True or False; change to True to unlock the possibility to LOG IN
+# WITHOUT PASSWORD and detailed logs during app runtime
 DEBUG=True
 
 # the code below applies the given configurarion and the user is not ----------

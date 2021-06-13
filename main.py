@@ -482,8 +482,17 @@ def login():
     if not user:
         return '<p>Failed to verify</p>'
 
+    print(user, attributes, pgtiou)
+
     session['username'] = user
-    return redirect(url_for('index'))
+    return redirect(url_for('get_page'))
+
+
+if DEBUG:
+    @app.route('/login/<string:username>', methods=['GET', 'POST'])
+    def debug_login(username):
+        session['username'] = username
+        return redirect(url_for('get_page'))
 
 
 @app.route('/logout')
@@ -497,14 +506,20 @@ def get_bkg(path):
     return send_from_directory('bkg', path)
 
 
-@app.route('/page/<path:path>', methods=['GET'])
+@app.route('/')
+@for_roles('s', 'u')
+def get_page():
+    return redirect('http://localhost:4200')
+
+
+'''@app.route('/page/<path:path>', methods=['GET'])
 def get_page_files(path):
     return send_from_directory('page', path)
 
 
 @app.route('/<path:path>', methods=['GET'])
 def get_page(path):
-    return send_from_directory('page', 'index.html')
+    return send_from_directory('page', 'index.html')'''
 
 
 if __name__ == '__main__':
