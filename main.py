@@ -539,7 +539,7 @@ def get_page():
 '''@app.route('/page/<path:path>', methods=['GET'])
 def get_page_files(path):
     return send_from_directory('page', path)
-'''
+
 
 @app.route('/<path:path>', methods=['GET'])
 def get_page(path):
