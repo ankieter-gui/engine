@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from pandas import read_csv
-from typing import Literal, Any
+from typing import Literal, Any, List, Dict
 from flask import session
 from config import *
 import secrets
@@ -235,7 +235,7 @@ def get_users() -> dict:
     return {"users": result}
 
 
-def get_groups() -> list[str]:
+def get_groups() -> List[str]:
     user_groups = UserGroup.query.with_entities(UserGroup.Group).distinct()
     return [ug.Group for ug in user_groups]
 
@@ -275,14 +275,14 @@ def unset_user_group(user: User, group: str):
     db.session.commit()
 
 
-def get_user_groups(user: User) -> list[str]:
+def get_user_groups(user: User) -> List[str]:
     user_groups = UserGroup.query.filter_by(UserId=user.id).all()
     if user_groups is None:
         return []
     return [user_group.Group for user_group in user_groups]
 
 
-def get_group_users(group: str) -> list[User]:
+def get_group_users(group: str) -> List[User]:
     user_groups = UserGroup.query.filter_by(Group=group).all()
     users = []
     for user_group in user_groups:
@@ -414,7 +414,7 @@ def open_survey(survey: Survey) -> sqlite3.Connection:
     return sqlite3.connect(f"data/{survey.id}.db")
 
 
-def get_types(conn: sqlite3.Connection) -> dict[str, str]:
+def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
     types = {}
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
@@ -424,7 +424,7 @@ def get_types(conn: sqlite3.Connection) -> dict[str, str]:
     return types
 
 
-def get_columns(conn: sqlite3.Connection) -> list[str]:
+def get_columns(conn: sqlite3.Connection) -> List[str]:
     columns = []
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
