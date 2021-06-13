@@ -80,6 +80,8 @@ def typecheck(json_query, types):
 
     if 'if' not in json_query:
         return
+    if not json_query['if']:
+        return
     for iff in json_query['if']:
         if len(iff) < 2:
             raise error.API(f'filter "{" ".join(iff)}" is too short')
@@ -121,7 +123,7 @@ def columns(json_query, conn):
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     types = database.get_types(conn)
-    if 'if' in json_query:
+    if 'if' in json_query and json_query['if']:
         filters = list(map(lambda x: get_sql_filter_of(x, types), json_query['if']))
     else:
         filters = ["TRUE"]
