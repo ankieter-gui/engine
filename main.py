@@ -530,20 +530,17 @@ def get_bkg(path):
     return send_from_directory('bkg', path)
 
 
+@app.route('/file/<path:path>')
+def get_file(path):
+    return send_from_directory('file', path)
+
+
 @app.route('/')
 @for_roles('s', 'u')
 def get_page():
-    return redirect('http://localhost:4200')
+    return redirect('http://localhost:4200/')
+    return send_from_directory('file', 'index.html')
 
-
-'''@app.route('/page/<path:path>', methods=['GET'])
-def get_page_files(path):
-    return send_from_directory('page', path)
-
-
-@app.route('/<path:path>', methods=['GET'])
-def get_page(path):
-    return send_from_directory('page', 'index.html')'''
 
 if __name__ == '__main__':
     for d in daemon.LIST:

@@ -50,7 +50,7 @@ ADMIN = Admin(app, name='Ankieter+', template_mode='bootstrap3')
 
 CAS_CLIENT = CASClient(
     version=CAS_VERSION,
-    service_url=f'{APP_URL}/login',
+    service_url=f'{APP_URL}/api/login',
     server_url=CAS_URL
 )
 
