@@ -30,7 +30,7 @@ if __name__ == "__main__":
     fake = faker.Faker(locale="pl_PL")
 
     USERS_AMOUNT = 20
-    REPORTS_AMOUNT = 5
+
 
     GROUPS = ['dziekani', 'wmi', 'wb', 'wpik']
     GROUPS_AMOUNT = len(GROUPS)
@@ -63,25 +63,14 @@ if __name__ == "__main__":
         role = random.choice('gus')
         db.session.add(User(CasLogin=cas_login, Role=role, FetchData=False))
 
-    for i in range(REPORTS_AMOUNT):
-        report_name = f'Raport {random.randint(1, 50)}'
-        survey_id = random.randint(1, surveys_amount)
-        db.session.add(Report(Name=report_name, SurveyId=survey_id))
-
     for g_id, u_id in get_sample_tuples(18, GROUPS_AMOUNT, USERS_AMOUNT):
         db.session.add(UserGroup(Group=GROUPS[g_id-1], UserId=u_id))
 
     for s_id, g_id in get_sample_tuples(18, surveys_amount, GROUPS_AMOUNT):
         db.session.add(SurveyGroup(SurveyId=s_id, Group=GROUPS[g_id-1]))
 
-    for r_id, g_id in get_sample_tuples(18, REPORTS_AMOUNT, GROUPS_AMOUNT):
-        db.session.add(ReportGroup(ReportId=r_id, Group=GROUPS[g_id-1]))
-
     for s_id, u_id in get_sample_tuples(18, surveys_amount, USERS_AMOUNT):
         db.session.add(SurveyPermission(SurveyId=s_id, UserId=u_id, Type=random.choice('rwo')))
-
-    for r_id, u_id in get_sample_tuples(18, REPORTS_AMOUNT, USERS_AMOUNT):
-        db.session.add(ReportPermission(ReportId=r_id, UserId=u_id, Type=random.choice('rwo')))
 
     pesel = input('Podaj swój pesel\n')
     user = User.query.filter_by(id=1).first()
