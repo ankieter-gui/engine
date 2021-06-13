@@ -225,6 +225,15 @@ def get_report_users(report_id):
     return database.get_report_users(report)
 
 
+@app.route('/api/report/<int:report_id>/answers', methods=['GET'])
+@on_errors('could not get report answers')
+def get_report_answers(report_id):
+    report = database.get_report(report_id)
+    survey_xml = report.SurveyId
+    result = database.get_answers(survey_xml)
+    return result
+
+
 @app.route('/api/report/<int:report_id>/survey', methods=['GET'])
 @on_errors('could not find the source survey')
 def get_report_survey(report_id):

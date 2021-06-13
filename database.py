@@ -1,15 +1,17 @@
-from flask_sqlalchemy import SQLAlchemy
-from pandas import read_csv
 from typing import Literal, Any, List, Dict
+from flask_sqlalchemy import SQLAlchemy
+from base64 import b32encode
+from pandas import read_csv
 from flask import session
 from config import *
+import xml.etree.ElementTree as ET
 import secrets
 import random
 import re
 import sqlite3
 import error
 import os
-from base64 import b32encode
+
 
 db = SQLAlchemy(app)
 
@@ -412,6 +414,18 @@ def delete_report(report: Report):
 
 def open_survey(survey: Survey) -> sqlite3.Connection:
     return sqlite3.connect(f"data/{survey.id}.db")
+
+
+def get_answers(survey_id: int) -> Dict:
+    xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"surveys/{survey_id}.xml"))
+    result = {}
+    for b in xml.getroot().iter("single"):
+        header = b.find('header').text
+        if header not in result:
+            result[header]={}
+        for item in b.find('answers'):
+            result[header][item.attrib['code']]=item.attrib['value'].strip(' ')
+    return result
 
 
 def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
