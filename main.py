@@ -124,7 +124,7 @@ def get_user_id_details(user_id):
 @for_roles('s')
 def delete_user(user_id):
     user = database.get_user(user_id)
-    database.delete_user(user.id)
+    database.delete_user(user)
     return {"delete": user.id}
 
 
