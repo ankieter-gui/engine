@@ -1,9 +1,9 @@
-from functools import wraps
 from flask import send_from_directory, redirect, url_for, request, session, g
 from config import *
 import json
 import sqlite3
 import os
+import functools
 import threading
 import database
 import grammar
@@ -13,7 +13,7 @@ import error
 
 def on_errors(details):
     def on_error_decorator(f):
-        @wraps(f)
+        @functools.wraps(f)
         def decorated_function(*args, **kwargs):
             try:
                 return f(*args, **kwargs)
@@ -25,7 +25,7 @@ def on_errors(details):
 
 def for_roles(*roles):
     def for_roles_decorator(f):
-        @wraps(f)
+        @functools.wraps(f)
         def decorated_function(*args, **kwargs):
             if database.get_user().Role not in roles:
                 raise error.API('insufficient privileges')
@@ -48,6 +48,7 @@ def get_dashboard():
             'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None else None,
             'id': survey.id,
             'name': survey.Name,
+            'sharedTo': database.get_survey_users(survey),
             'ankieterId': survey.AnkieterId,
             'isActive': survey.IsActive,
             'questionCount': survey.QuestionCount,
@@ -65,7 +66,7 @@ def get_dashboard():
             'type': 'report',
             'id': report.id,
             'name': report.Name,
-            "sharedTo":database.get_report_users(report),
+            'sharedTo': database.get_report_users(report),
             'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
             'backgroundImg': report.BackgroundImg,
             'userId': rp.UserId,

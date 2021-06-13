@@ -215,6 +215,15 @@ def get_report_users(report: Report) -> dict:
         result[perm.UserId] = perm.Type
     return result
 
+
+def get_survey_users(report: Survey) -> dict:
+    perms = SurveyPermission.query.filter_by(SurveyId=survey.id).all()
+    result = {}
+    for perm in perms:
+        result[perm.UserId] = perm.Type
+    return result
+
+
 def get_users() -> dict:
     users = User.query.all()
     result = []
