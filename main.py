@@ -505,6 +505,7 @@ def set_permission_link(hash):
 
 
 @app.route('/api/login', methods=['GET', 'POST'])
+@on_errors('could not log in')
 def login():
     ticket = request.args.get('ticket')
     if not ticket:
@@ -523,12 +524,14 @@ def login():
 
 if DEBUG:
     @app.route('/api/login/<string:username>', methods=['GET', 'POST'])
+    @on_errors('could not log in')
     def debug_login(username):
         session['username'] = username
         return redirect(url_for('get_page'))
 
 
 @app.route('/api/logout')
+@on_errors('could not log out')
 def logout():
     session.clear()
     return redirect(CAS_CLIENT.get_logout_url())
@@ -545,7 +548,6 @@ def get_file(path):
 
 
 @app.route('/')
-@for_roles('s', 'u')
 def get_page():
     return redirect('http://localhost:4200/')
     return send_from_directory('file', 'index.html')
