@@ -134,6 +134,23 @@ def get_user_details():
     return database.get_user().as_dict()
 
 
+@app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
+@on_errors('could not upload survey')
+def upload_survey(survey_id):
+    if not request.files['file']:
+        raise error.API('empty survey data')
+
+    file = request.files['file']
+    name, ext = file.filename.rsplit('.', 1)
+    if ext.lower() != 'xml':
+        raise error.API('expected a XML file')
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "surveys/",f"{survey_id}.xml"))
+    return {
+        "id": survey_id
+    }
+
+
+
 @app.route('/api/survey/<int:survey_id>/share', methods=['POST'])
 @on_errors('could not share survey')
 def share_survey(survey_id):
