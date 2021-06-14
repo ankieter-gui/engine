@@ -419,14 +419,28 @@ def open_survey(survey: Survey) -> sqlite3.Connection:
 def get_answers(survey_id: int) -> Dict:
     xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"surveys/{survey_id}.xml"))
     result = {}
-    for b in xml.getroot().iter("single"):
-        header = b.find('header').text
-        header = re.sub('</?\w[^>]*>', '', header).strip()
+    questions = ['single', 'multi', 'groupedsingle']
+    for q in questions:
+        for b in xml.getroot().iter(q):
+            header = b.find('header').text
+            header = re.sub('</?\w[^>]*>', '', header).strip(' \n')
+            if header not in result:
+                result[header]={}
+                result[header]["type"]=q
+                result[header]["sub_questions"]=[]
+                result[header]["values"]={}
 
-        if header not in result:
-            result[header]={}
-        for item in b.find('answers'):
-            result[header][item.attrib['code']]=item.attrib['value'].strip(' ')
+            if q == 'groupedsingle':
+                for item in b.find('items'):
+                    result[header]["sub_questions"].append(item.attrib['value'].strip(' '))
+            if q != "multi":
+                for item in b.find('answers'):
+                    result[header]["values"][item.attrib['code']]=item.attrib['value'].strip(' ')
+            else:
+                for item in b.find('answers'):
+                    result[header]["sub_questions"].append(item.attrib['value'].strip(' '))
+                result[header]["values"]["0"] = "NIE"
+                result[header]["values"]["1"] = "TAK"
     return result
 
 
