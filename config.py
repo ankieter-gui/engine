@@ -14,6 +14,9 @@ DINTERVAL=5*60
 # guest account username
 GUEST_NAME='Goście'
 
+# default admin permission for all surveys and reports
+ADMIN_DEFAULT_PERMISSION = 'r'
+
 # must be True or False; change to True to unlock the possibility to LOG IN
 # WITHOUT PASSWORD and detailed logs during app runtime
 DEBUG=True

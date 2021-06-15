@@ -284,6 +284,26 @@ def get_user_groups(user: User) -> List[str]:
     return [user_group.Group for user_group in user_groups]
 
 
+def get_user_surveys(user: User) -> List[Survey]:
+    if user.Role == 's':
+        return Survey.query.all()
+    user_surveys = SurveyPermission.query.filter_by(UserId=user.id).all()
+    surveys = []
+    for user_survey in user_surveys:
+        surveys.append(Survey.query.filter_by(id=user_survey.SurveyId).first())
+    return surveys
+
+
+def get_user_reports(user: User) -> List[Report]:
+    if user.Role == 's':
+        return Report.query.all()
+    user_reports = ReportPermission.query.filter_by(UserId=user.id).all()
+    reports = []
+    for user_report in user_reports:
+        reports.append(Report.query.filter_by(id=user_report.ReportId).first())
+    return reports
+
+
 def get_group_users(group: str) -> List[User]:
     user_groups = UserGroup.query.filter_by(Group=group).all()
     users = []
@@ -338,7 +358,9 @@ def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
 
 def get_survey_permission(survey: Survey, user: User) -> Permission:
     sp = SurveyPermission.query.filter_by(SurveyId=survey.id, UserId=user.id).first()
-    if sp is None:
+    if sp is None and user.Role == 's':
+        return ADMIN_DEFAULT_PERMISSION
+    elif sp is None:
         return 'n'
     return sp.Type
 
@@ -363,10 +385,12 @@ def get_report_survey(report: Report) -> Survey:
 
 
 def get_report_permission(report: Report, user: User) -> Permission:
-    sp = ReportPermission.query.filter_by(ReportId=report.id, UserId=user.id).first()
-    if sp is None:
+    rp = ReportPermission.query.filter_by(ReportId=report.id, UserId=user.id).first()
+    if rp is None and user.Role == 's':
+        return ADMIN_DEFAULT_PERMISSION
+    if rp is None:
         return 'n'
-    return sp.Type
+    return rp.Type
 
 
 def set_report_permission(report: Report, user: User, permission: Permission):
