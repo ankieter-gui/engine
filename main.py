@@ -134,6 +134,14 @@ def get_user_details():
     return database.get_user().as_dict()
 
 
+@app.route('/api/dictionary', methods=["GET"])
+@on_errors('could not get dictionary')
+def get_dictionary():
+    with open(os.path.join(ABSOLUTE_DIR_PATH, "dictionary.json")) as json_file:
+        result = json.load(json_file)
+    return result
+
+
 @app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not upload survey')
 def upload_survey(survey_id):
