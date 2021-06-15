@@ -383,7 +383,7 @@ def set_survey_permission(survey: Survey, user: User, permission: Permission):
 def get_report_survey(report: Report) -> Survey:
     if report is None:
         raise error.API('no such report')
-    survey = Report.query.filter_by(id=report.SurveyId).first()
+    survey = Survey.query.filter_by(id=report.SurveyId).first()
     return survey
 
 
