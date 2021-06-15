@@ -41,10 +41,9 @@ def for_roles(*roles):
 @app.route('/api/dashboard', methods=['GET'])
 def get_dashboard():
     user = database.get_user()
-    survey_permissions = database.SurveyPermission.query.filter_by(UserId=user.id).all()
+    user_surveys = database.get_user_surveys(user)
     result = []
-    for sp in survey_permissions:
-        survey = database.Survey.query.filter_by(id=sp.SurveyId).first()
+    for survey in user_surveys:
         author = database.get_user(survey.AuthorId)
         result.append({
             'type': 'survey',
@@ -57,13 +56,12 @@ def get_dashboard():
             'isActive': survey.IsActive,
             'questionCount': survey.QuestionCount,
             'backgroundImg': survey.BackgroundImg,
-            'userId': sp.UserId,
+            'userId': user.id,
             'answersCount': database.get_answers_count(survey),
             'authorId': author.id,
         })
-    report_permissions = database.ReportPermission.query.filter_by(UserId=user.id).all()
-    for rp in report_permissions:
-        report = database.Report.query.filter_by(id=rp.ReportId).first()
+    user_reports = database.get_user_reports(user)
+    for report in user_reports:
         survey = database.get_survey(report.SurveyId)
         author = database.get_user(report.AuthorId)
         result.append({
@@ -73,7 +71,7 @@ def get_dashboard():
             'sharedTo': database.get_report_users(report),
             'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
             'backgroundImg': report.BackgroundImg,
-            'userId': rp.UserId,
+            'userId': user.id,
             # 'author': author.Name
             'authorId': author.id,
         })
