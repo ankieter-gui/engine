@@ -140,6 +140,18 @@ def get_dictionary():
     return result
 
 
+@app.route('/api/survey/new', methods=['POST'])
+@on_errors('could not create survey')
+def create_survey():
+    user = database.get_user()
+    r = request.json
+    if not r["name"]:
+        raise error.API("survey name can't be blank")
+    survey = database.create_survey(user, r["name"])
+    return {
+        "id": survey.id
+    }
+
 @app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not upload survey')
 def upload_survey(survey_id):
