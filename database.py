@@ -312,6 +312,9 @@ def create_survey(user: User, name: str) -> Survey:
     survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
     set_survey_permission(survey, user, 'o')
+    conn = open_survey(survey)
+    cur = conn.cursor()
+    cur.execute("CREATE TABLE data(id INTEGER PRIMARY KEY)")
     return survey
 
 
