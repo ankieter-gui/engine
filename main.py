@@ -147,7 +147,7 @@ def get_dictionary():
 def create_survey():
     user = database.get_user()
     r = request.json
-    if "name" not in r:
+    if not r["name"]:
         raise error.API("survey name can't be blank")
     survey = database.create_survey(user, r["name"])
     return {
