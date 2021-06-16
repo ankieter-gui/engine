@@ -566,7 +566,7 @@ def login():
 
     print(user, attributes, pgtiou)
     u = database.get_user(user)
-    session['username'] = u.casLogin
+    session['username'] = u.CasLogin
     return redirect('/')
 
 
