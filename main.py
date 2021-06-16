@@ -592,4 +592,4 @@ def index():
 if __name__ == '__main__':
     for d in daemon.LIST:
         threading.Thread(target=d, daemon=True).start()
-    app.run()
+    app.run(ssl_context='adhoc', port=443, host='0.0.0.0')
