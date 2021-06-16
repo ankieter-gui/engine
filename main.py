@@ -165,7 +165,7 @@ def upload_survey(survey_id):
     name, ext = file.filename.rsplit('.', 1)
     if ext.lower() != 'xml':
         raise error.API('expected a XML file')
-    file.save(os.path.join(ABSOLUTE_DIR_PATH, "surveys/",f"{survey_id}.xml"))
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "survey/",f"{survey_id}.xml"))
     return {
         "id": survey_id
     }

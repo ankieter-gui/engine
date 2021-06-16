@@ -444,7 +444,7 @@ def open_survey(survey: Survey) -> sqlite3.Connection:
 
 
 def get_answers(survey_id: int) -> Dict:
-    xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"surveys/{survey_id}.xml"))
+    xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"survey/{survey_id}.xml"))
     result = {}
     questions = ['single', 'multi', 'groupedsingle']
     for q in questions:
