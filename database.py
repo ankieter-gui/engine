@@ -333,8 +333,8 @@ def create_survey(user: User, name: str) -> Survey:
     db.session.commit()
     set_survey_permission(survey, user, 'o')
     conn = open_survey(survey)
-    cur = conn.cursor()
-    cur.execute("CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY)")
+    #cur = conn.cursor()
+    #cur.execute("CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY)")
     return survey
 
 
