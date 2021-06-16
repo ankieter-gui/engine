@@ -62,7 +62,10 @@ def get_dashboard():
         })
     user_reports = database.get_user_reports(user)
     for report in user_reports:
-        survey = database.get_survey(report.SurveyId)
+        try:
+            survey = database.get_survey(report.SurveyId)
+        except:
+            continue
         author = database.get_user(report.AuthorId)
         result.append({
             'type': 'report',
@@ -152,6 +155,7 @@ def create_survey():
         "id": survey.id
     }
 
+
 @app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not upload survey')
 def upload_survey(survey_id):
@@ -162,11 +166,10 @@ def upload_survey(survey_id):
     name, ext = file.filename.rsplit('.', 1)
     if ext.lower() != 'xml':
         raise error.API('expected a XML file')
-    file.save(os.path.join(ABSOLUTE_DIR_PATH, "surveys/",f"{survey_id}.xml"))
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "surveys/", f"{survey_id}.xml"))
     return {
         "id": survey_id
     }
-
 
 
 @app.route('/api/survey/<int:survey_id>/share', methods=['POST'])
