@@ -18,8 +18,7 @@ db = SQLAlchemy(app)
 Role = Literal['s', 'u', 'g']
 Permission = Literal['o', 'w', 'r', 'n']
 
-class User(db.Mode
-Pesel = l):
+class User(db.Model):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
     CasLogin = db.Column(db.String(80), unique=True, nullable=False)
