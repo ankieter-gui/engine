@@ -58,11 +58,13 @@ if __name__ == "__main__":
             csv_to_db(survey, filename)
             surveys_amount += 1
 
+    emails = [faker.unique.email() for x in range(USERS_AMOUNT)]
     for _ in range(USERS_AMOUNT - 1):
-        cas_login = ''.join([random.choice(string.digits) for i in range(11)])
+        cas_login = emails[_]
+        pesel = ''.join([random.choice(string.digits) for i in range(11)])
         # role = random.randint(0, 2)
         role = random.choice('gus')
-        db.session.add(User(CasLogin=cas_login, Role=role, FetchData=False))
+        db.session.add(User(CasLogin=cas_login,Pesel=pesel, Role=role, FetchData=False))
 
     for g_id, u_id in get_sample_tuples(18, GROUPS_AMOUNT, USERS_AMOUNT):
         db.session.add(UserGroup(Group=GROUPS[g_id-1], UserId=u_id))
