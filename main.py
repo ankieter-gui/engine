@@ -39,6 +39,7 @@ def for_roles(*roles):
 
 
 @app.route('/api/dashboard', methods=['GET'])
+@on_errors('could not get dashboard')
 def get_dashboard():
     user = database.get_user()
     user_surveys = database.get_user_surveys(user)
@@ -134,6 +135,7 @@ def get_user_details():
 
 @app.route('/api/dictionary', methods=["GET"])
 @on_errors('could not get dictionary')
+@for_roles('s', 'u')
 def get_dictionary():
     with open(os.path.join(ABSOLUTE_DIR_PATH, "dictionary.json")) as json_file:
         result = json.load(json_file)
@@ -154,6 +156,7 @@ def create_survey():
 
 @app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not upload survey')
+@for_roles('s', 'u')
 def upload_survey(survey_id):
     if not request.files['file']:
         raise error.API('empty survey data')
@@ -187,6 +190,7 @@ def share_survey(survey_id):
 
 @app.route('/api/survey/<int:survey_id>/rename', methods=['POST'])
 @on_errors('could not rename survey')
+@for_roles('s', 'u')
 def rename_survey(survey_id):
     # uprawnienia
     if 'title' not in request:
@@ -262,6 +266,7 @@ def get_report_users(report_id):
 
 @app.route('/api/report/<int:report_id>/answers', methods=['GET'])
 @on_errors('could not get report answers')
+@for_roles('s', 'u')
 def get_report_answers(report_id):
     report = database.get_report(report_id)
     survey_xml = report.SurveyId
@@ -271,6 +276,7 @@ def get_report_answers(report_id):
 
 @app.route('/api/report/<int:report_id>/survey', methods=['GET'])
 @on_errors('could not find the source survey')
+@for_roles('s', 'u')
 def get_report_survey(report_id):
     report = database.get_report(report_id)
     survey = database.get_report_survey(report)
