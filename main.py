@@ -472,9 +472,10 @@ def delete_group():
     }
 
 
-@app.route('/api/data/new', methods=['POST'])
+@app.route('/api/data/new', methods=['POST'], defaults={'survey_id': None})
+@app.route('/api/data/new/<int:survey_id>', methods=['POST'])
 @on_errors('could not save survey data')
-def upload_results():
+def upload_results(survey_id):
     if not request.files['file']:
         raise error.API("empty survey data")
 
@@ -486,7 +487,10 @@ def upload_results():
     if ext.lower() != 'csv':
         raise error.API("expected a CSV file")
 
-    survey = database.create_survey(database.get_user(), name)
+    if survey_id:
+        survey = database.get_survey(survey_id)
+    else:
+        survey = database.create_survey(database.get_user(), name)
 
     file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
 
