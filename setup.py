@@ -58,8 +58,9 @@ if __name__ == "__main__":
             csv_to_db(survey, filename)
             surveys_amount += 1
 
+    emails = [fake.unique.email() for x in range(USERS_AMOUNT)]
     for _ in range(USERS_AMOUNT - 1):
-        cas_login = faker.email()
+        cas_login = emails[_]
         pesel = ''.join([random.choice(string.digits) for i in range(11)])
         # role = random.randint(0, 2)
         role = random.choice('gus')
