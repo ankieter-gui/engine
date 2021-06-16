@@ -1,4 +1,4 @@
-from flask import send_from_directory, redirect, url_for, request, session, g
+from flask import send_from_directory, redirect, url_for, request, session, g, render_template
 from config import *
 import json
 import os
@@ -163,9 +163,9 @@ def upload_survey(survey_id):
 
     file = request.files['file']
     name, ext = file.filename.rsplit('.', 1)
-    if ext.lower() != 'xml':
-        raise error.API('expected a XML file')
-    file.save(os.path.join(ABSOLUTE_DIR_PATH, "survey/",f"{survey_id}.xml"))
+    # if ext.lower() != 'xml':
+    #     raise error.API('expected a XML file')
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "surveys/",f"{survey_id}.xml"))
     return {
         "id": survey_id
     }
@@ -560,7 +560,7 @@ def login():
     print(user, attributes, pgtiou)
 
     session['username'] = user
-    return redirect(url_for('get_page'))
+    return redirect(url_for('index'))
 
 
 if DEBUG:
@@ -568,7 +568,7 @@ if DEBUG:
     @on_errors('could not log in')
     def debug_login(username):
         session['username'] = username
-        return redirect(url_for('get_page'))
+        return redirect(url_for('index'))
 
 
 @app.route('/api/logout')
@@ -583,15 +583,10 @@ def get_bkg(path):
     return send_from_directory('bkg', path)
 
 
-@app.route('/file/<path:path>')
-def get_file(path):
-    return send_from_directory('file', path)
 
-
-@app.route('/')
-def get_page():
-    return redirect('http://localhost:4200/')
-    return send_from_directory('file', 'index.html')
+@app.route("/")
+def index():
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
