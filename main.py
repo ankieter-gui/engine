@@ -92,7 +92,7 @@ def get_users():
 @for_roles('s')
 def create_user():
     data = request.json
-    user = database.create_user(data["casLogin"], data["role"])
+    user = database.create_user(data["casLogin"],data['pesel'], data["role"])
     return {"id": user.id}
 
 
@@ -565,8 +565,8 @@ def login():
         return '<p>Failed to verify</p>'
 
     print(user, attributes, pgtiou)
-
-    session['username'] = user
+    u = database.get_user(user)
+    session['username'] = u.casLogin
     return redirect('/')
 
 

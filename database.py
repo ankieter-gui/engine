@@ -18,10 +18,12 @@ db = SQLAlchemy(app)
 Role = Literal['s', 'u', 'g']
 Permission = Literal['o', 'w', 'r', 'n']
 
-class User(db.Model):
+class User(db.Mode
+Pesel = l):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
     CasLogin = db.Column(db.String(80), unique=True, nullable=False)
+    Pesel = db.Column(db.String(11), unique=True, nullable=False)
     FetchData = db.Column(db.Boolean, nullable=False)
     Role = db.Column(db.String, default='g', nullable=False)
 
@@ -120,7 +122,10 @@ def get_user(login: Any = "") -> User:
             return User.query.filter_by(Role='g').first()
         login = session['username']
     if type(login) is str:
-        user = User.query.filter_by(CasLogin=login).first()
+        if '@' in login:
+            user = User.query.filter_by(CasLogin=login).first()
+        else:
+            user = User.query.filter_by(Pesel=login).first()
     if type(login) is int:
         user = User.query.filter_by(id=login).first()
     if user is None:
@@ -128,8 +133,8 @@ def get_user(login: Any = "") -> User:
     return user
 
 
-def create_user(CasLogin: str, Role: str) -> User:
-    user = User(CasLogin=CasLogin, Role=Role, FetchData=True)
+def create_user(CasLogin: str, Pesel:str, Role: str) -> User:
+    user = User(CasLogin=CasLogin, Pesel=Pesel ,Role=Role, FetchData=True)
     db.session.add(user)
     db.session.commit()
     return user
