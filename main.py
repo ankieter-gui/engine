@@ -1,4 +1,4 @@
-from flask import send_from_directory, redirect, url_for, request, session, g
+from flask import send_from_directory, redirect, url_for, request, session, g, render_template
 from config import *
 import json
 import os
@@ -39,6 +39,7 @@ def for_roles(*roles):
 
 
 @app.route('/api/dashboard', methods=['GET'])
+@on_errors('could not get dashboard')
 def get_dashboard():
     user = database.get_user()
     user_surveys = database.get_user_surveys(user)
@@ -62,10 +63,7 @@ def get_dashboard():
         })
     user_reports = database.get_user_reports(user)
     for report in user_reports:
-        try:
-            survey = database.get_survey(report.SurveyId)
-        except:
-            continue
+        survey = database.get_survey(report.SurveyId)
         author = database.get_user(report.AuthorId)
         result.append({
             'type': 'report',
@@ -137,6 +135,7 @@ def get_user_details():
 
 @app.route('/api/dictionary', methods=["GET"])
 @on_errors('could not get dictionary')
+@for_roles('s', 'u')
 def get_dictionary():
     with open(os.path.join(ABSOLUTE_DIR_PATH, "dictionary.json")) as json_file:
         result = json.load(json_file)
@@ -155,21 +154,22 @@ def create_survey():
         "id": survey.id
     }
 
-
 @app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not upload survey')
+@for_roles('s', 'u')
 def upload_survey(survey_id):
     if not request.files['file']:
         raise error.API('empty survey data')
 
     file = request.files['file']
     name, ext = file.filename.rsplit('.', 1)
-    if ext.lower() != 'xml':
-        raise error.API('expected a XML file')
-    file.save(os.path.join(ABSOLUTE_DIR_PATH, "surveys/", f"{survey_id}.xml"))
+    # if ext.lower() != 'xml':
+    #     raise error.API('expected a XML file')
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "survey/",f"{survey_id}.xml"))
     return {
         "id": survey_id
     }
+
 
 
 @app.route('/api/survey/<int:survey_id>/share', methods=['POST'])
@@ -190,6 +190,7 @@ def share_survey(survey_id):
 
 @app.route('/api/survey/<int:survey_id>/rename', methods=['POST'])
 @on_errors('could not rename survey')
+@for_roles('s', 'u')
 def rename_survey(survey_id):
     # uprawnienia
     if 'title' not in request:
@@ -265,6 +266,7 @@ def get_report_users(report_id):
 
 @app.route('/api/report/<int:report_id>/answers', methods=['GET'])
 @on_errors('could not get report answers')
+@for_roles('s', 'u')
 def get_report_answers(report_id):
     report = database.get_report(report_id)
     survey_xml = report.SurveyId
@@ -274,6 +276,7 @@ def get_report_answers(report_id):
 
 @app.route('/api/report/<int:report_id>/survey', methods=['GET'])
 @on_errors('could not find the source survey')
+@for_roles('s', 'u')
 def get_report_survey(report_id):
     report = database.get_report(report_id)
     survey = database.get_report_survey(report)
@@ -469,9 +472,10 @@ def delete_group():
     }
 
 
-@app.route('/api/data/new', methods=['POST'])
+@app.route('/api/data/new', methods=['POST'], defaults={'survey_id': None})
+@app.route('/api/data/new/<int:survey_id>', methods=['POST'])
 @on_errors('could not save survey data')
-def upload_results():
+def upload_results(survey_id):
     if not request.files['file']:
         raise error.API("empty survey data")
 
@@ -483,7 +487,10 @@ def upload_results():
     if ext.lower() != 'csv':
         raise error.API("expected a CSV file")
 
-    survey = database.create_survey(database.get_user(), name)
+    if survey_id:
+        survey = database.get_survey(survey_id)
+    else:
+        survey = database.create_survey(database.get_user(), name)
 
     file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
 
@@ -557,7 +564,7 @@ def login():
     print(user, attributes, pgtiou)
 
     session['username'] = user
-    return redirect(url_for('get_page'))
+    return redirect('/')
 
 
 if DEBUG:
@@ -565,7 +572,7 @@ if DEBUG:
     @on_errors('could not log in')
     def debug_login(username):
         session['username'] = username
-        return redirect(url_for('get_page'))
+        return redirect('/')
 
 
 @app.route('/api/logout')
@@ -579,19 +586,21 @@ def logout():
 def get_bkg(path):
     return send_from_directory('bkg', path)
 
-
-@app.route('/file/<path:path>')
-def get_file(path):
-    return send_from_directory('file', path)
-
+@app.route('/<path:path>', methods=['GET'])
+def get_static_file(path):
+    return send_from_directory('static', path)
 
 @app.route('/')
-def get_page():
-    return redirect('http://localhost:4200/')
-    return send_from_directory('file', 'index.html')
+@app.route('/groups')
+@app.route('/reports/<path:text>')
+@app.route('/surveysEditor/<path:text>')
+@app.route('/surveysEditor')
+@app.route('/shared/<path:text>')
+def index(path=None):
+    return render_template('index.html')
 
 
 if __name__ == '__main__':
     for d in daemon.LIST:
         threading.Thread(target=d, daemon=True).start()
-    app.run()
+    app.run(ssl_context='adhoc', port=443, host='0.0.0.0')

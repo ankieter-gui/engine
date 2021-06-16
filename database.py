@@ -332,6 +332,9 @@ def create_survey(user: User, name: str) -> Survey:
     survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
     set_survey_permission(survey, user, 'o')
+    conn = open_survey(survey)
+    cur = conn.cursor()
+    cur.execute("CREATE TABLE data(id INTEGER PRIMARY KEY)")
     return survey
 
 
@@ -380,7 +383,7 @@ def set_survey_permission(survey: Survey, user: User, permission: Permission):
 def get_report_survey(report: Report) -> Survey:
     if report is None:
         raise error.API('no such report')
-    survey = Report.query.filter_by(id=report.SurveyId).first()
+    survey = Survey.query.filter_by(id=report.SurveyId).first()
     return survey
 
 
@@ -441,7 +444,7 @@ def open_survey(survey: Survey) -> sqlite3.Connection:
 
 
 def get_answers(survey_id: int) -> Dict:
-    xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"surveys/{survey_id}.xml"))
+    xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"survey/{survey_id}.xml"))
     result = {}
     questions = ['single', 'multi', 'groupedsingle']
     for q in questions:

@@ -8,7 +8,7 @@ CAS_VERSION=2
 # address and port can be changed here; do not append the name with a '/'
 APP_URL='http://localhost:5000'
 
-# seconds of between subsequent daemon wakeups (for eg. the gatherer daemon)
+# seconds between subsequent daemon wakeups (for eg. the gatherer daemon)
 DINTERVAL=5*60
 
 # guest account username
