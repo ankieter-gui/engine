@@ -63,7 +63,10 @@ def get_dashboard():
         })
     user_reports = database.get_user_reports(user)
     for report in user_reports:
-        survey = database.get_survey(report.SurveyId)
+        try:
+            survey = database.get_survey(report.SurveyId)
+        except:
+            continue
         author = database.get_user(report.AuthorId)
         result.append({
             'type': 'report',
