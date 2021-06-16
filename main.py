@@ -599,11 +599,12 @@ def get_static_file(path):
 @app.route('/surveysEditor/<path:text>')
 @app.route('/surveysEditor')
 @app.route('/shared/<path:text>')
-def index(path=None):
+def index(text=None):
     return render_template('index.html')
 
 
 if __name__ == '__main__':
     for d in daemon.LIST:
         threading.Thread(target=d, daemon=True).start()
-    app.run(ssl_context='adhoc', port=443, host='0.0.0.0')
+    if (not LOCALHOST): app.run(ssl_context='adhoc', port=443, host='0.0.0.0')
+    else: app.run()

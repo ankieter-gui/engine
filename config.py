@@ -21,6 +21,9 @@ ADMIN_DEFAULT_PERMISSION = 'r'
 # WITHOUT PASSWORD and detailed logs during app runtime
 DEBUG=True
 
+#if True, the app is not being hosted on 0.0.0.0
+LOCALHOST=True
+
 # the code below applies the given configurarion and the user is not ----------
 # encouraged to change it in any way ------------------------------------------
 
