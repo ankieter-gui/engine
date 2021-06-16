@@ -165,7 +165,7 @@ def upload_survey(survey_id):
     name, ext = file.filename.rsplit('.', 1)
     # if ext.lower() != 'xml':
     #     raise error.API('expected a XML file')
-    file.save(os.path.join(ABSOLUTE_DIR_PATH, "surveys/",f"{survey_id}.xml"))
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "survey/",f"{survey_id}.xml"))
     return {
         "id": survey_id
     }
@@ -560,7 +560,7 @@ def login():
     print(user, attributes, pgtiou)
 
     session['username'] = user
-    return redirect(url_for('index'))
+    return redirect('/')
 
 
 if DEBUG:
@@ -568,7 +568,7 @@ if DEBUG:
     @on_errors('could not log in')
     def debug_login(username):
         session['username'] = username
-        return redirect(url_for('index'))
+        return redirect('/')
 
 
 @app.route('/api/logout')
@@ -582,10 +582,17 @@ def logout():
 def get_bkg(path):
     return send_from_directory('bkg', path)
 
+@app.route('/<path:path>', methods=['GET'])
+def get_static_file(path):
+    return send_from_directory('static', path)
 
-
-@app.route("/")
-def index():
+@app.route('/')
+@app.route('/groups')
+@app.route('/reports/<path:text>')
+@app.route('/surveysEditor/<path:text>')
+@app.route('/surveysEditor')
+@app.route('/shared/<path:text>')
+def index(path=None):
     return render_template('index.html')
 
 
