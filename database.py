@@ -22,7 +22,7 @@ class User(db.Model):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
     CasLogin = db.Column(db.String(80), unique=True, nullable=False)
-    Pesel = db.Column(db.String(11), unique=True, nullable=False)
+    Pesel = db.Column(db.String(11), nullable=True)
     FetchData = db.Column(db.Boolean, nullable=False)
     Role = db.Column(db.String, default='g', nullable=False)
 
