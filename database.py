@@ -103,8 +103,8 @@ class Link(db.Model):
     __tablename__ = "Links"
     id = db.Column(db.Integer, primary_key=True)
     Salt = db.Column(db.String(SALT_LENGTH))
-    Type = db.Column(db.String, default='r', nullable=False)
-    Object = db.Column(db.String, nullable=False)
+    PermissionType = db.Column(db.String, default='r', nullable=False)
+    ObjectType = db.Column(db.String, nullable=False)
     ObjectId = db.Column(db.Integer, nullable=False)
 
 
@@ -167,8 +167,8 @@ def get_report(id: int) -> Report:
     return report
 
 
-def get_permission_link(permission: Permission, object: Literal['s', 'r'], object_id: int) -> str:
-    link = Link.query.filter_by(Type=permission, Object=object, ObjectId=object_id).first()
+def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], object_id: int) -> str:
+    link = Link.query.filter_by(PermissionType=permission, ObjectType=object_type, ObjectId=object_id).first()
     if link is not None:
         return link.Salt + str(link.id)
     salt = secrets.randbits(5*SALT_LENGTH)
@@ -178,8 +178,8 @@ def get_permission_link(permission: Permission, object: Literal['s', 'r'], objec
     print(salt)
     link = Link(
         Salt=salt,
-        Type=permission,
-        Object=object,
+        PermissionType=permission,
+        ObjectType=object_type,
         ObjectId=object_id
     )
     db.session.add(link)
@@ -194,7 +194,7 @@ def set_permission_link(hash: str, user: User):
     link = Link.query.filter_by(Salt=salt, id=id).first()
     if link is None:
         raise error.API('wrong url')
-    object_type = link.Object
+    object_type = link.ObjectType
     if object_type == 's':
         survey = get_survey(link.ObjectId)
         perm = get_survey_permission(survey, user)
@@ -212,6 +212,18 @@ def set_permission_link(hash: str, user: User):
         return link.Type, 'report', report.id
     else:
         raise error.API(f'unknown object type "{object_type}"')
+
+
+def get_link_details(tag: str) -> dict:
+    link = Link.query.filter_by(Salt=tag).first()
+    result = {}
+    if link is not None:
+        result['id'] = link.id
+        result['salt'] = link.Salt
+        result['permissionType'] = link.PermissionType
+        result['objectType'] = link.ObjectType
+        result['objectId'] = link.ObjectId
+    return result
 
 
 def get_report_users(report: Report) -> dict:
