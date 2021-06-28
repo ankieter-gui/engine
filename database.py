@@ -123,8 +123,14 @@ def get_user(login: Any = "") -> User:
     if type(login) is str:
         if '@' in login:
             user = User.query.filter_by(CasLogin=login).first()
-        else:
+        elif re.match("[0-9]+", login):
             user = User.query.filter_by(Pesel=login).first()
+        else:
+            users = get_users()
+            user = None
+            for u in users["users"]:
+                if u["casLogin"].split("@")[0] == login:
+                    user = User.query.filter_by(id=u["id"]).first()
     if type(login) is int:
         user = User.query.filter_by(id=login).first()
     if user is None:
