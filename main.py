@@ -122,7 +122,7 @@ def get_user_id_details(user_id):
 
 
 @app.route('/api/user/<int:user_id>', methods=['DELETE'])
-@on_errors('could not delete data')
+@on_errors('could not delete user')
 @for_roles('s')
 def delete_user(user_id):
     user = database.get_user(user_id)
@@ -147,6 +147,7 @@ def get_dictionary():
 
 @app.route('/api/survey/new', methods=['POST'])
 @on_errors('could not create survey')
+@for_roles('s', 'u')
 def create_survey():
     user = database.get_user()
     r = request.json
@@ -228,6 +229,7 @@ def link_to_survey(survey_id):
 
 @app.route('/api/survey/<int:survey_id>', methods=['DELETE'])
 @on_errors('could not delete survey')
+@for_roles('s', 'u')
 def delete_survey(survey_id):
     survey = database.get_survey(survey_id)
     perm = database.get_survey_permission(survey, database.get_user())
@@ -242,6 +244,7 @@ def delete_survey(survey_id):
 
 @app.route('/api/report/new', methods=['POST'])
 @on_errors('could not create report')
+@for_roles('s', 'u')
 def create_report():
     # można pomyśleć o maksymalnej, dużej liczbie raportów dla każdego użytkownika
     # ze względu na bezpieczeństwo.
@@ -466,7 +469,7 @@ def get_groups():
 # {'group': 'nazwa grupy'}
 @app.route('/api/group/all', methods=['DELETE'])
 @on_errors('could not delete group')
-@for_roles('s', 'u')
+@for_roles('s')
 def delete_group():
     grammar.check(grammar.REQUEST_GROUP, request.json)
     database.delete_group(request.json['group'])
