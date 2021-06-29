@@ -606,5 +606,7 @@ def index(text=None):
 if __name__ == '__main__':
     for d in daemon.LIST:
         threading.Thread(target=d, daemon=True).start()
-    if (not LOCALHOST): app.run(ssl_context='adhoc', port=443, host='0.0.0.0')
-    else: app.run()
+    if not LOCALHOST:
+        app.run(ssl_context='adhoc', port=str(APP_PORT), host='0.0.0.0')
+    else:
+        app.run()

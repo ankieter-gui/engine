@@ -5,8 +5,11 @@ CAS_URL='https://cas.amu.edu.pl/cas/'
 # must be 1, 2 or 3; depending on the version of CAS used by the institution
 CAS_VERSION=2
 
-# address and port can be changed here; do not append the name with a '/'
-APP_URL='http://localhost:5000'
+# app address can be set here; do not append it with a '/'
+APP_URL='http://localhost'
+
+# app port can be set here
+APP_PORT=5000
 
 # seconds between subsequent daemon wakeups (for eg. the gatherer daemon)
 DINTERVAL=5*60
@@ -56,11 +59,11 @@ ADMIN = Admin(app, name='Ankieter+', template_mode='bootstrap3')
 
 CAS_CLIENT = CASClient(
     version=CAS_VERSION,
-    service_url=f'{APP_URL}/api/login',
+    service_url=f'{APP_URL}:{APP_PORT}/api/login',
     server_url=CAS_URL
 )
 
-cors = CORS(app, resources={r"*": {"origins": "http://localhost:4200"}})
+cors = CORS(app, resources={r"*": {"origins": f"http://{APP_URL}:4200"}})
 @app.after_request
 def after_request(response):
   response.headers.add(
