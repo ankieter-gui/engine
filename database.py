@@ -193,11 +193,9 @@ def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], 
     return link.Salt + str(link.id)
 
 
-def set_permission_link(hash: str, user: User):
+def set_permission_link(tag: str, user: User):
     perm_order = ['n', 'r', 'w', 'o']
-    salt = hash[:SALT_LENGTH]
-    id = int(hash[SALT_LENGTH:])
-    link = Link.query.filter_by(Salt=salt, id=id).first()
+    link = get_link_details(tag)
     if link is None:
         raise error.API('wrong url')
     object_type = link.ObjectType
@@ -221,15 +219,10 @@ def set_permission_link(hash: str, user: User):
 
 
 def get_link_details(tag: str) -> dict:
-    link = Link.query.filter_by(Salt=tag).first()
-    result = {}
-    if link is not None:
-        result['id'] = link.id
-        result['salt'] = link.Salt
-        result['permissionType'] = link.PermissionType
-        result['objectType'] = link.ObjectType
-        result['objectId'] = link.ObjectId
-    return result
+    salt = tag[:SALT_LENGTH]
+    id = int(tag[SALT_LENGTH:])
+    link = Link.query.filter_by(id=id, Salt=salt).first()
+    return link
 
 
 def get_report_users(report: Report) -> dict:
