@@ -18,6 +18,8 @@ db = SQLAlchemy(app)
 Role = Literal['s', 'u', 'g']
 Permission = Literal['o', 'w', 'r', 'n']
 
+PERMISSION_ORDER = ['n', 'r', 'w', 'o']
+
 class User(db.Model):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
@@ -194,28 +196,29 @@ def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], 
 
 
 def set_permission_link(tag: str, user: User):
-    perm_order = ['n', 'r', 'w', 'o']
     link = get_link_details(tag)
     if link is None:
         raise error.API('wrong url')
     object_type = link.ObjectType
     if object_type == 's':
-        survey = get_survey(link.ObjectId)
-        perm = get_survey_permission(survey, user)
-        if perm_order.index(perm) >= perm_order.index(link.Type):
-            return link.Type, 'survey', survey.id
-        set_survey_permission(survey, user, link.Type)
-        return link.Type, 'survey', survey.id
+        object_name = 'survey'
+        get_object = get_survey
+        get_permission = get_survey_permission
+        set_permission = set_survey_permission
     elif object_type == 'r':
-        report = get_report(id=link.ObjectId)
-        perm = get_report_permission(report, user)
-        print(perm_order)
-        if perm_order.index(perm) >= perm_order.index(link.Type):
-            return link.Type, 'report', report.id
-        set_report_permission(report, user, link.Type)
-        return link.Type, 'report', report.id
+        object_name = 'report'
+        get_object = get_report
+        get_permission = get_report_permission
+        set_permission = set_report_permission
     else:
-        raise error.API(f'unknown object type "{object_type}"')
+        raise error.API(f'unknown database object type "{object_type}"')
+
+    object = get_object(link.ObjectId)
+    perm = get_permission(link.ObjectId)
+    if PERMISSION_ORDER.index(perm) >= PERMISSION_ORDER.index(link.Type):
+        return link.Type, object_name, object.id
+    set_permission(object, user, bylink=True)
+    return link.Type, object_name, object.id
 
 
 def get_link_details(tag: str) -> dict:
@@ -304,8 +307,11 @@ def get_user_surveys(user: User) -> List[Survey]:
         return Survey.query.all()
     user_surveys = SurveyPermission.query.filter_by(UserId=user.id).all()
     surveys = []
-    for user_survey in user_surveys:
-        surveys.append(Survey.query.filter_by(id=user_survey.SurveyId).first())
+    for survey in user_surveys:
+        surveys.append(Survey.query.filter_by(id=survey.SurveyId).first())
+    if 'surveys' in session:
+        for survey in session['surveys']:
+            surveys.append(Survey.query.filter_by(id=survey.id).first())
     return surveys
 
 
@@ -314,8 +320,11 @@ def get_user_reports(user: User) -> List[Report]:
         return Report.query.all()
     user_reports = ReportPermission.query.filter_by(UserId=user.id).all()
     reports = []
-    for user_report in user_reports:
-        reports.append(Report.query.filter_by(id=user_report.ReportId).first())
+    for report in user_reports:
+        reports.append(Report.query.filter_by(id=report.ReportId).first())
+    if 'reports' in session:
+        for report in session['reports']:
+            reports.append(Report.query.filter_by(id=report.id).first())
     return reports
 
 
@@ -375,6 +384,9 @@ def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
 
 
 def get_survey_permission(survey: Survey, user: User) -> Permission:
+    if 'surveys' in session and survey.id in session['surveys']:
+        return session['surveys'][survey.id]
+
     sp = SurveyPermission.query.filter_by(SurveyId=survey.id, UserId=user.id).first()
     if sp is None and user.Role == 's':
         return ADMIN_DEFAULT_PERMISSION
@@ -383,7 +395,14 @@ def get_survey_permission(survey: Survey, user: User) -> Permission:
     return sp.Type
 
 
-def set_survey_permission(survey: Survey, user: User, permission: Permission):
+def set_survey_permission(survey: Survey, user: User, permission: Permission, bylink=False):
+    if bylink and user.Role == 'g':
+        if 'surveys' not in session:
+            session['surveys'] = {}
+        if PERMISSION_ORDER.index(permission) >= PERMISSION_ORDER.index('r'):
+            session['surveys'][survey.id] = 'r'
+        return
+
     sp = SurveyPermission.query.filter_by(SurveyId=survey.id, UserId=user.id).first()
     if sp is None:
         sp = SurveyPermission(SurveyId=survey.id, UserId=user.id)
@@ -403,6 +422,9 @@ def get_report_survey(report: Report) -> Survey:
 
 
 def get_report_permission(report: Report, user: User) -> Permission:
+    if 'reports' in session and report.id in session['reports']:
+        return session['reports'][report.id]
+
     rp = ReportPermission.query.filter_by(ReportId=report.id, UserId=user.id).first()
     if rp is None and user.Role == 's':
         return ADMIN_DEFAULT_PERMISSION
@@ -411,7 +433,14 @@ def get_report_permission(report: Report, user: User) -> Permission:
     return rp.Type
 
 
-def set_report_permission(report: Report, user: User, permission: Permission):
+def set_report_permission(report: Report, user: User, permission: Permission, bylink=False):
+    if bylink and user.Role == 'g':
+        if 'reports' not in session:
+            session['reports'] = {}
+        if PERMISSION_ORDER.index(permission) >= PERMISSION_ORDER.index('r'):
+            session['reports'][report.id] = 'r'
+        return
+
     rp = ReportPermission.query.filter_by(ReportId=report.id, UserId=user.id).first()
     if rp is None:
         rp = ReportPermission(ReportId=report.id, UserId=user.id)

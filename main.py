@@ -545,7 +545,7 @@ def get_data(survey_id):
 
 @app.route('/api/link/<hash>', methods=['GET'])
 @on_errors('could not set permission link')
-@for_roles('s', 'u')
+@for_roles('s', 'u', 'g') # to be tested for 'g'
 def set_permission_link(hash):
     perm, object, id = database.set_permission_link(hash, database.get_user())
     return {
