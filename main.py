@@ -607,9 +607,17 @@ def index(text=None):
 
 
 if __name__ == '__main__':
+    license = open('LICENSE', 'r')
+    print(license.read())
+    if DEBUG:
+    	print('debug mode on: accounts can be accessed WITHOUT password')
+    print('starting deamon threads')
+
     for d in daemon.LIST:
         threading.Thread(target=d, daemon=True).start()
-    if not LOCALHOST:
-        app.run(ssl_context='adhoc', port=str(APP_PORT), host='0.0.0.0')
-    else:
+
+    if LOCALHOST:
+        print(f'the app is hosted on localhost:{APP_PORT}')
         app.run()
+    else:
+        app.run(ssl_context='adhoc', port=str(APP_PORT), host='0.0.0.0')
