@@ -215,10 +215,10 @@ def set_permission_link(tag: str, user: User):
 
     object = get_object(link.ObjectId)
     perm = get_permission(object, user)
-    if PERMISSION_ORDER.index(perm) >= PERMISSION_ORDER.index(link.Type):
-        return link.Type, object_name, object.id
+    if PERMISSION_ORDER.index(perm) >= PERMISSION_ORDER.index(link.PermissionType):
+        return link.PermissionType, object_name, object.id
     set_permission(object, user, bylink=True)
-    return link.Type, object_name, object.id
+    return link.PermissionType, object_name, object.id
 
 
 def get_link_details(tag: str) -> dict:
