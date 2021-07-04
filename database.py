@@ -214,7 +214,7 @@ def set_permission_link(tag: str, user: User):
         raise error.API(f'unknown database object type "{object_type}"')
 
     object = get_object(link.ObjectId)
-    perm = get_permission(link.ObjectId)
+    perm = get_permission(object, user)
     if PERMISSION_ORDER.index(perm) >= PERMISSION_ORDER.index(link.Type):
         return link.Type, object_name, object.id
     set_permission(object, user, bylink=True)
