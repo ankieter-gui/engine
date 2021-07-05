@@ -119,11 +119,10 @@ def get_user(login: Any = "") -> User:
     """Get user.
 
     Keyword arguments:
-    login -- user's cas login
+    login -- user's cas login, id or guest if empty string (default: "")
 
     Return value:
     returns User object
-
     """
     user = None
     if not login:
@@ -498,11 +497,25 @@ def rename_report(report: Report, name: str) -> int:
 
 
 def delete_group(group: str):
+    """Delete group
+
+    Keyword arguments:
+    group -- group name
+    """
     UserGroup.query.filter_by(Group=group).delete()
     db.session.commit()
 
 
 def create_survey(user: User, name: str) -> Survey:
+    """Create survey by given user
+
+    Keyword arguments:
+    user -- User object
+    name -- name of a survey
+
+    Return value:
+    returns Survey object
+    """
     survey = Survey(Name=name, QuestionCount=0, AuthorId=user.id)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
@@ -517,6 +530,14 @@ def create_survey(user: User, name: str) -> Survey:
 
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
 def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
+    """Add meta information for given survey.
+
+    Keyword arguments:
+    survey -- Survey object
+    name -- name of a survey
+    question_count -- amount of questions
+    meta -- dict {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
+    """
     if survey is None:
         survey = Survey(Name=name, QuestionCount=question_count)
         db.session.add(survey)
@@ -537,6 +558,15 @@ def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
 
 
 def get_survey_permission(survey: Survey, user: User) -> Permission:
+    """Get permission of given survey for user.
+
+    Keyword arguments:
+    survey -- Survey object
+    user -- User object
+
+    Return value:
+    returns permission type (values: 'o', 'w', 'r', 'n')
+    """
     if 'surveys' in session and survey.id in session['surveys']:
         return session['surveys'][survey.id]
 
@@ -549,6 +579,17 @@ def get_survey_permission(survey: Survey, user: User) -> Permission:
 
 
 def set_survey_permission(survey: Survey, user: User, permission: Permission, bylink=False):
+    """Set permission of given survey for user.
+
+    Keyword arguments:
+    survey -- Survey object
+    user -- User object
+    permission -- permission type (values: 'o', 'w', 'r', 'n')
+    bylink -- is set by link (default: False)
+
+    Return value:
+    returns permission type (values: 'o', 'w', 'r', 'n')
+    """
     if bylink and user.Role == 'g':
         if 'surveys' not in session:
             session['surveys'] = {}
@@ -568,6 +609,14 @@ def set_survey_permission(survey: Survey, user: User, permission: Permission, by
 
 
 def get_report_survey(report: Report) -> Survey:
+    """Get survey assigned to given report
+
+    Keyword arguments:
+    report -- Report object
+
+    Return value:
+    returns Survey object
+    """
     if report is None:
         raise error.API('no such report')
     survey = Survey.query.filter_by(id=report.SurveyId).first()
@@ -575,6 +624,15 @@ def get_report_survey(report: Report) -> Survey:
 
 
 def get_report_permission(report: Report, user: User) -> Permission:
+    """Get permission of given report for user.
+
+    Keyword arguments:
+    report -- Report object
+    user -- User object
+
+    Return value:
+    returns permission type (values: 'o', 'w', 'r', 'n')
+    """
     if 'reports' in session and report.id in session['reports']:
         return session['reports'][report.id]
 
@@ -587,6 +645,17 @@ def get_report_permission(report: Report, user: User) -> Permission:
 
 
 def set_report_permission(report: Report, user: User, permission: Permission, bylink=False):
+    """Set permission of given report for user.
+
+    Keyword arguments:
+    report -- Report object
+    user -- User object
+    permission -- permission type (values: 'o', 'w', 'r', 'n')
+    bylink -- is set by link (default: False)
+
+    Return value:
+    returns permission type (values: 'o', 'w', 'r', 'n')
+    """
     if bylink and user.Role == 'g':
         if 'reports' not in session:
             session['reports'] = {}
@@ -606,6 +675,17 @@ def set_report_permission(report: Report, user: User, permission: Permission, by
 
 
 def create_report(user: User, survey: Survey, name: str, author: int) -> Report:
+    """Create report by given user
+
+    Keyword arguments:
+    user -- User object
+    survey -- Survey object to be assigned to Report
+    name -- report name
+    author -- id of an user
+
+    Return value:
+    returns Report object
+    """
     report = Report(Name=name, SurveyId=survey.id, AuthorId=author)
     report.BackgroundImg = Survey.query.filter_by(id=survey.id).first().BackgroundImg
     db.session.add(report)
@@ -615,13 +695,17 @@ def create_report(user: User, survey: Survey, name: str, author: int) -> Report:
 
 
 def delete_survey(survey: Survey):
+    """Delete survey
+
+    Keyword arguments:
+    survey -- Survey object
+    """
     # db_path = 'data/' + str(survey.id) + '.db'
     # if os.path.exists(db_path):
     #     os.remove(db_path)
     # xml_path = 'survey/' + str(survey.id) + '.xml'
     # if os.path.exists(xml_path):
     #     os.remove(xml_path)
-    id = survey.id
     SurveyPermission.query.filter_by(SurveyId=survey.id).delete()
     SurveyGroup.query.filter_by(SurveyId=survey.id).delete()
     Survey.query.filter_by(id=survey.id).delete()
@@ -629,7 +713,11 @@ def delete_survey(survey: Survey):
 
 
 def delete_report(report: Report):
-    id = report.id
+    """Delete report
+
+    Keyword arguments:
+    report -- Report object
+    """
     ReportPermission.query.filter_by(ReportId=report.id).delete()
     ReportGroup.query.filter_by(ReportId=report.id).delete()
     Report.query.filter_by(id=report.id).delete()
@@ -637,10 +725,26 @@ def delete_report(report: Report):
 
 
 def open_survey(survey: Survey) -> sqlite3.Connection:
+    """Connect to the survey
+
+    Keyword arguments:
+    survey -- Survey object
+
+    Return value:
+    returns sqlite3.Connection
+    """
     return sqlite3.connect(f"data/{survey.id}.db")
 
 
 def get_answers(survey_id: int) -> Dict:
+    """Get answers for given survey
+
+    Keyword arguments:
+    survey_id -- id of na Survey
+
+    Return value:
+    returns dictionary with answers
+    """
     xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"survey/{survey_id}.xml"))
     result = {}
     questions = ['single', 'multi', 'groupedsingle']
@@ -669,6 +773,14 @@ def get_answers(survey_id: int) -> Dict:
 
 
 def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
+    """Get column types of answers
+
+    Keyword arguments:
+    conn -- sqlite3.Connection
+
+    Return value:
+    returns dictionary with types
+    """
     types = {}
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
@@ -679,6 +791,14 @@ def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
 
 
 def get_columns(conn: sqlite3.Connection) -> List[str]:
+    """Get column names
+
+    Keyword arguments:
+    conn -- sqlite3.Connection
+
+    Return value:
+    returns list of column names
+    """
     columns = []
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
@@ -688,7 +808,15 @@ def get_columns(conn: sqlite3.Connection) -> List[str]:
     return columns
 
 
-def get_answers_count(survey: Survey):
+def get_answers_count(survey: Survey) -> int:
+    """Get answers amount for survey
+
+    Keyword arguments:
+    survey -- Survey object
+
+    Return value:
+    returns amount of answers
+    """
     conn = open_survey(survey)
     cur = conn.cursor()
     cur.execute("SELECT * FROM data")
@@ -698,6 +826,12 @@ def get_answers_count(survey: Survey):
 
 
 def csv_to_db(survey: Survey, filename: str):
+    """Convert csv file to database
+
+    Keyword arguments:
+    survey -- Survey object
+    filename -- name of a csv file
+    """
     def shame(vals):
         counts = {}
         for v in vals:
