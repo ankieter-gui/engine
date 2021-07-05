@@ -20,6 +20,7 @@ Permission = Literal['o', 'w', 'r', 'n']
 
 PERMISSION_ORDER = ['n', 'r', 'w', 'o']
 
+
 class User(db.Model):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
@@ -115,6 +116,16 @@ ADMIN.add_view(ModelView(Survey, db.session))
 
 
 def get_user(login: Any = "") -> User:
+    """Get user.
+
+    Keyword arguments:
+    login -- user's cas login
+
+    Return value:
+    returns User object
+
+    """
+    user = None
     if not login:
         # zamiast tego blędu, jeśli nie ma loginu, to przydziel gościa
         if 'username' not in session:
@@ -129,7 +140,6 @@ def get_user(login: Any = "") -> User:
             user = User.query.filter_by(Pesel=login).first()
         else:
             users = get_users()
-            user = None
             for u in users["users"]:
                 if u["casLogin"].split("@")[0] == login:
                     user = User.query.filter_by(id=u["id"]).first()
@@ -140,14 +150,29 @@ def get_user(login: Any = "") -> User:
     return user
 
 
-def create_user(CasLogin: str, Pesel:str, Role: str) -> User:
-    user = User(CasLogin=CasLogin, Pesel=Pesel ,Role=Role, FetchData=True)
+def create_user(cas_login: str, pesel: str, role: str) -> User:
+    """Create new user.
+
+    Keyword arguments:
+    cas_login -- user's cas login
+    pesel -- user's pesel
+    role -- role of the user (values: 's','u','g')
+
+    Return value:
+    returns User object
+    """
+    user = User(CasLogin=cas_login, Pesel=pesel, Role=role, FetchData=True)
     db.session.add(user)
     db.session.commit()
     return user
 
 
 def delete_user(user: User):
+    """Delete user.
+
+    Keyword arguments:
+    user -- User object
+    """
     sur_perms = SurveyPermission.query.filter_by(UserId=user.id).all()
     rep_perms = ReportPermission.query.filter_by(UserId=user.id).all()
     groups = UserGroup.query.filter_by(UserId=user.id).all()
@@ -162,20 +187,46 @@ def delete_user(user: User):
 
 
 def get_survey(id: int) -> Survey:
+    """Get survey by given id.
+
+    Keyword arguments:
+    id -- id of a survey
+
+    Return value:
+    returns Survey object
+    """
     survey = Survey.query.filter_by(id=id).first()
     if survey is None:
         raise error.API('no such survey')
     return survey
 
 
-def get_report(id: int) -> Report:
-    report = Report.query.filter_by(id=id).first()
+def get_report(report_id: int) -> Report:
+    """Get report by given id.
+
+    Keyword arguments:
+    id -- id of a report
+
+    Return value:
+    returns Report object
+    """
+    report = Report.query.filter_by(id=report_id).first()
     if report is None:
         raise error.API('no such report')
     return report
 
 
 def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], object_id: int) -> str:
+    """Get permission link.
+
+    Keyword arguments:
+    permission -- perrmision type (values: 'o', 'w', 'r', 'n')
+    object_type -- type of an object (values: 's', 'r')
+    object_id -- Id of an object
+
+    Return value:
+    returns concatenated salt and link id as a string
+    """
     link = Link.query.filter_by(PermissionType=permission, ObjectType=object_type, ObjectId=object_id).first()
     if link is not None:
         return link.Salt + str(link.id)
@@ -196,6 +247,15 @@ def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], 
 
 
 def set_permission_link(tag: str, user: User):
+    """Set permission using link.
+
+    Keyword arguments:
+    tag -- salt of a link
+    user -- User object
+
+    Return value:
+    returns permission type, object name and object id
+    """
     link = get_link_details(tag)
     if link is None:
         raise error.API('wrong url')
@@ -221,7 +281,15 @@ def set_permission_link(tag: str, user: User):
     return link.PermissionType, object_name, object.id
 
 
-def get_link_details(tag: str) -> dict:
+def get_link_details(tag: str) -> Link:
+    """Get link details
+
+    Keyword arguments:
+    tag -- salt of a link
+
+    Return value:
+    returns Link object
+    """
     salt = tag[:SALT_LENGTH]
     id = int(tag[SALT_LENGTH:])
     link = Link.query.filter_by(id=id, Salt=salt).first()
@@ -229,6 +297,14 @@ def get_link_details(tag: str) -> dict:
 
 
 def get_report_users(report: Report) -> dict:
+    """Get users having permission to given report
+
+    Keyword arguments:
+    report -- report object
+
+    Return value:
+    returns dictionary with user's ids and permission type
+    """
     perms = ReportPermission.query.filter_by(ReportId=report.id).all()
     result = {}
     for perm in perms:
@@ -237,6 +313,14 @@ def get_report_users(report: Report) -> dict:
 
 
 def get_survey_users(survey: Survey) -> dict:
+    """Get users having permission to given survey
+
+    Keyword arguments:
+    survey -- Survey object
+
+    Return value:
+    returns dictionary with user's ids and permission type
+    """
     perms = SurveyPermission.query.filter_by(SurveyId=survey.id).all()
     result = {}
     for perm in perms:
@@ -245,6 +329,11 @@ def get_survey_users(survey: Survey) -> dict:
 
 
 def get_users() -> dict:
+    """Get all users
+
+    Return value:
+    dictionary with cas login and user id
+    """
     users = User.query.all()
     result = []
     for u in users:
@@ -256,6 +345,11 @@ def get_users() -> dict:
 
 
 def get_groups() -> List[str]:
+    """Get all groups
+
+    Return value:
+    list with group names
+    """
     user_groups = UserGroup.query.with_entities(UserGroup.Group).distinct()
     return [ug.Group for ug in user_groups]
 
@@ -277,7 +371,16 @@ def get_groups() -> List[str]:
 #    return group
 
 
-def set_user_group(user: User, group: str):
+def set_user_group(user: User, group: str) -> UserGroup:
+    """Assign user to a group
+
+    Keyword arguments:
+    user -- User object
+    group -- group name
+
+    Return value:
+    returns UserGroup object
+    """
     user_group = UserGroup.query.filter_by(UserId=user.id, Group=group).first()
     if user_group is not None:
         return user_group
@@ -288,6 +391,12 @@ def set_user_group(user: User, group: str):
 
 
 def unset_user_group(user: User, group: str):
+    """Unset user from a group
+
+    Keyword arguments:
+    user -- User object
+    group -- group name
+    """
     user_group = UserGroup.query.filter_by(UserId=user.id, Group=group)
     if user_group is None:
         raise error.API('the user is not in the group')
@@ -296,6 +405,14 @@ def unset_user_group(user: User, group: str):
 
 
 def get_user_groups(user: User) -> List[str]:
+    """Get all groups for given user
+
+    Keyword arguments:
+    user -- User object
+
+    Return value:
+    returns List with group names
+    """
     user_groups = UserGroup.query.filter_by(UserId=user.id).all()
     if user_groups is None:
         return []
@@ -303,6 +420,15 @@ def get_user_groups(user: User) -> List[str]:
 
 
 def get_user_surveys(user: User) -> List[Survey]:
+    """Get surveys for which the user has permissions.
+    For superadmin returns all surveys.
+
+    Keyword arguments:
+    user -- User object
+
+    Return value:
+    returns list of Survey objects
+    """
     if user.Role == 's':
         return Survey.query.all()
     user_surveys = SurveyPermission.query.filter_by(UserId=user.id).all()
@@ -316,6 +442,15 @@ def get_user_surveys(user: User) -> List[Survey]:
 
 
 def get_user_reports(user: User) -> List[Report]:
+    """Get reports for which the user has permissions.
+    For superadmin returns all reports.
+
+    Keyword arguments:
+    user -- User object
+
+    Return value:
+    returns List of Report objects
+    """
     if user.Role == 's':
         return Report.query.all()
     user_reports = ReportPermission.query.filter_by(UserId=user.id).all()
@@ -329,6 +464,14 @@ def get_user_reports(user: User) -> List[Report]:
 
 
 def get_group_users(group: str) -> List[User]:
+    """Get users assigned to given group.
+
+    Keyword arguments:
+    group -- name of a group
+
+    Return value:
+    returns List of User objects
+    """
     user_groups = UserGroup.query.filter_by(Group=group).all()
     users = []
     for user_group in user_groups:
@@ -337,15 +480,25 @@ def get_group_users(group: str) -> List[User]:
             users.append(user)
     return users
 
-def rename_report(report: Report, name: str):
+
+def rename_report(report: Report, name: str) -> int:
+    """Rename report
+
+    Keyword arguments:
+    report -- Report object
+    name -- new report name
+
+    Return value:
+    returns List of User objects
+    """
     rep = Report.query.filter_by(id=report.id).first()
-    rep.Name=name
+    rep.Name = name
     db.session.commit()
     return rep.id
 
 
 def delete_group(group: str):
-    user_groups = UserGroup.query.filter_by(Group=group).delete()
+    UserGroup.query.filter_by(Group=group).delete()
     db.session.commit()
 
 
