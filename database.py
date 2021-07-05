@@ -217,7 +217,7 @@ def set_permission_link(tag: str, user: User):
     perm = get_permission(object, user)
     if PERMISSION_ORDER.index(perm) >= PERMISSION_ORDER.index(link.PermissionType):
         return link.PermissionType, object_name, object.id
-    set_permission(object, user, bylink=True)
+    set_permission(object, user, link.PermissionType, bylink=True)
     return link.PermissionType, object_name, object.id
 
 
