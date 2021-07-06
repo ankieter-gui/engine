@@ -40,6 +40,7 @@ def for_roles(*roles):
 
 @app.route('/api/dashboard', methods=['GET'])
 @on_errors('could not get dashboard')
+@for_roles('s', 'u', 'g')
 def get_dashboard():
     user = database.get_user()
     user_surveys = database.get_user_surveys(user)
@@ -82,9 +83,12 @@ def get_dashboard():
     return {"objects": result}
 
 
+@app.route('/api/user/all', methods=['GET'])
 @app.route('/api/users', methods=['GET'])
+@on_errors('could not obtain user list')
+@for_roles('s', 'u', 'g')
 def get_users():
-    return get_user_list()
+    return database.get_users()
 
 
 @app.route('/api/user/new', methods=['POST'])
@@ -94,11 +98,6 @@ def create_user():
     data = request.json
     user = database.create_user(data["casLogin"],data['pesel'], data["role"])
     return {"id": user.id}
-
-
-@app.route('/api/user/all', methods=['GET'])
-def get_user_list():
-    return database.get_users()
 
 
 @app.route('/api/user/<int:user_id>/group', methods=['GET', 'POST'])
@@ -158,6 +157,7 @@ def create_survey():
         "id": survey.id
     }
 
+
 @app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not upload survey')
 @for_roles('s', 'u')
@@ -175,9 +175,9 @@ def upload_survey(survey_id):
     }
 
 
-
 @app.route('/api/survey/<int:survey_id>/share', methods=['POST'])
 @on_errors('could not share survey')
+@for_roles('s', 'u')
 def share_survey(survey_id):
     json = request.json
     survey = database.get_survey(survey_id)
@@ -293,6 +293,7 @@ def get_report_survey(report_id):
 
 @app.route('/api/report/<int:report_id>/share', methods=['POST'])
 @on_errors('could not share report')
+@for_roles('s', 'u')
 def share_report(report_id):
     json = request.json
     report = database.get_report(report_id)
@@ -309,6 +310,7 @@ def share_report(report_id):
 
 @app.route('/api/report/<int:report_id>/rename', methods=['POST'])
 @on_errors('could not rename report')
+@for_roles('s', 'u')
 def rename_report(report_id):
     # uprawnienia
     if 'title' not in request.json:
@@ -342,6 +344,7 @@ def link_to_report(report_id):
 
 @app.route('/api/report/<int:report_id>/data', methods=['POST'])
 @on_errors('could not obtain survey data for the report')
+@for_roles('s', 'u', 'g')
 def get_report_data(report_id):
     report = database.get_report(report_id)
     user = database.get_user()
@@ -361,6 +364,7 @@ def get_report_data(report_id):
 
 @app.route('/api/report/<int:report_id>/copy', methods=['GET'])
 @on_errors('could not copy the report')
+@for_roles('s', 'u')
 def copy_report(report_id):
     data = get_report(report_id)
     if 'error' in data:
@@ -378,6 +382,7 @@ def copy_report(report_id):
 
 @app.route('/api/report/<int:report_id>', methods=['POST'])
 @on_errors('could not save the report')
+@for_roles('s', 'u')
 def set_report(report_id):
     report = database.get_report(report_id)
     perm = database.get_report_permission(report, database.get_user())
@@ -392,6 +397,7 @@ def set_report(report_id):
 
 @app.route('/api/report/<int:report_id>', methods=['GET'])
 @on_errors('could not open the report')
+@for_roles('s', 'u', 'g')
 def get_report(report_id):
     with open(f'report/{report_id}.json', 'r') as file:
         data = json.load(file)
@@ -400,6 +406,7 @@ def get_report(report_id):
 
 @app.route('/api/report/<int:report_id>', methods=['DELETE'])
 @on_errors('could not delete report')
+@for_roles('s', 'u')
 def delete_report(report_id):
     report = database.get_report(report_id)
     perm = database.get_report_permission(report, database.get_user())
@@ -456,7 +463,7 @@ def unset_group():
 
 @app.route('/api/group/all', methods=['GET', 'POST'])
 @on_errors('could not obtain list of groups')
-@for_roles('s', 'u')
+@for_roles('s', 'u', 'g')
 def get_groups():
     result = {}
     for group in database.get_groups():
@@ -481,6 +488,7 @@ def delete_group():
 @app.route('/api/data/new', methods=['POST'], defaults={'survey_id': None})
 @app.route('/api/data/new/<int:survey_id>', methods=['POST'])
 @on_errors('could not save survey data')
+@for_roles('s', 'u')
 def upload_results(survey_id):
     if not request.files['file']:
         raise error.API("empty survey data")
@@ -513,6 +521,7 @@ def upload_results(survey_id):
 
 @app.route('/api/data/<int:survey_id>/types', methods=['GET'])
 @on_errors('could not get question types')
+@for_roles('s', 'u', 'g')
 def get_data_types(survey_id):
     survey = database.get_survey(survey_id)
     conn = database.open_survey(survey)
@@ -523,6 +532,7 @@ def get_data_types(survey_id):
 
 @app.route('/api/data/<int:survey_id>/questions', methods=['GET'])
 @on_errors('could not get question order')
+@for_roles('s', 'u', 'g')
 def get_questions(survey_id):
     survey = database.get_survey(survey_id)
     conn = database.open_survey(survey)
@@ -535,6 +545,7 @@ def get_questions(survey_id):
 
 @app.route('/api/data/<int:survey_id>', methods=['POST'])
 @on_errors('could not obtain survey data')
+@for_roles('s', 'u', 'g')
 def get_data(survey_id):
     survey = database.get_survey(survey_id)
     conn = database.open_survey(survey)
