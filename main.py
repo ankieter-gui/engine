@@ -183,7 +183,7 @@ def share_survey(survey_id):
     json = request.json
     survey = database.get_survey(survey_id)
     perm = database.get_survey_permission(survey, database.get_user())
-    if perm != "o":
+    if perm != 'o':
         raise error.API("you must be the owner to share this survey")
     for p, users in json.items():
         for user in users:
@@ -197,10 +197,14 @@ def share_survey(survey_id):
 @on_errors('could not rename survey')
 @for_roles('s', 'u')
 def rename_survey(survey_id):
-    # uprawnienia
+    survey = database.get_survey(survey_id)
+    user = database.get_user()
+    perm = database.get_survey_permission(survey, user)
+    if perm != 'o':
+        raise error.API('only the owner can rename a survey')
+
     if 'title' not in request:
         raise error.API('no parameter title')
-    survey = database.get_survey(survey_id)
     survey.Name = request.json['title']
     # db.session.commit()
     return {
@@ -220,6 +224,7 @@ def link_to_survey(survey_id):
     perm = database.get_survey_permission(survey, user)
     if perm != 'o':
         raise error.API('only the owner can share a survey')
+
     json = request.json
     grammar.check(grammar.REQUEST_SURVEY_LINK, json)
     link = database.get_permission_link(json['permission'], 's', json['surveyId'])
@@ -236,6 +241,7 @@ def delete_survey(survey_id):
     perm = database.get_survey_permission(survey, database.get_user())
     if perm != 'o':
         raise error.API("you have no permission to delete this survey")
+
     database.delete_survey(survey)
     return {
         'message': 'report has been deleted',
@@ -247,14 +253,16 @@ def delete_survey(survey_id):
 @on_errors('could not create report')
 @for_roles('s', 'u')
 def create_report():
-    # można pomyśleć o maksymalnej, dużej liczbie raportów dla każdego użytkownika
-    # ze względu na bezpieczeństwo.
     grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
     data = request.json
     user = database.get_user()
-    # czy użytkownik widzi tę ankietę?
     survey = database.get_survey(data["surveyId"])
+
+    perm = database.get_survey_permission(survey, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the source survey')
+
     report = database.create_report(user, survey, data["title"], user.id)
     with open(f'report/{report.id}.json', 'w') as file:
         json.dump(data, file)
@@ -268,6 +276,12 @@ def create_report():
 @for_roles('s', 'u')
 def get_report_users(report_id):
     report = database.get_report(report_id)
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the report')
+
     return database.get_report_users(report)
 
 
@@ -276,6 +290,12 @@ def get_report_users(report_id):
 @for_roles('s', 'u', 'g')
 def get_report_answers(report_id):
     report = database.get_report(report_id)
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the report')
+
     survey_xml = report.SurveyId
     result = database.get_answers(survey_xml)
     return result
@@ -286,6 +306,12 @@ def get_report_answers(report_id):
 @for_roles('s', 'u', 'g')
 def get_report_survey(report_id):
     report = database.get_report(report_id)
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the report')
+
     survey = database.get_report_survey(report)
     return {
         "surveyId": survey.id
@@ -299,8 +325,8 @@ def share_report(report_id):
     json = request.json
     report = database.get_report(report_id)
     perm = database.get_report_permission(report, database.get_user())
-    if perm != "o":
-        raise error.API("you must be the owner to share this report")
+    if perm != 'o':
+        raise error.API("only the owner can share a report")
     for p, users in json.items():
         for user in users:
             database.set_report_permission(report, database.get_user(user), p)
@@ -313,10 +339,15 @@ def share_report(report_id):
 @on_errors('could not rename report')
 @for_roles('s', 'u')
 def rename_report(report_id):
-    # uprawnienia
+    report = database.get_report(report_id)
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
+    if perm != 'o':
+        raise error.API('only the owner can rename a report')
+
     if 'title' not in request.json:
         raise error.API('no parameter title')
-    report = database.get_report(report_id)
     rep = database.rename_report(report, request.json['title'])
     return {
         'message': 'report name has been changed',
@@ -332,9 +363,11 @@ def rename_report(report_id):
 def link_to_report(report_id):
     report = database.get_report(report_id)
     user = database.get_user()
+
     perm = database.get_report_permission(report, user)
     if perm != 'o':
         raise error.API('only the owner can share a report')
+
     json = request.json
     grammar.check(grammar.REQUEST_REPORT_LINK, json)
     link = database.get_permission_link(json['permission'], 'r', json['reportId'])
@@ -372,6 +405,11 @@ def copy_report(report_id):
         return data
     user = database.get_user()
     report = database.get_report(report_id)
+
+    perm = database.get_report_permission(report, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the source report')
+
     survey = database.get_report_survey(report)
     report = database.create_report(user, survey, report.Name, report.AuthorId)
     with open(f'report/{report.id}.json', 'w') as file:
@@ -386,11 +424,15 @@ def copy_report(report_id):
 @for_roles('s', 'u')
 def set_report(report_id):
     report = database.get_report(report_id)
-    perm = database.get_report_permission(report, database.get_user())
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
     if perm not in ['o', 'w']:
-        raise error.API("you have no permission to edit this report")
+        raise error.API('no permission to edit this report')
+
     with open(f'report/{report_id}.json', 'w') as file:
         json.dump(request.json, file)
+
     return {
         "reportId": report.id
     }
@@ -400,8 +442,16 @@ def set_report(report_id):
 @on_errors('could not open the report')
 @for_roles('s', 'u', 'g')
 def get_report(report_id):
+    report = database.get_report(report_id)
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the report')
+
     with open(f'report/{report_id}.json', 'r') as file:
         data = json.load(file)
+
     return data
 
 
@@ -410,9 +460,12 @@ def get_report(report_id):
 @for_roles('s', 'u')
 def delete_report(report_id):
     report = database.get_report(report_id)
-    perm = database.get_report_permission(report, database.get_user())
+    user = database.get_user()
+
+    perm = database.get_report_permission(report, user)
     if perm != 'o':
-        raise error.API("you have no permission to delete this report")
+        raise error.API('no permission to delete this report')
+
     database.delete_report(report)
     return {
         'message': 'report has been deleted',
@@ -491,6 +544,8 @@ def delete_group():
 @on_errors('could not save survey data')
 @for_roles('s', 'u')
 def upload_results(survey_id):
+    user = database.get_user()
+
     if not request.files['file']:
         raise error.API("empty survey data")
 
@@ -505,7 +560,7 @@ def upload_results(survey_id):
     if survey_id:
         survey = database.get_survey(survey_id)
     else:
-        survey = database.create_survey(database.get_user(), name)
+        survey = database.create_survey(user, name)
 
     file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
 
@@ -525,6 +580,12 @@ def upload_results(survey_id):
 @for_roles('s', 'u', 'g')
 def get_data_types(survey_id):
     survey = database.get_survey(survey_id)
+    user = database.get_user()
+
+    perm = database.get_survey_permission(survey, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the survey')
+
     conn = database.open_survey(survey)
     types = database.get_types(conn)
     conn.close()
@@ -536,6 +597,12 @@ def get_data_types(survey_id):
 @for_roles('s', 'u', 'g')
 def get_questions(survey_id):
     survey = database.get_survey(survey_id)
+    user = database.get_user()
+
+    perm = database.get_survey_permission(survey, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the survey')
+
     conn = database.open_survey(survey)
     questions = database.get_columns(conn)
     conn.close()
@@ -549,6 +616,12 @@ def get_questions(survey_id):
 @for_roles('s', 'u', 'g')
 def get_data(survey_id):
     survey = database.get_survey(survey_id)
+    user = database.get_user()
+
+    perm = database.get_survey_permission(survey, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the survey')
+
     conn = database.open_survey(survey)
     result = table.create(request.json, conn)
     conn.close()
