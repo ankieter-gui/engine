@@ -131,6 +131,7 @@ def delete_user(user_id):
 
 @app.route('/api/user', methods=['GET'])
 @on_errors('could not obtain user data')
+@for_roles('s', 'u', 'g')
 def get_user_details():
     return database.get_user().as_dict()
 
