@@ -124,6 +124,7 @@ def get_user(login: Any = "") -> User:
     Return value:
     returns User object
     """
+
     user = None
     if not login:
         # zamiast tego blędu, jeśli nie ma loginu, to przydziel gościa
@@ -160,6 +161,7 @@ def create_user(cas_login: str, pesel: str, role: str) -> User:
     Return value:
     returns User object
     """
+
     user = User(CasLogin=cas_login, Pesel=pesel, Role=role, FetchData=True)
     db.session.add(user)
     db.session.commit()
@@ -172,6 +174,7 @@ def delete_user(user: User):
     Keyword arguments:
     user -- User object
     """
+
     sur_perms = SurveyPermission.query.filter_by(UserId=user.id).all()
     rep_perms = ReportPermission.query.filter_by(UserId=user.id).all()
     groups = UserGroup.query.filter_by(UserId=user.id).all()
@@ -194,6 +197,7 @@ def get_survey(id: int) -> Survey:
     Return value:
     returns Survey object
     """
+
     survey = Survey.query.filter_by(id=id).first()
     if survey is None:
         raise error.API('no such survey')
@@ -209,6 +213,7 @@ def get_report(report_id: int) -> Report:
     Return value:
     returns Report object
     """
+
     report = Report.query.filter_by(id=report_id).first()
     if report is None:
         raise error.API('no such report')
@@ -226,6 +231,7 @@ def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], 
     Return value:
     returns concatenated salt and link id as a string
     """
+
     link = Link.query.filter_by(PermissionType=permission, ObjectType=object_type, ObjectId=object_id).first()
     if link is not None:
         return link.Salt + str(link.id)
@@ -256,6 +262,7 @@ def set_permission_link(tag: str, user: User):
     Return value:
     returns permission type, object name and object id
     """
+
     link = get_link_details(tag)
     if link is None:
         raise error.API('wrong url')
@@ -290,6 +297,7 @@ def get_link_details(tag: str) -> Link:
     Return value:
     returns Link object
     """
+
     salt = tag[:SALT_LENGTH]
     id = int(tag[SALT_LENGTH:])
     link = Link.query.filter_by(id=id, Salt=salt).first()
@@ -305,6 +313,7 @@ def get_report_users(report: Report) -> dict:
     Return value:
     returns dictionary with user's ids and permission type
     """
+
     perms = ReportPermission.query.filter_by(ReportId=report.id).all()
     result = {}
     for perm in perms:
@@ -321,6 +330,7 @@ def get_survey_users(survey: Survey) -> dict:
     Return value:
     returns dictionary with user's ids and permission type
     """
+
     perms = SurveyPermission.query.filter_by(SurveyId=survey.id).all()
     result = {}
     for perm in perms:
@@ -334,6 +344,7 @@ def get_users() -> dict:
     Return value:
     dictionary with cas login and user id
     """
+
     users = User.query.all()
     result = []
     for u in users:
@@ -350,25 +361,9 @@ def get_groups() -> List[str]:
     Return value:
     list with group names
     """
+
     user_groups = UserGroup.query.with_entities(UserGroup.Group).distinct()
     return [ug.Group for ug in user_groups]
-
-
-#def get_group(id: int) -> Group:
-#    group = Group.query.filter_by(id=id)
-#    if group is None:
-#        raise error.API('no such group')
-#    return group
-
-
-#def create_group(name: str) -> Group:
-#    group = Group.query.filter_by(Name=name)
-#    if group is not None:
-#        raise error.API('group already exists')
-#    group = Group(Name=name)
-#    db.session.add(group)
-#    db.session.commit()
-#    return group
 
 
 def set_user_group(user: User, group: str) -> UserGroup:
@@ -381,6 +376,7 @@ def set_user_group(user: User, group: str) -> UserGroup:
     Return value:
     returns UserGroup object
     """
+
     user_group = UserGroup.query.filter_by(UserId=user.id, Group=group).first()
     if user_group is not None:
         return user_group
@@ -397,6 +393,7 @@ def unset_user_group(user: User, group: str):
     user -- User object
     group -- group name
     """
+
     user_group = UserGroup.query.filter_by(UserId=user.id, Group=group)
     if user_group is None:
         raise error.API('the user is not in the group')
@@ -413,6 +410,7 @@ def get_user_groups(user: User) -> List[str]:
     Return value:
     returns List with group names
     """
+
     user_groups = UserGroup.query.filter_by(UserId=user.id).all()
     if user_groups is None:
         return []
@@ -429,6 +427,7 @@ def get_user_surveys(user: User) -> List[Survey]:
     Return value:
     returns list of Survey objects
     """
+
     if user.Role == 's':
         return Survey.query.all()
     user_surveys = SurveyPermission.query.filter_by(UserId=user.id).all()
@@ -451,6 +450,7 @@ def get_user_reports(user: User) -> List[Report]:
     Return value:
     returns List of Report objects
     """
+
     if user.Role == 's':
         return Report.query.all()
     user_reports = ReportPermission.query.filter_by(UserId=user.id).all()
@@ -472,6 +472,7 @@ def get_group_users(group: str) -> List[User]:
     Return value:
     returns List of User objects
     """
+
     user_groups = UserGroup.query.filter_by(Group=group).all()
     users = []
     for user_group in user_groups:
@@ -491,6 +492,7 @@ def rename_report(report: Report, name: str) -> int:
     Return value:
     returns List of User objects
     """
+
     rep = Report.query.filter_by(id=report.id).first()
     rep.Name = name
     db.session.commit()
@@ -503,6 +505,7 @@ def delete_group(group: str):
     Keyword arguments:
     group -- group name
     """
+
     UserGroup.query.filter_by(Group=group).delete()
     db.session.commit()
 
@@ -517,6 +520,7 @@ def create_survey(user: User, name: str) -> Survey:
     Return value:
     returns Survey object
     """
+
     survey = Survey(Name=name, QuestionCount=0, AuthorId=user.id)
     db.session.add(survey)
     bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
@@ -539,6 +543,7 @@ def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
     question_count -- amount of questions
     meta -- dict {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
     """
+
     if survey is None:
         survey = Survey(Name=name, QuestionCount=question_count)
         db.session.add(survey)
@@ -568,6 +573,7 @@ def get_survey_permission(survey: Survey, user: User) -> Permission:
     Return value:
     returns permission type (values: 'o', 'w', 'r', 'n')
     """
+
     if 'surveys' in session and str(survey.id) in session['surveys']:
         return session['surveys'][str(survey.id)]
 
@@ -591,6 +597,7 @@ def set_survey_permission(survey: Survey, user: User, permission: Permission, by
     Return value:
     returns permission type (values: 'o', 'w', 'r', 'n')
     """
+
     if bylink and user.Role == 'g':
         if 'surveys' not in session:
             session['surveys'] = {}
@@ -618,6 +625,7 @@ def get_report_survey(report: Report) -> Survey:
     Return value:
     returns Survey object
     """
+
     if report is None:
         raise error.API('no such report')
     survey = Survey.query.filter_by(id=report.SurveyId).first()
@@ -634,6 +642,7 @@ def get_report_permission(report: Report, user: User) -> Permission:
     Return value:
     returns permission type (values: 'o', 'w', 'r', 'n')
     """
+
     if 'reports' in session and str(report.id) in session['reports']:
         return session['reports'][str(report.id)]
 
@@ -657,6 +666,7 @@ def set_report_permission(report: Report, user: User, permission: Permission, by
     Return value:
     returns permission type (values: 'o', 'w', 'r', 'n')
     """
+
     if bylink and user.Role == 'g':
         if 'reports' not in session:
             session['reports'] = {}
@@ -687,6 +697,7 @@ def create_report(user: User, survey: Survey, name: str, author: int) -> Report:
     Return value:
     returns Report object
     """
+
     report = Report(Name=name, SurveyId=survey.id, AuthorId=author)
     report.BackgroundImg = Survey.query.filter_by(id=survey.id).first().BackgroundImg
     db.session.add(report)
@@ -701,6 +712,7 @@ def delete_survey(survey: Survey):
     Keyword arguments:
     survey -- Survey object
     """
+
     # db_path = 'data/' + str(survey.id) + '.db'
     # if os.path.exists(db_path):
     #     os.remove(db_path)
@@ -719,6 +731,7 @@ def delete_report(report: Report):
     Keyword arguments:
     report -- Report object
     """
+
     ReportPermission.query.filter_by(ReportId=report.id).delete()
     ReportGroup.query.filter_by(ReportId=report.id).delete()
     Report.query.filter_by(id=report.id).delete()
@@ -734,6 +747,7 @@ def open_survey(survey: Survey) -> sqlite3.Connection:
     Return value:
     returns sqlite3.Connection
     """
+
     return sqlite3.connect(f"data/{survey.id}.db")
 
 
@@ -746,6 +760,7 @@ def get_answers(survey_id: int) -> Dict:
     Return value:
     returns dictionary with answers
     """
+
     xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"survey/{survey_id}.xml"))
     result = {}
     questions = ['single', 'multi', 'groupedsingle']
@@ -782,6 +797,7 @@ def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
     Return value:
     returns dictionary with types
     """
+
     types = {}
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
@@ -800,6 +816,7 @@ def get_columns(conn: sqlite3.Connection) -> List[str]:
     Return value:
     returns list of column names
     """
+
     columns = []
     cur = conn.cursor()
     cur.execute("PRAGMA table_info(data)")
@@ -818,6 +835,7 @@ def get_answers_count(survey: Survey) -> int:
     Return value:
     returns amount of answers
     """
+
     conn = open_survey(survey)
     cur = conn.cursor()
     cur.execute("SELECT * FROM data")
@@ -833,6 +851,7 @@ def csv_to_db(survey: Survey, filename: str):
     survey -- Survey object
     filename -- name of a csv file
     """
+
     def shame(vals):
         counts = {}
         for v in vals:
