@@ -229,8 +229,9 @@ def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], 
     link = Link.query.filter_by(PermissionType=permission, ObjectType=object_type, ObjectId=object_id).first()
     if link is not None:
         return link.Salt + str(link.id)
-    salt = secrets.randbits(5*SALT_LENGTH)
-    salt = salt.to_bytes(5*SALT_LENGTH//8+1, byteorder='big')
+
+    bits = secrets.randbits(5*SALT_LENGTH)
+    salt = bits.to_bytes(5*SALT_LENGTH//8+1, byteorder='big')
     salt = b32encode(salt).decode('utf-8')[:SALT_LENGTH]
     salt = salt.lower()
     print(salt)
