@@ -567,7 +567,7 @@ def get_survey_permission(survey: Survey, user: User) -> Permission:
     Return value:
     returns permission type (values: 'o', 'w', 'r', 'n')
     """
-    if 'surveys' in session and survey.id in session['surveys']:
+    if 'surveys' in session and str(survey.id) in session['surveys']:
         return session['surveys'][survey.id]
 
     sp = SurveyPermission.query.filter_by(SurveyId=survey.id, UserId=user.id).first()
@@ -633,7 +633,7 @@ def get_report_permission(report: Report, user: User) -> Permission:
     Return value:
     returns permission type (values: 'o', 'w', 'r', 'n')
     """
-    if 'reports' in session and report.id in session['reports']:
+    if 'reports' in session and str(report.id) in session['reports']:
         return session['reports'][report.id]
 
     rp = ReportPermission.query.filter_by(ReportId=report.id, UserId=user.id).first()
