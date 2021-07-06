@@ -138,7 +138,7 @@ def get_user_details():
 
 @app.route('/api/dictionary', methods=["GET"])
 @on_errors('could not get dictionary')
-@for_roles('s', 'u')
+@for_roles('s', 'u', 'g')
 def get_dictionary():
     with open(os.path.join(ABSOLUTE_DIR_PATH, "dictionary.json")) as json_file:
         result = json.load(json_file)
