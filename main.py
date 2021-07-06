@@ -272,7 +272,7 @@ def get_report_users(report_id):
 
 @app.route('/api/report/<int:report_id>/answers', methods=['GET'])
 @on_errors('could not get report answers')
-@for_roles('s', 'u')
+@for_roles('s', 'u', 'g')
 def get_report_answers(report_id):
     report = database.get_report(report_id)
     survey_xml = report.SurveyId
@@ -282,7 +282,7 @@ def get_report_answers(report_id):
 
 @app.route('/api/report/<int:report_id>/survey', methods=['GET'])
 @on_errors('could not find the source survey')
-@for_roles('s', 'u')
+@for_roles('s', 'u', 'g')
 def get_report_survey(report_id):
     report = database.get_report(report_id)
     survey = database.get_report_survey(report)
