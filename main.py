@@ -580,12 +580,6 @@ def upload_results(survey_id):
 @for_roles('s', 'u', 'g')
 def get_data_types(survey_id):
     survey = database.get_survey(survey_id)
-    user = database.get_user()
-
-    perm = database.get_survey_permission(survey, user)
-    if perm not in ['r', 'w', 'o']:
-        raise error.API('no access to the survey')
-
     conn = database.open_survey(survey)
     types = database.get_types(conn)
     conn.close()
