@@ -37,7 +37,18 @@ REQUEST_REPORT_LINK = {
     'reportId': int
 }
 
+
 def analyze(tp: typing.Any, obj: typing.Any) -> str:
+    """Analyze object structure.
+
+    Keyword arguments:
+    tp -- expected object structure
+    obj -- given object
+
+    Return value:
+    returns message after analyze
+    """
+
     if type(tp) is type:
         if type(obj) is tp:
             return ''
@@ -69,5 +80,12 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
 
 
 def check(tp: typing.Any, obj: typing.Any):
+    """Validate json structure.
+
+    Keyword arguments:
+    tp -- expected object structure
+    obj -- given object
+    """
+
     if msg := analyze(tp, obj):
         raise error.API(msg)
