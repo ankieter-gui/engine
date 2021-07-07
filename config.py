@@ -18,7 +18,7 @@ DINTERVAL=5*60
 GUEST_NAME='Goście'
 
 # default admin permission for all surveys and reports
-ADMIN_DEFAULT_PERMISSION = 'r'
+ADMIN_DEFAULT_PERMISSION = 'o'
 
 # must be True or False; change to True to unlock the possibility to LOG IN
 # WITHOUT PASSWORD and detailed logs during app runtime
