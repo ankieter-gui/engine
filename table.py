@@ -4,6 +4,7 @@ import database
 import grammar
 import error
 
+
 class Filter:
     def __init__(self, symbol, arity, *types, beg='', end='', sep=', '):
         self.symbol = symbol
@@ -33,9 +34,13 @@ FILTERS = {
 
 
 def share(s): return s.value_counts().to_dict()
+
+
 def mode(s):
     s = s.value_counts().to_dict()
     return max(s, key=s.get)
+
+
 AGGREGATORS = {
     'share':  Aggregator(share,    'INTEGER', 'REAL', 'TEXT'),
     'mode':   Aggregator(mode,     'INTEGER', 'REAL', 'TEXT'),
@@ -51,6 +56,13 @@ AGGREGATORS = {
 
 
 def typecheck(json_query, types):
+    """Check types of survey data
+
+    Keyword arguments:
+    json_query -- survey data
+    types -- column types
+    """
+
     grammar.check(grammar.REQUEST_TABLE, json_query)
 
     if len(json_query['get']) == 0 or len(json_query['get'][0]) == 0:
@@ -113,7 +125,17 @@ def get_sql_filter_of(json_filter, types):
     return result
 
 
-def columns(json_query, conn):
+def columns(json_query, conn: sqlite3.Connection):
+    """Convert data to dataframe format
+
+    Keyword arguments:
+    json_query -- survey data
+    conn -- sqlite3.Connection
+
+    Return value:
+    returns dataframe object
+    """
+
     columns = set()
     for get in json_query['get']:
         columns.update(get)
@@ -134,6 +156,16 @@ def columns(json_query, conn):
 
 
 def aggregate(json_query, data):
+    """Aggregate survey data
+
+    Keyword arguments:
+    json_query -- survey data
+    data -- dataframe object
+
+    Return value:
+    returns aggregated data
+    """
+
     columns = {}
     for get in json_query['get']:
         for i, column in enumerate(get):
@@ -161,6 +193,15 @@ def aggregate(json_query, data):
 
 
 def reorder(data):
+    """Reorder survey data
+
+    Keyword arguments:
+    data -- survey data
+
+    Return value:
+    returns survey reordered data
+    """
+
     data.columns = [f'{aggr} {label}' for label, aggr in data.columns]
 
     result = {}
@@ -170,10 +211,19 @@ def reorder(data):
     return result
 
 
-def create(json_query, conn):
+def create(json_query, conn: sqlite3.Connection):
+    """Create data from survey
+
+    Keyword arguments:
+    json_query -- survey data
+    conn -- sqlite3.Connection
+
+    Return value:
+    returns survey data
+    """
+
     try:
         types = database.get_types(conn)
-
         typecheck(json_query, types)
         data = columns(json_query, conn)
         data = aggregate(json_query, data)
