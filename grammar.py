@@ -80,7 +80,7 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
 
 
 def check(tp: typing.Any, obj: typing.Any):
-    """Validate json structure.
+    """Validate object structure.
 
     Keyword arguments:
     tp -- expected object structure

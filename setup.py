@@ -1,4 +1,6 @@
 from datetime import datetime
+from itertools import product
+from functools import reduce
 from typing import List, Dict
 from database import *
 import faker
@@ -7,7 +9,16 @@ import string
 import os
 
 
-def get_survey_quest_num(survey: Survey):
+def get_survey_quest_num(survey: Survey) -> int:
+    """Get number of questions for given survey
+
+    Keyword arguments:
+    survey -- Survey object
+
+    Return value:
+    returns permission type, object name and object id
+    """
+
     conn = open_survey(survey)
     num = len(get_columns(conn))
     conn.close()
@@ -15,8 +26,15 @@ def get_survey_quest_num(survey: Survey):
 
 
 def get_sample_tuples(n: int, *args: int) -> List[tuple]:
-    from itertools import product
-    from functools import reduce
+    """Generate sample tuples.
+
+    Keyword arguments:
+    n -- number of rows to generate
+
+    Return value:
+    returns list of generated values
+    """
+
     n = min(n, reduce(lambda a, b: a*b, args))
     args = map(lambda x: range(1, x+1), args)
     s = random.sample(sorted(product(*args)), n)
@@ -46,11 +64,11 @@ if __name__ == "__main__":
     for filename in os.listdir('raw'):
         if filename.endswith(".csv"):
             survey = Survey(
-                Name          = 'ankieta testowa'+str(random.randint(0,99999)),
-                StartedOn     = datetime(2020, 3, random.randint(1, 31)),
-                EndsOn        = datetime(2021, 6, random.randint(1, 30)),
-                IsActive      = random.randint(0, 1),
-                BackgroundImg = random.choice(bkgs))
+                Name='ankieta testowa' + str(random.randint(0, 99999)),
+                StartedOn=datetime(2020, 3, random.randint(1, 31)),
+                EndsOn=datetime(2021, 6, random.randint(1, 30)),
+                IsActive=random.randint(0, 1),
+                BackgroundImg=random.choice(bkgs))
             db.session.add(survey)
             db.session.commit()
             survey.QuestionCount = get_survey_quest_num(survey)
