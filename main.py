@@ -706,6 +706,8 @@ if __name__ == '__main__':
 
     if LOCALHOST:
         print(f'the app is hosted on localhost:{APP_PORT}')
+
         app.run()
     else:
         app.run(ssl_context='adhoc', port=APP_PORT, host='0.0.0.0')
+
