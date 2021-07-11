@@ -196,7 +196,6 @@ def aggregate(json_query, data):
             result = ingroups
         else:
             result = concat([result, ingroups])
-    print(result)
     return result
 
 
