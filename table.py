@@ -78,7 +78,7 @@ def typecheck(json_query, types):
     if 'by' not in json_query:
         json_query['by'] = ['*']
     for by in json_query['by']:
-        if by != '*' and by not in types:
+        if not by.startswith('*') and by not in types:
             raise error.API(f'cannot group by "{by}" as there is no such column')
 
     for get in json_query['get']:
@@ -139,9 +139,9 @@ def columns(json_query, conn: sqlite3.Connection):
     columns = set()
     for get in json_query['get']:
         columns.update(get)
-    columns.update(json_query['by'])
-    if '*' in columns:
-        columns.remove('*')
+    columns.update([c for c in json_query['by'] if not c.startswith('*')])
+    #if '*' in columns:
+    #    columns.remove('*')
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     types = database.get_types(conn)
@@ -181,14 +181,22 @@ def aggregate(json_query, data):
 
     result = None
     for group in json_query['by']:
-        if group == '*':
-            group = [True]*len(data)
-        ingroups = data.copy().groupby(group)
+        name = None
 
-        if result is not None:
-            result = concat([result, ingroups.aggregate(columns)])
+        if group.startswith('*'):
+            if len(group) > 1:
+                name = group[1:]
+            group = [True]*len(data)
+
+        ingroups = data.copy().groupby(group).aggregate(columns)
+
+        if name is not None:
+            ingroups.index = [name]*len(ingroups.index)
+        if result is None:
+            result = ingroups
         else:
-            result = ingroups.aggregate(columns)
+            result = concat([result, ingroups])
+    print(result)
     return result
 
 
@@ -241,6 +249,13 @@ if __name__ == "__main__":
     queries = []
 
     queries.append({
+        "get": [["Price", "Age Rating"]],
+        "as": ["mean", "share"],
+        "by": ["Age Rating", "*Total"],
+        "if": [["Age Rating", "in", "4", "9"]]
+    })
+
+    queries.append({
         "get": [["Price",               "Price"],
                 ["Average User Rating", "Average User Rating"]],
         "as": ["mean", "var"],
@@ -269,13 +284,6 @@ if __name__ == "__main__":
     })
 
     queries.append({
-        "get": [["Price", "Age Rating"]],
-        "as": ["mean", "share"],
-        "by": ["Age Rating", "*"],
-        "if": [["Age Rating", "in", "4", "9"]]
-    })
-
-    queries.append({
         "get": [["Price", 4]],
         "as": ["mean", "share"],
         "by": ["Age Rating", "*"],
@@ -290,11 +298,11 @@ if __name__ == "__main__":
     })
 
     for query in queries:
-        try:
+        #try:
             r = create(query, conn)
             print(r)
-        except error.API as err:
-            print(err.message)
+        #except error.API as err:
+        #    print(err.message)
 
     conn.close()
     conn = sqlite3.connect(f'data/2.db')
