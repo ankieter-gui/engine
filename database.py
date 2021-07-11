@@ -774,6 +774,8 @@ def get_answers(survey_id: int) -> Dict:
                 result[header]["sub_questions"]=[]
                 result[header]["values"]={}
 
+            if 'defaultValue' in b.attrib:
+                result[header]["values"][b.attrib['defaultValue']]="default"
             if q == 'groupedsingle':
                 for item in b.find('items'):
                     result[header]["sub_questions"].append(item.attrib['value'].strip(' '))
