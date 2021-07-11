@@ -6,7 +6,7 @@ CAS_URL='https://cas.amu.edu.pl/cas/'
 CAS_VERSION=2
 
 # app address can be set here; do not append it with a '/'
-APP_URL='http://localhost'
+APP_URL='https://localhost'
 
 # app port can be set here
 APP_PORT=5000

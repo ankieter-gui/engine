@@ -435,8 +435,8 @@ def get_user_surveys(user: User) -> List[Survey]:
     for survey in user_surveys:
         surveys.append(Survey.query.filter_by(id=survey.SurveyId).first())
     if 'surveys' in session:
-        for survey in session['surveys']:
-            surveys.append(Survey.query.filter_by(id=survey.id).first())
+        for id in session['surveys']:
+            surveys.append(Survey.query.filter_by(id=int(id)).first())
     return surveys
 
 
@@ -458,8 +458,8 @@ def get_user_reports(user: User) -> List[Report]:
     for report in user_reports:
         reports.append(Report.query.filter_by(id=report.ReportId).first())
     if 'reports' in session:
-        for report in session['reports']:
-            reports.append(Report.query.filter_by(id=report.id).first())
+        for id in session['reports']:
+            reports.append(Report.query.filter_by(id=int(id)).first())
     return reports
 
 
