@@ -687,6 +687,8 @@ def get_static_file(path):
 @app.route('/reports/<path:text>')
 @app.route('/surveysEditor/<path:text>')
 @app.route('/surveysEditor')
+@app.route('/login')
+@app.route('/unauthorized')
 @app.route('/shared/<path:text>')
 def index(text=None):
     return render_template('index.html')
