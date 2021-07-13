@@ -208,6 +208,8 @@ def reorder(data):
     Return value:
     returns survey reordered data
     """
+    
+    data = data.fillna('nd.')
 
     data.columns = [f'{aggr} {label}' for label, aggr in data.columns]
 
