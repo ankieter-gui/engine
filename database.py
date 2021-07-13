@@ -32,7 +32,7 @@ class User(db.Model):
     def as_dict(self):
         return {
             "id":        self.id,
-            "casLogin":  self.CasLogin,
+            "casLogin":  self.CasLogin.split('@')[0],
             "fetchData": self.FetchData,
             "role":      self.Role,
             "logged":    self.Role != 'g',
@@ -349,7 +349,7 @@ def get_users() -> dict:
     result = []
     for u in users:
         result.append({
-            "casLogin": u.CasLogin,
+            "casLogin": u.CasLogin.split('@')[0],
             "id": u.id
         })
     return {"users": result}
@@ -774,6 +774,8 @@ def get_answers(survey_id: int) -> Dict:
                 result[header]["sub_questions"]=[]
                 result[header]["values"]={}
 
+            if 'defaultValue' in b.attrib:
+                result[header]["values"][b.attrib['defaultValue']]="default"
             if q == 'groupedsingle':
                 for item in b.find('items'):
                     result[header]["sub_questions"].append(item.attrib['value'].strip(' '))
