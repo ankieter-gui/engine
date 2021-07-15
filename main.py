@@ -651,10 +651,13 @@ def login():
     user, attributes, pgtiou = CAS_CLIENT.verify_ticket(ticket)
 
     if not user:
-        return '<p>Failed to verify</p>'
+        return redirect('/')
 
     print(user, attributes, pgtiou)
-    u = database.get_user(user)
+    try:
+        u = database.get_user(user)
+    except:
+        return redirect("/unauthorized")
     session['username'] = u.CasLogin
     return redirect('/')
 
