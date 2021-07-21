@@ -554,17 +554,17 @@ def upload_results(survey_id):
 
     if 'name' in request.form:
         name = request.form['name']
-    if ext.lower() != 'csv':
-        raise error.API("expected a CSV file")
+    if ext.lower() not in ['csv', "xlsx","xls"]:
+        raise error.API("expected a CSV, XLSX or XLS file")
 
     if survey_id:
         survey = database.get_survey(survey_id)
     else:
         survey = database.create_survey(user, name)
 
-    file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.csv"))
+    file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.{ext}"))
 
-    database.csv_to_db(survey, f"{survey.id}.csv")
+    database.csv_to_db(survey, f"{survey.id}.{ext}")
     conn = database.open_survey(survey)
     survey.QuestionCount = len(database.get_columns(conn))
     conn.close()
@@ -713,4 +713,3 @@ if __name__ == '__main__':
         app.run()
     else:
         app.run(ssl_context='adhoc', port=APP_PORT, host='0.0.0.0')
-

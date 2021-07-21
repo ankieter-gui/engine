@@ -1,7 +1,7 @@
 from typing import Literal, Any, List, Dict
 from flask_sqlalchemy import SQLAlchemy
 from base64 import b32encode
-from pandas import read_csv
+from pandas import read_csv, read_excel
 from flask import session
 from config import *
 import xml.etree.ElementTree as ET
@@ -849,7 +849,7 @@ def get_answers_count(survey: Survey) -> int:
 
 def detect_csv_sep(filename: str) -> str:
     sep = ''
-    with open(f'raw/{filename}') as csv_file:
+    with open(f'raw/{filename}',"r") as csv_file:
         res = csv.Sniffer().sniff(csv_file.read(1024))
         csv_file.seek(0)
         sep = res.delimiter
@@ -875,6 +875,11 @@ def csv_to_db(survey: Survey, filename: str):
 
     try:
         conn = open_survey(survey)
+        name, ext = filename.rsplit('.', 1)
+        if ext != "csv":
+            file = read_excel(f'raw/{name}.{ext}')
+            file.to_csv(f'raw/{name}.csv',encoding='utf-8')
+            filename = f'{name}.csv'
         separator=detect_csv_sep(filename)
         df = read_csv(f"raw/{filename}", sep=separator)
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
