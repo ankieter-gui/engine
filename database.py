@@ -5,11 +5,12 @@ from pandas import read_csv
 from flask import session
 from config import *
 import xml.etree.ElementTree as ET
+import sqlite3
 import secrets
 import random
-import re
-import sqlite3
 import error
+import csv
+import re
 import os
 
 
@@ -846,6 +847,15 @@ def get_answers_count(survey: Survey) -> int:
     return n
 
 
+def detect_csv_sep(filename: str) -> str:
+    sep = ''
+    with open(f'raw/{filename}') as csv_file:
+        res = csv.Sniffer().sniff(csv_file.read(1024))
+        csv_file.seek(0)
+        sep = res.delimiter
+    return sep
+
+
 def csv_to_db(survey: Survey, filename: str):
     """Convert csv file to database
 
@@ -865,7 +875,8 @@ def csv_to_db(survey: Survey, filename: str):
 
     try:
         conn = open_survey(survey)
-        df = read_csv(f"raw/{filename}", sep=",")
+        separator=detect_csv_sep(filename)
+        df = read_csv(f"raw/{filename}", sep=separator)
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
         for column in df.filter(regex="czas wypełniania").columns:
