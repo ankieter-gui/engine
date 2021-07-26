@@ -93,9 +93,9 @@ if __name__ == "__main__":
     for s_id, u_id in get_sample_tuples(18, surveys_amount, USERS_AMOUNT):
         db.session.add(SurveyPermission(SurveyId=s_id, UserId=u_id, Type=random.choice('rwo')))
 
-    pesel = input('Podaj swój pesel\n')
+    email = input('Enter your email\n')
     user = User.query.filter_by(id=1).first()
-    user.CasLogin = pesel
+    user.CasLogin = email
     user.Role = 's'
 
     for survey in Survey.query.all():
