@@ -875,7 +875,6 @@ def csv_to_db(survey: Survey, filename: str):
 
     try:
         conn = open_survey(survey)
-        print(filename)
         name, ext = filename.rsplit('.', 1)
         if ext != "csv":
             file = read_excel(f'raw/{name}.{ext}')
