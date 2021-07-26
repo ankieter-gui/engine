@@ -875,6 +875,7 @@ def csv_to_db(survey: Survey, filename: str):
 
     try:
         conn = open_survey(survey)
+        print(filename)
         name, ext = filename.rsplit('.', 1)
         if ext != "csv":
             file = read_excel(f'raw/{name}.{ext}')
@@ -898,15 +899,12 @@ def csv_to_db(survey: Survey, filename: str):
             df[u] = df[group].aggregate(shame, axis='columns')
             df = df.drop(group[:-1], axis='columns')
 
-
         df.to_sql("data", conn, if_exists="replace")
         print(f"Database for survey {survey.id} created succesfully")
         conn.close()
         return True
     except sqlite3.Error as err:
         return err
+    except Exception as e:
+        raise error.API(str(e) + ' while parsing csv/xlsx')
 
-
-if __name__ == '__main__':
-    delete_survey(get_survey(1))
-    delete_report(get_report(1))
