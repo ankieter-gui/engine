@@ -43,12 +43,6 @@ class User(db.Model):
         return ud
 
 
-#class Group(db.Model):
-#    __tablename__ = "Groups"
-#    id = db.Column(db.Integer, primary_key=True)
-#    Name = db.Column(db.String(25), primary_key=True)
-
-
 class Survey(db.Model):
     __tablename__ = "Surveys"
     id = db.Column(db.Integer, primary_key=True)
