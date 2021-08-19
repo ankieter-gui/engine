@@ -31,13 +31,16 @@ class User(db.Model):
     Role = db.Column(db.String, default='g', nullable=False)
 
     def as_dict(self):
-        return {
+        ud = {
             "id":        self.id,
             "casLogin":  self.CasLogin.split('@')[0],
             "fetchData": self.FetchData,
             "role":      self.Role,
             "logged":    self.Role != 'g',
         }
+        if DEBUG:
+            ud["debug"] = True
+        return ud
 
 
 #class Group(db.Model):
