@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 from flask import send_from_directory, redirect, url_for, request, session, g, render_template
 from config import *
 import json
