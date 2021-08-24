@@ -22,14 +22,14 @@ class Aggregator:
 
 
 FILTERS = {
-    '>':  Filter('>',  1,    'INTEGER', 'REAL'),
-    '<':  Filter('<',  1,    'INTEGER', 'REAL'),
-    '<=': Filter('<=', 1,    'INTEGER', 'REAL'),
-    '>=': Filter('>=', 1,    'INTEGER', 'REAL'),
-    '=':  Filter('=',  1,    'INTEGER', 'REAL', 'TEXT'),
-    '!=': Filter('!=', 1,    'INTEGER', 'REAL', 'TEXT'),
-    'in': Filter('IN', None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')')
-    # TODO: between, notin
+    '>':     Filter('>',      1,    'INTEGER', 'REAL'),
+    '<':     Filter('<',      1,    'INTEGER', 'REAL'),
+    '<=':    Filter('<=',     1,    'INTEGER', 'REAL'),
+    '>=':    Filter('>=',     1,    'INTEGER', 'REAL'),
+    '=':     Filter('=',      1,    'INTEGER', 'REAL', 'TEXT'),
+    '!=':    Filter('!=',     1,    'INTEGER', 'REAL', 'TEXT'),
+    'in':    Filter('IN',     None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')'),
+    'notin': Filter('NOT IN', None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')')
 }
 
 
@@ -208,7 +208,7 @@ def reorder(data):
     Return value:
     returns survey reordered data
     """
-    
+
     data = data.fillna('nd.')
 
     data.columns = [f'{aggr} {label}' for label, aggr in data.columns]
@@ -292,6 +292,13 @@ if __name__ == "__main__":
     })
 
     queries.append({
+        "get": [["Price", "Name"]],
+        "as": ["mean", "share"],
+        "by": ["Age Rating", "*"],
+        "if": [["Age Rating", "notin", "4"]]
+    })
+
+    queries.append({
         "as": [],
         "by": [],
         "filter": [],
@@ -299,11 +306,12 @@ if __name__ == "__main__":
     })
 
     for query in queries:
-        #try:
+        try:
             r = create(query, conn)
+            print(query, "===========")
             print(r)
-        #except error.API as err:
-        #    print(err.message)
+        except error.API as err:
+            print(query, err.message)
 
     conn.close()
     conn = sqlite3.connect(f'data/2.db')
