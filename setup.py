@@ -42,7 +42,7 @@ def get_sample_tuples(n: int, *args: int) -> List[tuple]:
     return s
 
 
-if __name__ == "__main__":
+def setup():
     db.drop_all()
     db.create_all()
 
@@ -82,3 +82,7 @@ if __name__ == "__main__":
                         FetchData=True))
 
     db.session.commit()
+
+if __name__ == "__main__":
+    setup()
+
