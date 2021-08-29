@@ -20,6 +20,6 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Test with pytest
+    - name: Run tests
       run: |
-        for $test in test/*.py; do python3 $test; done
+        for test in test/*.py; do python3 $test; done
