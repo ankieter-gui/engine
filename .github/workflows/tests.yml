@@ -22,4 +22,14 @@ jobs:
 
     - name: Run tests
       run: |
-        for test in test/*.py; do python3 $test; done
+        touch results.log
+        for test in test/*.py; do
+          echo Logs for $test: |& tee -a results.log
+          python3 $test |& tee -a results.log
+        done
+
+    - name: Save logs
+      uses: actions/upload-artifact@v2
+      with:
+        name: results.log
+        path: results.log
