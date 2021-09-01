@@ -176,7 +176,7 @@ def aggregate(json_query, data):
 
             columns[column].append(aggr.func)
 
-    if 'by' not in json_query:
+    if 'by' not in json_query or not json_query['by']:
         json_query['by'] = ['*']
 
     result = None
