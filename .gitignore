@@ -7,4 +7,5 @@ Pipfile.lock
 *.csv
 __pycache__
 static
-
+raw
+templates
