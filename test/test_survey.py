@@ -3,13 +3,13 @@ from datetime import datetime
 import random
 import os
 import sys
+
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from database import *
 from config import app
 
 
 class TestCase(unittest.TestCase):
-
 
     def setUp(self):
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
@@ -25,10 +25,8 @@ class TestCase(unittest.TestCase):
         db.session.add(self.survey)
         db.session.commit()
 
-
     def tearDown(self):
         db.drop_all()
-
 
     def test_get_survey(self):
         expected = self.survey
