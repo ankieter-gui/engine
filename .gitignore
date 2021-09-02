@@ -6,4 +6,5 @@ Pipfile.lock
 *.json
 *.csv
 __pycache__
+static
 
