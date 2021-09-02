@@ -26,6 +26,8 @@ class TestCase(unittest.TestCase):
         db.session.commit()
 
 
+    def tearDown(self):
+        db.drop_all()
 
 
     def test_get_survey(self):
