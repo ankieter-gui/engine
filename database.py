@@ -768,6 +768,7 @@ def get_answers(survey_id: int) -> Dict:
             header = re.sub('</?\w[^>]*>', '', header).strip(' \n')
             if header not in result:
                 result[header]={}
+                result[header]["question"]=header
                 result[header]["type"]=q
                 result[header]["sub_questions"]=[]
                 result[header]["values"]={}
