@@ -1,4 +1,4 @@
-from config import *
+from globals import *
 import time
 
 LIST = []
@@ -11,4 +11,5 @@ def daemon(f):
 def gather():
     while True:
         print('dummy gatherer daemon wakeup')
-        time.sleep(DINTERVAL)
+        time.sleep(DAEMONS_INTERVAL)
+

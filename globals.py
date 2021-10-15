@@ -1,35 +1,3 @@
-# -- config section -----------------------------------------------------------
-# URL of the CAS service used by the institution
-CAS_URL='https://cas.amu.edu.pl/cas/'
-
-# must be 1, 2 or 3; depending on the version of CAS used by the institution
-CAS_VERSION=2
-
-# app address can be set here; do not append it with a '/'
-APP_URL='https://localhost'
-
-# app port can be set here
-APP_PORT=5000
-
-# seconds between subsequent daemon wakeups (for eg. the gatherer daemon)
-DINTERVAL=5*60
-
-# guest account username
-GUEST_NAME='Goście'
-
-# default admin permission for all surveys and reports
-ADMIN_DEFAULT_PERMISSION = 'o'
-
-# must be True or False; change to True to unlock the possibility to LOG IN
-# WITHOUT PASSWORD and detailed logs during app runtime
-DEBUG=True
-
-#if True, the app is not being hosted on 0.0.0.0
-LOCALHOST=True
-
-# the code below applies the given configurarion and the user is not ----------
-# encouraged to change it in any way ------------------------------------------
-
 from flask import Flask, redirect, url_for, request, session, g
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import Admin
@@ -38,12 +6,68 @@ from cas import CASClient
 from os.path import dirname, realpath
 from os import urandom, path, chdir
 
+try:
+    # Import the config
+    import config
+    keys = dir(config)
+
+    # Assign required values
+    CAS_URL = config.CAS_URL
+    CAS_VERSION = config.CAS_VERSION
+    APP_URL = config.APP_URL
+    APP_PORT = config.APP_PORT
+
+    # TODO: validate values
+
+    # Assign optional values
+    if 'SSL_CONTEXT' in keys:
+        SSL_CONTEXT = config.SSL_CONTEXT
+    else:
+        SSL_CONTEXT = 'adhoc'
+
+    if 'GUEST_NAME' in keys:
+        GUEST_NAME = config.GUEST_NAME
+    else:
+        GUEST_NAME = "Goście"
+
+    if 'ADMIN_DEFAULT_PERMISSION' in keys:
+        ADMIN_DEFAULT_PERMISSION = config.ADMIN_DEFAULT_PERMISSION
+    else:
+        ADMIN_DEFAULT_PERMISSION = 'o'
+
+    if 'DAEMONS_INTERVAL' in keys:
+        DAEMONS_INTERVAL = config.DAEMONS_INTERVAL
+    else:
+        DAEMONS_INTERVAL = 5*60
+
+    if 'LOCALHOST' in keys:
+        LOCALHOST = config.LOCALHOST
+    else:
+        LOCALHOST = False
+
+    if 'DEBUG' in keys:
+        DEBUG = config.DEBUG
+    else:
+        DEBUG = False
+except:
+    print('config.py incorrect or not present: running default debug config')
+    CAS_URL= ''
+    CAS_VERSION = 2
+    APP_URL = 'https://localhost'
+    APP_PORT = 5000
+    SSL_CONTEXT = 'adhoc'
+    GUEST_NAME = 'Goście'
+    ADMIN_DEFAULT_PERMISSION = 'o'
+    DAEMONS_INTERVAL = 5*60
+    LOCALHOST = True
+    DEBUG = True
+
+SALT_LENGTH=22
+
 ABSOLUTE_DIR_PATH = dirname(realpath(__file__))
 chdir(ABSOLUTE_DIR_PATH)
 popen = lambda p, mode: open(pabs(p), mode)
 pabs = lambda p: path.join(ABSOLUTE_DIR_PATH, p)
-
-SALT_LENGTH=22
 
 app = Flask(__name__)
 app.config.from_mapping(

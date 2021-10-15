@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from flask import send_from_directory, redirect, url_for, request, session, g, render_template
-from config import *
+from globals import *
 import json
 import os
 import functools
@@ -714,5 +714,5 @@ if __name__ == '__main__':
 
         app.run()
     else:
-        app.run(ssl_context='adhoc', port=APP_PORT, host='0.0.0.0')
+        app.run(ssl_context=SSL_CONTEXT, port=APP_PORT, host='0.0.0.0')
 

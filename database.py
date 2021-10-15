@@ -3,7 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from base64 import b32encode
 from pandas import read_csv, read_excel
 from flask import session
-from config import *
+from globals import *
 import xml.etree.ElementTree as ET
 import sqlite3
 import secrets
