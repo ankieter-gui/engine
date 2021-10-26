@@ -3,10 +3,9 @@
 from datetime import datetime, timedelta
 from itertools import product
 from functools import reduce
-from typing import List, Dict
+from typing import List
 from database import *
 import random
-import string
 import os
 
 
@@ -17,7 +16,7 @@ def get_survey_quest_num(survey: Survey) -> int:
     survey -- Survey object
 
     Return value:
-    returns permission type, object name and object id
+    returns number of columns
     """
 
     conn = open_survey(survey)
@@ -46,11 +45,11 @@ def setup():
     db.drop_all()
     db.create_all()
 
-    for dir in ['data', 'raw', 'report', 'bkg']:
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+    for directory in ['data', 'raw', 'report', 'bkg']:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    bkgs = os.listdir('bkg')
+    backgrounds = os.listdir('bkg')
 
     surveys_amount = 0
 
@@ -61,7 +60,7 @@ def setup():
                 StartedOn=datetime.now(),
                 EndsOn=datetime.now() + timedelta(days=56),
                 IsActive=random.randint(0, 1),
-                BackgroundImg=random.choice(bkgs))
+                BackgroundImg=random.choice(backgrounds))
             db.session.add(survey)
             db.session.commit()
             csv_to_db(survey, filename)
@@ -80,6 +79,7 @@ def setup():
                         FetchData=True))
 
     db.session.commit()
+
 
 if __name__ == "__main__":
     setup()
