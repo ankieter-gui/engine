@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import product
 from functools import reduce
 from typing import List, Dict
@@ -58,10 +58,9 @@ def setup():
         if filename.endswith(".csv"):
             survey = Survey(
                 Name=f'ankieta z {filename}',
-
                 StartedOn=datetime.now(),
-                EndsOn=datetime.now() + datetime.timedelta(days=56),
-                IsActive=random.randint(1),
+                EndsOn=datetime.now() + timedelta(days=56),
+                IsActive=random.randint(0, 1),
                 BackgroundImg=random.choice(bkgs))
             db.session.add(survey)
             db.session.commit()
