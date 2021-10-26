@@ -64,12 +64,11 @@ def setup():
                 BackgroundImg=random.choice(bkgs))
             db.session.add(survey)
             db.session.commit()
+            csv_to_db(survey, filename)
             survey.QuestionCount = get_survey_quest_num(survey)
             db.session.commit()
-            csv_to_db(survey, filename)
             surveys_amount += 1
 
-    # Create the administrator
     db.session.add(User(CasLogin='admin',
                         Pesel='9999999999',
                         Role='s',
