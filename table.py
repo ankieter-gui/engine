@@ -64,49 +64,49 @@ AGGREGATORS = {
 }
 
 
-def typecheck(json_query, types):
+def typecheck(query, types):
     """Check types of survey data
 
     Keyword arguments:
-    json_query -- survey data
+    query -- survey data
     types -- column types
     """
 
-    grammar.check(grammar.REQUEST_TABLE, json_query)
+    grammar.check(grammar.REQUEST_TABLE, query)
 
-    if len(json_query['get']) == 0 or len(json_query['get'][0]) == 0:
+    if len(query['get']) == 0 or len(query['get'][0]) == 0:
         raise error.API(f'no columns were requested')
 
-    for i, get in enumerate(json_query['get']):
-        if len(get) != len(json_query['as']):
+    for i, get in enumerate(query['get']):
+        if len(get) != len(query['as']):
             if len(get) != 1:
                 raise error.API(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
-            json_query['get'][i] = get * len(json_query['as'])
+            query['get'][i] = get * len(query['as'])
 
-    for agg in json_query['as']:
+    for agg in query['as']:
         if agg not in AGGREGATORS:
             raise error.API(f'unknown aggregator "{agg}"')
 
-    if 'by' not in json_query:
-        json_query['by'] = ['*']
-    for by in json_query['by']:
+    if 'by' not in query:
+        query['by'] = ['*']
+    for by in query['by']:
         if not by.startswith('*') and by not in types:
             raise error.API(f'cannot group by "{by}" as there is no such column')
 
-    for get in json_query['get']:
+    for get in query['get']:
         for i, col in enumerate(get):
-            op = json_query['as'][i]
+            op = query['as'][i]
             agg = AGGREGATORS[op]
             if col not in types:
                 raise error.API(f'no column "{col}" in the data set')
             if types[col] not in agg.types:
                 raise error.API(f'aggregator "{op}" supports {", ".join(agg.types)}; got {types[col]} (column "{col}")')
 
-    if 'if' not in json_query:
+    if 'if' not in query:
         return
-    if not json_query['if']:
+    if not query['if']:
         return
-    for iff in json_query['if']:
+    for iff in query['if']:
         if len(iff) < 2:
             raise error.API(f'filter "{" ".join(iff)}" is too short')
 
@@ -114,14 +114,14 @@ def typecheck(json_query, types):
         flt = FILTERS.get(op, None)
         if flt is None:
             raise error.API(f'unknown filter {op}')
-        if type(col) is int and col >= len(json_query['get'][0]):
+        if type(col) is int and col >= len(query['get'][0]):
             raise error.API(f'cannot filter by "{col}" as theres no column of that number')
         if type(col) is str and col not in types:
             raise error.API(f'cannot filter by "{col}" as theres no such column')
         if flt.arity is not None and len(args) != flt.arity:
             raise error.API(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
-        if type(col) is int and types[json_query['get'][0][col]] not in flt.types:
-            raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[json_query["get"][0][col]]} (column no. {col})')
+        if type(col) is int and types[query['get'][0][col]] not in flt.types:
+            raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[query["get"][0][col]]} (column no. {col})')
         if type(col) is str and types[col] not in flt.types:
             raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
         # column filters check?
@@ -142,11 +142,11 @@ def get_sql_filter_of(json_filter, types):
     return result
 
 
-def columns(json_query, conn: sqlite3.Connection):
+def columns(query, conn: sqlite3.Connection):
     """Convert data to dataframe format
 
     Keyword arguments:
-    json_query -- survey data
+    query -- survey data
     conn -- sqlite3.Connection
 
     Return value:
@@ -154,14 +154,14 @@ def columns(json_query, conn: sqlite3.Connection):
     """
 
     columns = set()
-    for get in json_query['get']:
+    for get in query['get']:
         columns.update(get)
-    columns.update([c for c in json_query['by'] if not c.startswith('*')])
+    columns.update([c for c in query['by'] if not c.startswith('*')])
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     types = database.get_types(conn)
-    if 'if' in json_query and json_query['if']:
-        sql_filters = [f for f in json_query['if'] if type(f[0]) is not int]
+    if 'if' in query and query['if']:
+        sql_filters = [f for f in query['if'] if type(f[0]) is not int]
         filters = list(map(lambda x: get_sql_filter_of(x, types), sql_filters))
     else:
         filters = ["TRUE"]
@@ -171,11 +171,11 @@ def columns(json_query, conn: sqlite3.Connection):
     return df
 
 
-def aggregate(json_query, data):
+def aggregate(query, data):
     """Aggregate survey data
 
     Keyword arguments:
-    json_query -- survey data
+    query -- survey data
     data -- dataframe object
 
     Return value:
@@ -183,9 +183,9 @@ def aggregate(json_query, data):
     """
 
     columns = {}
-    for get in json_query['get']:
+    for get in query['get']:
         for i, column in enumerate(get):
-            aggr_name = json_query['as'][i]
+            aggr_name = query['as'][i]
             aggr = AGGREGATORS[aggr_name]
             # tu jest miejsce na filtry
             if column not in columns:
@@ -193,11 +193,11 @@ def aggregate(json_query, data):
 
             columns[column].append(aggr.func)
 
-    if 'by' not in json_query or not json_query['by']:
-        json_query['by'] = ['*']
+    if 'by' not in query or not query['by']:
+        query['by'] = ['*']
 
     result = None
-    for group in json_query['by']:
+    for group in query['by']:
         name = None
 
         if group.startswith('*'):
@@ -237,11 +237,11 @@ def reorder(data):
     return result
 
 
-def create(json_query, conn: sqlite3.Connection):
+def create(query, conn: sqlite3.Connection):
     """Create data from survey
 
     Keyword arguments:
-    json_query -- survey data
+    query -- survey data
     conn -- sqlite3.Connection
 
     Return value:
@@ -250,9 +250,9 @@ def create(json_query, conn: sqlite3.Connection):
 
     try:
         types = database.get_types(conn)
-        typecheck(json_query, types)
-        data = columns(json_query, conn)
-        data = aggregate(json_query, data)
+        typecheck(query, types)
+        data = columns(query, conn)
+        data = aggregate(query, data)
         table = reorder(data)
     except error.API as err:
         err.add_details('could not create table')
