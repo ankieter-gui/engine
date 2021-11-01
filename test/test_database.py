@@ -34,9 +34,16 @@ class TestCase(unittest.TestCase):
             Role='s',
             FetchData=False
         )
+        self.user2 = User(
+            CasLogin='user',
+            Pesel='9999999999',
+            Role='u',
+            FetchData=False
+        )
         db.session.add(self.survey)
         db.session.add(self.report)
         db.session.add(self.user)
+        db.session.add(self.user2)
         db.session.commit()
 
     def tearDown(self):
@@ -63,6 +70,11 @@ class TestCase(unittest.TestCase):
         expected_survey = get_survey(new_survey.id)
         self.assertEqual(new_survey, expected_survey)
 
+    def test_create_report(self):
+        new_report = create_report(self.user, self.survey, 'Nowy raport', 1)
+        expected_report = get_report(new_report.id)
+        self.assertEqual(new_report, expected_report)
+
     def test_get_report(self):
         expected = self.report
         result = get_report(self.report.id)
@@ -78,6 +90,22 @@ class TestCase(unittest.TestCase):
         delete_report(self.report)
         with self.assertRaises(error.API):
             get_report(self.report.id)
+
+    def test_create_user(self):
+        new_user = create_user('test', '9999999997', 'u')
+        expected_user = get_user(new_user.id)
+        self.assertEqual(new_user, expected_user)
+        delete_user(new_user)
+
+    def test_get_all_users(self):
+        result_json = get_all_users()
+        expected_json = {"users": [{"casLogin": "admin", "id": 1}, {"casLogin": "user", "id": 2}]}
+        self.assertEqual(result_json, expected_json)
+
+    def test_delete_user(self):
+        delete_user(self.user)
+        with self.assertRaises(error.API):
+            get_user(self.user.id)
 
 
 if __name__ == '__main__':

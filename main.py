@@ -51,8 +51,8 @@ def get_dashboard():
 @app.route('/api/users', methods=['GET'])
 @on_errors('could not obtain user list')
 @for_roles('s', 'u', 'g')
-def get_users():
-    return database.get_users()
+def get_all_users():
+    return database.get_all_users()
 
 
 @app.route('/api/user/new', methods=['POST'])

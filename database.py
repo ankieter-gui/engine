@@ -137,7 +137,7 @@ def get_user(login: Any = "") -> User:
         elif re.match("[0-9]+", login):
             user = User.query.filter_by(Pesel=login).first()
         else:
-            users = get_users()
+            users = get_all_users()
             for u in users["users"]:
                 if u["casLogin"].split("@")[0] == login:
                     user = User.query.filter_by(id=u["id"]).first()
@@ -336,7 +336,7 @@ def get_survey_users(survey: Survey) -> dict:
     return result
 
 
-def get_users() -> dict:
+def get_all_users() -> dict:
     """Get all users
 
     Return value:
