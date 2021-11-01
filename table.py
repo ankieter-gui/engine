@@ -1,13 +1,14 @@
 from pandas import concat, read_sql_query
+import numpy as np
 import sqlite3
 import database
 import grammar
 import error
 
-
 class Filter:
-    def __init__(self, symbol, arity, *types, beg='', end='', sep=', '):
+    def __init__(self, symbol, func, arity, *types, beg='', end='', sep=', '):
         self.symbol = symbol
+        self.func = func
         self.arity = arity
         self.types = set(types)
         self.beg = beg
@@ -21,24 +22,32 @@ class Aggregator:
         self.types = set(types)
 
 
-FILTERS = {
-    '>':     Filter('>',      1,    'INTEGER', 'REAL'),
-    '<':     Filter('<',      1,    'INTEGER', 'REAL'),
-    '<=':    Filter('<=',     1,    'INTEGER', 'REAL'),
-    '>=':    Filter('>=',     1,    'INTEGER', 'REAL'),
-    '=':     Filter('=',      1,    'INTEGER', 'REAL', 'TEXT'),
-    '!=':    Filter('!=',     1,    'INTEGER', 'REAL', 'TEXT'),
-    'in':    Filter('IN',     None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')'),
-    'notin': Filter('NOT IN', None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')')
-}
+def filter_gt(n, c): return lambda n: n if n > c         else np.nan
+def filter_lt(n, c): return lambda n: n if n < c         else np.nan
+def filter_le(n, c): return lambda n: n if n <= c        else np.nan
+def filter_ge(n, c): return lambda n: n if n >= c        else np.nan
+def filter_eq(n, c): return lambda n: n if n == c        else np.nan
+def filter_ne(n, c): return lambda n: n if n != c        else np.nan
+def filter_in(n, c): return lambda n: n if s.isin(c)     else np.nan
+def filter_ni(n, c): return lambda n: n if not s.isin(c) else np.nan
 
 
 def share(s): return s.value_counts().to_dict()
-
-
 def mode(s):
     s = s.value_counts().to_dict()
     return max(s, key=s.get)
+
+
+FILTERS = {
+    '>':     Filter('>',      filter_gt, 1,    'INTEGER', 'REAL'),
+    '<':     Filter('<',      filter_lt, 1,    'INTEGER', 'REAL'),
+    '<=':    Filter('<=',     filter_le, 1,    'INTEGER', 'REAL'),
+    '>=':    Filter('>=',     filter_ge, 1,    'INTEGER', 'REAL'),
+    '=':     Filter('=',      filter_eq, 1,    'INTEGER', 'REAL', 'TEXT'),
+    '!=':    Filter('!=',     filter_ne, 1,    'INTEGER', 'REAL', 'TEXT'),
+    'in':    Filter('IN',     filter_in, None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')'),
+    'notin': Filter('NOT IN', filter_ni, None, 'INTEGER', 'REAL', 'TEXT', beg='(', end=')')
+}
 
 
 AGGREGATORS = {
@@ -102,12 +111,17 @@ def typecheck(json_query, types):
         flt = FILTERS.get(op, None)
         if flt is None:
             raise error.API(f'unknown filter {op}')
-        if col not in types:
+        if type(col) is int and col >= len(json_query['get'][0]):
+            raise error.API(f'cannot filter by "{col}" as theres no column of that number')
+        if type(col) is str and col not in types:
             raise error.API(f'cannot filter by "{col}" as theres no such column')
         if flt.arity is not None and len(args) != flt.arity:
             raise error.API(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
-        if types[col] not in flt.types:
+        if type(col) is int and types[json_query['get'][0][col]] not in flt.types:
+            raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[json_query["get"][0][col]]} (column no. {col})')
+        if type(col) is str and types[col] not in flt.types:
             raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
+        # column filters check?
 
 
 def get_sql_filter_of(json_filter, types):
@@ -140,13 +154,12 @@ def columns(json_query, conn: sqlite3.Connection):
     for get in json_query['get']:
         columns.update(get)
     columns.update([c for c in json_query['by'] if not c.startswith('*')])
-    #if '*' in columns:
-    #    columns.remove('*')
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
     types = database.get_types(conn)
     if 'if' in json_query and json_query['if']:
-        filters = list(map(lambda x: get_sql_filter_of(x, types), json_query['if']))
+        sql_filters = [f for f in json_query['if'] if type(f[0]) is not int]
+        filters = list(map(lambda x: get_sql_filter_of(x, types), sql_filters))
     else:
         filters = ["TRUE"]
 
@@ -171,6 +184,7 @@ def aggregate(json_query, data):
         for i, column in enumerate(get):
             aggr_name = json_query['as'][i]
             aggr = AGGREGATORS[aggr_name]
+            # tu jest miejsce na filtry
             if column not in columns:
                 columns[column] = []
 
@@ -188,6 +202,7 @@ def aggregate(json_query, data):
                 name = group[1:]
             group = [True]*len(data)
 
+        print(columns)
         ingroups = data.copy().groupby(group).aggregate(columns)
 
         if name is not None:
@@ -243,7 +258,6 @@ def create(json_query, conn: sqlite3.Connection):
     return table
 
 
-# TODO: usunąć po zakończeniu testów
 if __name__ == "__main__":
     conn = sqlite3.connect(f'data/1.db')
 
