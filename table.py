@@ -77,8 +77,11 @@ def typecheck(json_query, types):
     if len(json_query['get']) == 0 or len(json_query['get'][0]) == 0:
         raise error.API(f'no columns were requested')
 
-    if not all(map(lambda x: len(x) == len(json_query['as']), json_query['get'])):
-        raise error.API(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
+    for i, get in enumerate(json_query['get']):
+        if len(get) != len(json_query['as']):
+            if len(get) != 1:
+                raise error.API(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
+            json_query['get'][i] = get * len(json_query['as'])
 
     for agg in json_query['as']:
         if agg not in AGGREGATORS:
@@ -202,7 +205,6 @@ def aggregate(json_query, data):
                 name = group[1:]
             group = [True]*len(data)
 
-        print(columns)
         ingroups = data.copy().groupby(group).aggregate(columns)
 
         if name is not None:
