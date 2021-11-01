@@ -480,7 +480,7 @@ def get_group_users(group: str) -> List[User]:
     return users
 
 
-def rename_report(report: Report, name: str) -> int:
+def rename_report(report: Report, name: str):
     """Rename report
 
     Keyword arguments:
@@ -488,10 +488,8 @@ def rename_report(report: Report, name: str) -> int:
     name -- new report name
     """
 
-    rep = Report.query.filter_by(id=report.id).first()
-    rep.Name = name
+    report.Name = name
     db.session.commit()
-    return rep.id
 
 
 def rename_survey(survey: Survey, name: str):

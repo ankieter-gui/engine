@@ -310,7 +310,7 @@ def rename_report(report_id):
 
     if 'title' not in request.json:
         raise error.API('no parameter title')
-    rep = database.rename_report(report, request.json['title'])
+    database.rename_report(report, request.json['title'])
     return {
         'message': 'report name has been changed',
         'reportId': report.id,
