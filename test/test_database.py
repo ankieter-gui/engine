@@ -19,7 +19,15 @@ class TestCase(unittest.TestCase):
             EndsOn=datetime.now(),
             IsActive=1,
             BackgroundImg=random.choice(os.listdir('bkg')))
+        self.report = Report(
+            id=1,
+            Name='Raport testowy',
+            SurveyId=self.survey.id,
+            BackgroundImg=self.survey.BackgroundImg,
+            AuthorId=1
+        )
         db.session.add(self.survey)
+        db.session.add(self.report)
         db.session.commit()
 
     def tearDown(self):
@@ -31,14 +39,31 @@ class TestCase(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_rename_survey(self):
-        new_name = 'Ankieta testowa 2'
-        rename_survey(self.survey, new_name)
-        self.assertEqual(self.survey.Name, new_name)
+        expected = 'Ankieta testowa 2'
+        rename_survey(self.survey, expected)
+        result = self.survey.Name
+        self.assertEqual(result, expected)
 
     def test_delete_survey(self):
         delete_survey(self.survey)
         with self.assertRaises(error.API):
             get_survey(self.survey.id)
+
+    def test_get_report(self):
+        expected = self.report
+        result = get_report(self.report.id)
+        self.assertEqual(result, expected)
+
+    def test_rename_report(self):
+        expected = 'Raport testowy 2'
+        rename_report(self.report, expected)
+        result = self.report.Name
+        self.assertEqual(result, expected)
+
+    def test_delete_report(self):
+        delete_report(self.report)
+        with self.assertRaises(error.API):
+            get_report(self.report.id)
 
 
 if __name__ == '__main__':
