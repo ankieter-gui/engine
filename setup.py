@@ -51,8 +51,6 @@ def setup():
 
     backgrounds = os.listdir('bkg')
 
-    surveys_amount = 0
-
     for filename in os.listdir('raw'):
         if filename.endswith(".csv"):
             survey = Survey(
@@ -66,7 +64,6 @@ def setup():
             csv_to_db(survey, filename)
             survey.QuestionCount = get_survey_quest_num(survey)
             db.session.commit()
-            surveys_amount += 1
 
     db.session.add(User(CasLogin='admin',
                         Pesel='9999999999',

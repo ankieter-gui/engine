@@ -1,12 +1,10 @@
-import unittest
-from datetime import datetime
-import random
 import os
 import sys
-
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from database import *
-from config import app
+from globals import app
+from datetime import datetime
+import unittest
 
 
 class TestCase(unittest.TestCase):
@@ -14,14 +12,13 @@ class TestCase(unittest.TestCase):
     def setUp(self):
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///:memory:'
         db.create_all()
-        bkgs = os.listdir('bkg')
         self.survey = Survey(
             id=1,
             Name='Ankieta testowa',
             StartedOn=datetime.now(),
             EndsOn=datetime.now(),
             IsActive=1,
-            BackgroundImg=random.choice(bkgs))
+            BackgroundImg=random.choice(os.listdir('bkg')))
         db.session.add(self.survey)
         db.session.commit()
 
