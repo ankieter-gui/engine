@@ -1,5 +1,6 @@
 import os
 import sys
+
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from database import *
 from globals import app
@@ -18,7 +19,8 @@ class TestCase(unittest.TestCase):
             StartedOn=datetime.now(),
             EndsOn=datetime.now(),
             IsActive=1,
-            BackgroundImg=random.choice(os.listdir('bkg')))
+            BackgroundImg=random.choice(os.listdir('bkg'))
+        )
         self.report = Report(
             id=1,
             Name='Raport testowy',
@@ -26,8 +28,15 @@ class TestCase(unittest.TestCase):
             BackgroundImg=self.survey.BackgroundImg,
             AuthorId=1
         )
+        self.user = User(
+            CasLogin='admin',
+            Pesel='9999999999',
+            Role='s',
+            FetchData=False
+        )
         db.session.add(self.survey)
         db.session.add(self.report)
+        db.session.add(self.user)
         db.session.commit()
 
     def tearDown(self):
@@ -48,6 +57,11 @@ class TestCase(unittest.TestCase):
         delete_survey(self.survey)
         with self.assertRaises(error.API):
             get_survey(self.survey.id)
+
+    def test_create_survey(self):
+        new_survey = create_survey(self.user, 'Nowa ankieta')
+        expected_survey = get_survey(new_survey.id)
+        self.assertEqual(new_survey, expected_survey)
 
     def test_get_report(self):
         expected = self.report

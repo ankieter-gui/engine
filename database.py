@@ -526,15 +526,11 @@ def create_survey(user: User, name: str) -> Survey:
     returns Survey object
     """
 
-    survey = Survey(Name=name, QuestionCount=0, AuthorId=user.id)
+    backgrounds = os.listdir(path.join(ABSOLUTE_DIR_PATH, 'bkg'))
+    survey = Survey(Name=name, QuestionCount=0, AuthorId=user.id, BackgroundImg=random.choice(backgrounds))
     db.session.add(survey)
-    bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
-    survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
     set_survey_permission(survey, user, 'o')
-    conn = open_survey(survey)
-    #cur = conn.cursor()
-    #cur.execute("CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY)")
     return survey
 
 
