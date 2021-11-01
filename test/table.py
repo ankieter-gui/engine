@@ -31,6 +31,14 @@ good.append({
     "if": [["Age Rating", "notin", "4"]]
 })
 
+
+bad.append({
+    "get": [["Price", "Name"]],
+    "as": ["mean", "share", "max"],
+    "by": ["Age Rating", "*"],
+    "if": [["Age Rating", "notin", "4"]]
+})
+
 bad.append({
     "get": [["Price",               "Price"],
             ["Average User Rating", "Average User Rating"]],
