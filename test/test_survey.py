@@ -27,8 +27,18 @@ class TestCase(unittest.TestCase):
 
     def test_get_survey(self):
         expected = self.survey
-        result = get_survey(1)
+        result = get_survey(self.survey.id)
         self.assertEqual(result, expected)
+
+    def test_rename_survey(self):
+        new_name = 'Ankieta testowa 2'
+        rename_survey(self.survey, new_name)
+        self.assertEqual(self.survey.Name, new_name)
+
+    def test_delete_survey(self):
+        delete_survey(self.survey)
+        with self.assertRaises(error.API):
+            get_survey(self.survey.id)
 
 
 if __name__ == '__main__':
