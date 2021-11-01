@@ -486,15 +486,24 @@ def rename_report(report: Report, name: str) -> int:
     Keyword arguments:
     report -- Report object
     name -- new report name
-
-    Return value:
-    returns List of User objects
     """
 
     rep = Report.query.filter_by(id=report.id).first()
     rep.Name = name
     db.session.commit()
     return rep.id
+
+
+def rename_survey(survey: Survey, name: str):
+    """Rename survey
+
+    Keyword arguments:
+    survey -- Survey object
+    name -- new survey name
+    """
+
+    survey.Name = name
+    db.session.commit()
 
 
 def delete_group(group: str):

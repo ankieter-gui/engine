@@ -166,11 +166,9 @@ def rename_survey(survey_id):
     perm = database.get_survey_permission(survey, user)
     if perm != 'o':
         raise error.API('only the owner can rename a survey')
-
-    if 'title' not in request:
+    if 'title' not in request.json:
         raise error.API('no parameter title')
-    survey.Name = request.json['title']
-    # db.session.commit()
+    database.rename_survey(survey, request.json['title'])
     return {
         'message': 'survey name has been changed',
         'surveyId': survey.id,
