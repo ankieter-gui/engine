@@ -789,6 +789,53 @@ def get_answers(survey_id: int) -> Dict:
     return result
 
 
+def get_dashboard() -> Dict:
+    """Get dashboard for user
+
+    Return value:
+    returns dictionary with surveys and reports
+    """
+
+    user = get_user()
+    user_surveys = get_user_surveys(user)
+    result = []
+    for survey in user_surveys:
+        author = get_user(survey.AuthorId)
+        result.append({
+            'type': 'survey',
+            'endsOn': survey.EndsOn.timestamp() if survey.EndsOn is not None else None,
+            'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None else None,
+            'id': survey.id,
+            'name': survey.Name,
+            'sharedTo': get_survey_users(survey),
+            'ankieterId': survey.AnkieterId,
+            'isActive': survey.IsActive,
+            'questionCount': survey.QuestionCount,
+            'backgroundImg': survey.BackgroundImg,
+            'userId': user.id,
+            'answersCount': get_answers_count(survey),
+            'authorId': author.id,
+        })
+    user_reports = get_user_reports(user)
+    for report in user_reports:
+        try:
+            survey = get_survey(report.SurveyId)
+        except:
+            continue
+        author = get_user(report.AuthorId)
+        result.append({
+            'type': 'report',
+            'id': report.id,
+            'name': report.Name,
+            'sharedTo': get_report_users(report),
+            'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
+            'backgroundImg': report.BackgroundImg,
+            'userId': user.id,
+            'authorId': author.id,
+        })
+    return {"objects": result}
+
+
 def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
     """Get column types of answers
 
