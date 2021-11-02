@@ -877,6 +877,22 @@ def get_columns(conn: sqlite3.Connection) -> List[str]:
     return columns
 
 
+def get_default_values(survey_id: int):
+    xml = ET.parse(f"./survey/{survey_id}.xml")
+    result = {}
+    questions = ["groupedsingle","single","multi"]
+    for b in xml.getroot().iter("questions"):
+        if b[0].tag in questions:
+            header=re.sub('</?\w[^>]*>', '', b[0].find("header").text).strip(' \n')
+            result[header]=set(['9999'])
+            for c in b:
+                if 'defaultValue' in c.attrib:
+                    result[header].add(c.attrib['defaultValue'])
+            result[header]=list(result[header])
+
+    return result
+
+
 def get_answers_count(survey: Survey) -> int:
     """Get answers amount for survey
 
