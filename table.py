@@ -32,7 +32,7 @@ def filter_in(*c): return lambda n: n if n in c     else np.nan
 def filter_ni(*c): return lambda n: n if n not in c else np.nan
 
 
-def cols(s):  return len(s)
+def rows(s):  return len(s)
 def share(s): return s.value_counts().to_dict()
 def mode(s):
     s = s.value_counts().to_dict()
@@ -54,7 +54,7 @@ FILTERS = {
 AGGREGATORS = {
     'share':  Aggregator(share,    'INTEGER', 'REAL', 'TEXT'),
     'mode':   Aggregator(mode,     'INTEGER', 'REAL', 'TEXT'),
-    'cols':   Aggregator(cols,     'INTEGER', 'REAL', 'TEXT'),
+    'rows':   Aggregator(rows,     'INTEGER', 'REAL', 'TEXT'),
     'count':  Aggregator('count',  'INTEGER', 'REAL', 'TEXT'),
     'max':    Aggregator('max',    'INTEGER', 'REAL'),
     'min':    Aggregator('min',    'INTEGER', 'REAL'),

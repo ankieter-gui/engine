@@ -39,7 +39,7 @@ good.append({
 
 good.append({
     "get": [["Price"]],
-    "as": ["count", "cols"],
+    "as": ["count", "rows"],
     "if": [[0, "=", 1], [0, "!=", 1]]
 })
 
