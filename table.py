@@ -22,14 +22,14 @@ class Aggregator:
         self.types = set(types)
 
 
-def filter_gt(c):  return lambda n: n if n > c         else np.nan
-def filter_lt(c):  return lambda n: n if n < c         else np.nan
-def filter_le(c):  return lambda n: n if n <= c        else np.nan
-def filter_ge(c):  return lambda n: n if n >= c        else np.nan
-def filter_eq(c):  return lambda n: n if n == c        else np.nan
-def filter_ne(c):  return lambda n: n if n != c        else np.nan
-def filter_in(*c): return lambda n: n if s.isin(c)     else np.nan
-def filter_ni(*c): return lambda n: n if not s.isin(c) else np.nan
+def filter_gt(c):  return lambda n: n if n > c      else np.nan
+def filter_lt(c):  return lambda n: n if n < c      else np.nan
+def filter_le(c):  return lambda n: n if n <= c     else np.nan
+def filter_ge(c):  return lambda n: n if n >= c     else np.nan
+def filter_eq(c):  return lambda n: n if n == c     else np.nan
+def filter_ne(c):  return lambda n: n if n != c     else np.nan
+def filter_in(*c): return lambda n: n if n in c     else np.nan
+def filter_ni(*c): return lambda n: n if n not in c else np.nan
 
 
 def cols(s):  return len(s)
