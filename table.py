@@ -1,4 +1,4 @@
-from pandas import concat, read_sql_query
+from pandas import concat, read_sql_query, DataFrame
 import numpy as np
 import sqlite3
 import database
@@ -22,14 +22,14 @@ class Aggregator:
         self.types = set(types)
 
 
-def filter_gt(n, c): return lambda n: n if n > c         else np.nan
-def filter_lt(n, c): return lambda n: n if n < c         else np.nan
-def filter_le(n, c): return lambda n: n if n <= c        else np.nan
-def filter_ge(n, c): return lambda n: n if n >= c        else np.nan
-def filter_eq(n, c): return lambda n: n if n == c        else np.nan
-def filter_ne(n, c): return lambda n: n if n != c        else np.nan
-def filter_in(n, c): return lambda n: n if s.isin(c)     else np.nan
-def filter_ni(n, c): return lambda n: n if not s.isin(c) else np.nan
+def filter_gt(c):  return lambda n: n if n > c         else np.nan
+def filter_lt(c):  return lambda n: n if n < c         else np.nan
+def filter_le(c):  return lambda n: n if n <= c        else np.nan
+def filter_ge(c):  return lambda n: n if n >= c        else np.nan
+def filter_eq(c):  return lambda n: n if n == c        else np.nan
+def filter_ne(c):  return lambda n: n if n != c        else np.nan
+def filter_in(*c): return lambda n: n if s.isin(c)     else np.nan
+def filter_ni(*c): return lambda n: n if not s.isin(c) else np.nan
 
 
 def share(s): return s.value_counts().to_dict()
@@ -115,16 +115,15 @@ def typecheck(query, types):
         if flt is None:
             raise error.API(f'unknown filter {op}')
         if type(col) is int and col >= len(query['get'][0]):
-            raise error.API(f'cannot filter by "{col}" as theres no column of that number')
+            raise error.API(f'cannot filter "{col}" as there\'s no column of that number')
         if type(col) is str and col not in types:
-            raise error.API(f'cannot filter by "{col}" as theres no such column')
+            raise error.API(f'cannot filter by "{col}" as there\'s no such column')
         if flt.arity is not None and len(args) != flt.arity:
             raise error.API(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
         if type(col) is int and types[query['get'][0][col]] not in flt.types:
             raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[query["get"][0][col]]} (column no. {col})')
         if type(col) is str and types[col] not in flt.types:
             raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
-        # column filters check?
 
 
 def get_sql_filter_of(json_filter, types):
@@ -136,14 +135,31 @@ def get_sql_filter_of(json_filter, types):
 
     if col_type == "TEXT":
         args = [f'"{arg}"' for arg in args]
+    else:
+        args = [f'{arg}' for arg in args]
 
     result = f'"{column}" {sql_filter.symbol} {sql_filter.beg}{sql_filter.sep.join(args)}{sql_filter.end}'
 
     return result
 
 
+def get_pandas_filter_of(json_filter, ctype):
+    column, operator, *args = json_filter
+
+    pandas_filter = FILTERS[operator].func
+
+    if ctype == "TEXT":
+        args = [f'{arg}' for arg in args]
+    else:
+        args = [(float(arg) if type(arg) is str else arg) for arg in args]
+
+    result = pandas_filter(*args)
+
+    return result
+
+
 def columns(query, conn: sqlite3.Connection):
-    """Convert data to dataframe format
+    """Obtain dataframe required to compute the query
 
     Keyword arguments:
     query -- survey data
@@ -153,21 +169,47 @@ def columns(query, conn: sqlite3.Connection):
     returns dataframe object
     """
 
+    # Create an SQL column name list
     columns = set()
     for get in query['get']:
         columns.update(get)
     columns.update([c for c in query['by'] if not c.startswith('*')])
-
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
+
+    # Create an SQL filter string
     types = database.get_types(conn)
     if 'if' in query and query['if']:
         sql_filters = [f for f in query['if'] if type(f[0]) is not int]
         filters = list(map(lambda x: get_sql_filter_of(x, types), sql_filters))
     else:
         filters = ["TRUE"]
+    filters_to_apply = ' AND '.join(filters)
 
-    sql = f'SELECT {columns_to_select} FROM data WHERE '+" AND ".join(filters) + ";"
+    # Gather the data from the database
+    sql = f'SELECT {columns_to_select} FROM data WHERE {filters_to_apply};'
     df = read_sql_query(sql, conn)
+
+    # Apply column-specific filters
+    # Obtain column filter list
+    filters = {}
+    for f in query['if']:
+        if type(f[0]) is int:
+            if f[0] not in filters:
+                filters[f[0]] = []
+            filters[f[0]].append(f)
+
+    for get in query['get']:
+        for i, column in enumerate(get):
+            c = df[[column]]
+
+            name = f'{query["as"][i]} {column}'
+            c.columns = [name]
+
+            if i in filters:
+                for f in filters[i]:
+                    c[name] = c[name].apply(get_pandas_filter_of(f, types[column]))
+            df = df.join(c)
+
     return df
 
 
@@ -187,11 +229,10 @@ def aggregate(query, data):
         for i, column in enumerate(get):
             aggr_name = query['as'][i]
             aggr = AGGREGATORS[aggr_name]
-            # tu jest miejsce na filtry
-            if column not in columns:
-                columns[column] = []
-
-            columns[column].append(aggr.func)
+            col_name = f'{aggr_name} {column}'
+            if col_name not in columns:
+                columns[col_name] = []
+            columns[col_name].append(aggr.func)
 
     if 'by' not in query or not query['by']:
         query['by'] = ['*']

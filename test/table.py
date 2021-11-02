@@ -31,6 +31,23 @@ good.append({
     "if": [["Age Rating", "notin", "4"]]
 })
 
+good.append({
+    "get": [["Price"]],
+    "as": ["share"],
+    "if": [["Age Rating", "notin", 4], [0, "<=", 1]]
+})
+
+bad.append({
+    "get": [["Price"]],
+    "as": ["share"],
+    "if": [["Age Rating", "notin", 4], [1, "<=", 1]]
+})
+
+bad.append({
+    "get": [["Name"]],
+    "as": ["share"],
+    "if": [[0, ">=", "D"], [1, "<=", "D"]]
+})
 
 bad.append({
     "get": [["Price", "Name"]],
@@ -91,6 +108,7 @@ bad.append({
 for query in good:
     try:
         r = table.create(query, conn)
+        print(r)
     except error.API as err:
         print(query, err.message)
 

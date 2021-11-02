@@ -5,7 +5,7 @@ REQUEST_TABLE = {
     'get': [[str]],
     'as':  [str],
     'by':  ([str],   'optional'),
-    'if':  ([[str]], 'optional'),
+    'if':  ([list], 'optional'),
 }
 
 REQUEST_CREATE_SURVEY = {
