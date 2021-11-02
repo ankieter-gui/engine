@@ -114,7 +114,6 @@ bad.append({
 for query in good:
     try:
         r = table.create(query, conn)
-        print(r)
     except error.API as err:
         print(query, err.message)
 

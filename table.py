@@ -272,7 +272,7 @@ def reorder(data):
 
     data = data.fillna('nd.')
 
-    data.columns = [f'{aggr} {label}' for label, aggr in data.columns]
+    data.columns = [f'{label}' for label, aggr in data.columns]
 
     result = {}
     result['index'] = list(map(lambda x: x if x is not True else '*', data.index.tolist()))
