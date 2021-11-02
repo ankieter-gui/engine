@@ -32,6 +32,7 @@ def filter_in(*c): return lambda n: n if s.isin(c)     else np.nan
 def filter_ni(*c): return lambda n: n if not s.isin(c) else np.nan
 
 
+def cols(s):  return len(s)
 def share(s): return s.value_counts().to_dict()
 def mode(s):
     s = s.value_counts().to_dict()
@@ -53,13 +54,14 @@ FILTERS = {
 AGGREGATORS = {
     'share':  Aggregator(share,    'INTEGER', 'REAL', 'TEXT'),
     'mode':   Aggregator(mode,     'INTEGER', 'REAL', 'TEXT'),
+    'cols':   Aggregator(cols,     'INTEGER', 'REAL', 'TEXT'),
+    'count':  Aggregator('count',  'INTEGER', 'REAL', 'TEXT'),
     'max':    Aggregator('max',    'INTEGER', 'REAL'),
     'min':    Aggregator('min',    'INTEGER', 'REAL'),
     'mean':   Aggregator('mean',   'INTEGER', 'REAL'),
     'median': Aggregator('median', 'INTEGER', 'REAL'),
     'std':    Aggregator('std',    'INTEGER', 'REAL'),
     'var':    Aggregator('var',    'INTEGER', 'REAL'),
-    'count':  Aggregator('count',  'INTEGER', 'REAL', 'TEXT'),
     'sum':    Aggregator('sum',    'INTEGER', 'REAL')
 }
 
@@ -180,6 +182,7 @@ def columns(query, conn: sqlite3.Connection):
     types = database.get_types(conn)
     if 'if' in query and query['if']:
         sql_filters = [f for f in query['if'] if type(f[0]) is not int]
+    if sql_filters:
         filters = list(map(lambda x: get_sql_filter_of(x, types), sql_filters))
     else:
         filters = ["TRUE"]
