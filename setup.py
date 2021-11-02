@@ -1,12 +1,11 @@
 #!/usr/bin/python
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import product
 from functools import reduce
-from typing import List, Dict
+from typing import List
 from database import *
 import random
-import string
 import os
 
 
@@ -17,7 +16,7 @@ def get_survey_quest_num(survey: Survey) -> int:
     survey -- Survey object
 
     Return value:
-    returns permission type, object name and object id
+    returns number of columns
     """
 
     conn = open_survey(survey)
@@ -46,31 +45,26 @@ def setup():
     db.drop_all()
     db.create_all()
 
-    for dir in ['data', 'raw', 'report', 'bkg']:
-        if not os.path.exists(dir):
-            os.makedirs(dir)
+    for directory in ['data', 'raw', 'report', 'bkg']:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
-    bkgs = os.listdir('bkg')
-
-    surveys_amount = 0
+    backgrounds = os.listdir('bkg')
 
     for filename in os.listdir('raw'):
         if filename.endswith(".csv"):
             survey = Survey(
                 Name=f'ankieta z {filename}',
-
                 StartedOn=datetime.now(),
-                EndsOn=datetime.now() + datetime.timedelta(days=56),
-                IsActive=random.randint(1),
-                BackgroundImg=random.choice(bkgs))
+                EndsOn=datetime.now() + timedelta(days=56),
+                IsActive=random.randint(0, 1),
+                BackgroundImg=random.choice(backgrounds))
             db.session.add(survey)
             db.session.commit()
+            csv_to_db(survey, filename)
             survey.QuestionCount = get_survey_quest_num(survey)
             db.session.commit()
-            csv_to_db(survey, filename)
-            surveys_amount += 1
 
-    # Create the administrator
     db.session.add(User(CasLogin='admin',
                         Pesel='9999999999',
                         Role='s',
@@ -82,6 +76,7 @@ def setup():
                         FetchData=True))
 
     db.session.commit()
+
 
 if __name__ == "__main__":
     setup()

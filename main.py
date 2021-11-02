@@ -44,53 +44,15 @@ def for_roles(*roles):
 @on_errors('could not get dashboard')
 @for_roles('s', 'u', 'g')
 def get_dashboard():
-    user = database.get_user()
-    user_surveys = database.get_user_surveys(user)
-    result = []
-    for survey in user_surveys:
-        author = database.get_user(survey.AuthorId)
-        result.append({
-            'type': 'survey',
-            'endsOn': survey.EndsOn.timestamp() if survey.EndsOn is not None else None,
-            'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None else None,
-            'id': survey.id,
-            'name': survey.Name,
-            'sharedTo': database.get_survey_users(survey),
-            'ankieterId': survey.AnkieterId,
-            'isActive': survey.IsActive,
-            'questionCount': survey.QuestionCount,
-            'backgroundImg': survey.BackgroundImg,
-            'userId': user.id,
-            'answersCount': database.get_answers_count(survey),
-            'authorId': author.id,
-        })
-    user_reports = database.get_user_reports(user)
-    for report in user_reports:
-        try:
-            survey = database.get_survey(report.SurveyId)
-        except:
-            continue
-        author = database.get_user(report.AuthorId)
-        result.append({
-            'type': 'report',
-            'id': report.id,
-            'name': report.Name,
-            'sharedTo': database.get_report_users(report),
-            'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
-            'backgroundImg': report.BackgroundImg,
-            'userId': user.id,
-            # 'author': author.Name
-            'authorId': author.id,
-        })
-    return {"objects": result}
+    return database.get_dashboard()
 
 
 @app.route('/api/user/all', methods=['GET'])
 @app.route('/api/users', methods=['GET'])
 @on_errors('could not obtain user list')
 @for_roles('s', 'u', 'g')
-def get_users():
-    return database.get_users()
+def get_all_users():
+    return database.get_all_users()
 
 
 @app.route('/api/user/new', methods=['POST'])
@@ -204,11 +166,9 @@ def rename_survey(survey_id):
     perm = database.get_survey_permission(survey, user)
     if perm != 'o':
         raise error.API('only the owner can rename a survey')
-
-    if 'title' not in request:
+    if 'title' not in request.json:
         raise error.API('no parameter title')
-    survey.Name = request.json['title']
-    # db.session.commit()
+    database.rename_survey(survey, request.json['title'])
     return {
         'message': 'survey name has been changed',
         'surveyId': survey.id,
@@ -350,7 +310,7 @@ def rename_report(report_id):
 
     if 'title' not in request.json:
         raise error.API('no parameter title')
-    rep = database.rename_report(report, request.json['title'])
+    database.rename_report(report, request.json['title'])
     return {
         'message': 'report name has been changed',
         'reportId': report.id,

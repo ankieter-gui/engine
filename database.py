@@ -137,7 +137,7 @@ def get_user(login: Any = "") -> User:
         elif re.match("[0-9]+", login):
             user = User.query.filter_by(Pesel=login).first()
         else:
-            users = get_users()
+            users = get_all_users()
             for u in users["users"]:
                 if u["casLogin"].split("@")[0] == login:
                     user = User.query.filter_by(id=u["id"]).first()
@@ -336,7 +336,7 @@ def get_survey_users(survey: Survey) -> dict:
     return result
 
 
-def get_users() -> dict:
+def get_all_users() -> dict:
     """Get all users
 
     Return value:
@@ -480,21 +480,28 @@ def get_group_users(group: str) -> List[User]:
     return users
 
 
-def rename_report(report: Report, name: str) -> int:
+def rename_report(report: Report, name: str):
     """Rename report
 
     Keyword arguments:
     report -- Report object
     name -- new report name
-
-    Return value:
-    returns List of User objects
     """
 
-    rep = Report.query.filter_by(id=report.id).first()
-    rep.Name = name
+    report.Name = name
     db.session.commit()
-    return rep.id
+
+
+def rename_survey(survey: Survey, name: str):
+    """Rename survey
+
+    Keyword arguments:
+    survey -- Survey object
+    name -- new survey name
+    """
+
+    survey.Name = name
+    db.session.commit()
 
 
 def delete_group(group: str):
@@ -519,15 +526,11 @@ def create_survey(user: User, name: str) -> Survey:
     returns Survey object
     """
 
-    survey = Survey(Name=name, QuestionCount=0, AuthorId=user.id)
+    backgrounds = os.listdir(path.join(ABSOLUTE_DIR_PATH, 'bkg'))
+    survey = Survey(Name=name, QuestionCount=0, AuthorId=user.id, BackgroundImg=random.choice(backgrounds))
     db.session.add(survey)
-    bkgs = os.listdir(path.join(ABSOLUTE_DIR_PATH,'bkg'))
-    survey.BackgroundImg = random.choice(bkgs)
     db.session.commit()
     set_survey_permission(survey, user, 'o')
-    conn = open_survey(survey)
-    #cur = conn.cursor()
-    #cur.execute("CREATE TABLE IF NOT EXISTS data(id INTEGER PRIMARY KEY)")
     return survey
 
 
@@ -787,6 +790,53 @@ def get_answers(survey_id: int) -> Dict:
                 result[header]["values"]["0"] = "NIE"
                 result[header]["values"]["1"] = "TAK"
     return result
+
+
+def get_dashboard() -> Dict:
+    """Get dashboard for user
+
+    Return value:
+    returns dictionary with surveys and reports
+    """
+
+    user = get_user()
+    user_surveys = get_user_surveys(user)
+    result = []
+    for survey in user_surveys:
+        author = get_user(survey.AuthorId)
+        result.append({
+            'type': 'survey',
+            'endsOn': survey.EndsOn.timestamp() if survey.EndsOn is not None else None,
+            'startedOn': survey.StartedOn.timestamp() if survey.StartedOn is not None else None,
+            'id': survey.id,
+            'name': survey.Name,
+            'sharedTo': get_survey_users(survey),
+            'ankieterId': survey.AnkieterId,
+            'isActive': survey.IsActive,
+            'questionCount': survey.QuestionCount,
+            'backgroundImg': survey.BackgroundImg,
+            'userId': user.id,
+            'answersCount': get_answers_count(survey),
+            'authorId': author.id,
+        })
+    user_reports = get_user_reports(user)
+    for report in user_reports:
+        try:
+            survey = get_survey(report.SurveyId)
+        except:
+            continue
+        author = get_user(report.AuthorId)
+        result.append({
+            'type': 'report',
+            'id': report.id,
+            'name': report.Name,
+            'sharedTo': get_report_users(report),
+            'connectedSurvey': {"id": report.SurveyId, "name": survey.Name},
+            'backgroundImg': report.BackgroundImg,
+            'userId': user.id,
+            'authorId': author.id,
+        })
+    return {"objects": result}
 
 
 def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
