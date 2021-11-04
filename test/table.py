@@ -61,6 +61,12 @@ good.append({
     "if": [["Age Rating", "notin", 4], [0, "<=", "1"], [0, "notin", 0.99]]
 })
 
+good.append({
+    "get": [["Age Rating"]],
+    "as": ["share"],
+    "if": [[0, "!=", 4]]
+})
+
 bad.append({
     "get": [["Price"]],
     "as": ["share"],

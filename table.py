@@ -1,5 +1,4 @@
-from pandas import concat, read_sql_query, DataFrame
-import numpy as np
+from pandas import concat, read_sql_query, DataFrame, NA
 import sqlite3
 import database
 import grammar
@@ -22,14 +21,14 @@ class Aggregator:
         self.types = set(types)
 
 
-def filter_gt(c):  return lambda n: n if n > c      else np.nan
-def filter_lt(c):  return lambda n: n if n < c      else np.nan
-def filter_le(c):  return lambda n: n if n <= c     else np.nan
-def filter_ge(c):  return lambda n: n if n >= c     else np.nan
-def filter_eq(c):  return lambda n: n if n == c     else np.nan
-def filter_ne(c):  return lambda n: n if n != c     else np.nan
-def filter_in(*c): return lambda n: n if n in c     else np.nan
-def filter_ni(*c): return lambda n: n if n not in c else np.nan
+def filter_gt(c):  return lambda n: n if n is not NA and n > c      else NA
+def filter_lt(c):  return lambda n: n if n is not NA and n < c      else NA
+def filter_le(c):  return lambda n: n if n is not NA and n <= c     else NA
+def filter_ge(c):  return lambda n: n if n is not NA and n >= c     else NA
+def filter_eq(c):  return lambda n: n if n is not NA and n == c     else NA
+def filter_ne(c):  return lambda n: n if n is not NA and n != c     else NA
+def filter_in(*c): return lambda n: n if n is not NA and n in c     else NA
+def filter_ni(*c): return lambda n: n if n is not NA and n not in c else NA
 
 
 def rows(s):  return len(s)
@@ -150,10 +149,12 @@ def get_pandas_filter_of(json_filter, ctype):
 
     pandas_filter = FILTERS[operator].func
 
-    if ctype == "TEXT":
-        args = [f'{arg}' for arg in args]
+    if ctype == "INTEGER":
+        args = [(arg if type(arg) is int else int(arg)) for arg in args]
+    elif ctype == "REAL":
+        args = [(arg if type(arg) is float else float(arg)) for arg in args]
     else:
-        args = [(float(arg) if type(arg) is str else arg) for arg in args]
+        args = [f'{arg}' for arg in args]
 
     result = pandas_filter(*args)
 
