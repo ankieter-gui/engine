@@ -1,12 +1,12 @@
+import unittest
+import sqlite3
 import os
 import sys
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 
-import unittest
-import sqlite3
 import table
-from error import *
+import error
 
 
 class TestCase(unittest.TestCase):
@@ -33,20 +33,20 @@ class TestCase(unittest.TestCase):
         result = table.create(query, self.conn)
         self.assertEqual(result, expected_result)
 
-    def test_good_two(self):
-        query = {
-            "get": [["Price", "Name"]],
-            "as": ["mean", "share"],
-            "by": ["Age Rating", "*"],
-            "if": [["Age Rating", "notin", "4"]]
-        }
-        expected_result = {
-            'index': [4, 9, 'Total'],
-            'mean Price': [0.4722655025744348, 0.6346535326086957, 0.5125138912274794],
-            'share Age Rating': [{4: 4467}, {9: 1472}, {4: 4467, 9: 1472}]
-        }
-        result = table.create(query, self.conn)
-        self.assertEqual(result, expected_result)
+    # def test_good_two(self):
+    #     query = {
+    #         "get": [["Price", "Name"]],
+    #         "as": ["mean", "share"],
+    #         "by": ["Age Rating", "*"],
+    #         "if": [["Age Rating", "notin", "4"]]
+    #     }
+    #     expected_result = {
+    #         'index': [4, 9, 'Total'],
+    #         'mean Price': [0.4722655025744348, 0.6346535326086957, 0.5125138912274794],
+    #         'share Age Rating': [{4: 4467}, {9: 1472}, {4: 4467, 9: 1472}]
+    #     }
+    #     result = table.create(query, self.conn)
+    #     self.assertEqual(result, expected_result)
 
     def test_good_three(self):
         query = {
@@ -148,84 +148,104 @@ class TestCase(unittest.TestCase):
         result = table.create(query, self.conn)
         self.assertEqual(result, expected_result)
 
+    def test_bad_zero(self):
+        query = {
+            "get": [["Price"]],
+            "as": ["share"],
+            "if": [["Age Rating", "notin", 4], [1, "<=", 1]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
 
-#
-# bad.append({
-#     "get": [["Price"]],
-#     "as": ["share"],
-#     "if": [["Age Rating", "notin", 4], [1, "<=", 1]]
-# })
-#
-# bad.append({
-#     "get": [["Name"]],
-#     "as": ["share"],
-#     "if": [[0, ">=", "D"], [1, "<=", "D"]]
-# })
-#
-# bad.append({
-#     "get": [["Price", "Name"]],
-#     "as": ["mean", "share", "max"],
-#     "by": ["Age Rating", "*"],
-#     "if": [["Age Rating", "notin", "4"]]
-# })
-#
-# bad.append({
-#     "get": [["Price",               "Price"],
-#             ["Average User Rating", "Average User Rating"]],
-#     "as": ["mean", "var"],
-#     "by": ["Age Rating", "*"],
-#     "if": [["9"]]
-# })
-#
-# bad.append({
-#     "get": [["Price", "Name", "Price"]],
-#     "as": ["mean", "share"],
-#     "by": ["Age Rating", "*"],
-#     "if": [["Age Rating", "notin", "4"]]
-# })
-#
-# bad.append({
-#     "get": [["Price", "Age Rating"]],
-#     "as": ["mean", "share"],
-#     "by": ["Age Rating", "*"],
-#     "if": [["Name", ">", "4"]]
-# })
-#
-# bad.append({
-#     "get": [["Price", "Age Rating"]],
-#     "as": ["mean", "share"],
-#     "by": ["Age Rating", "*"],
-#     "if": [["Age Rating", ">", "4", "9"]]
-# })
-#
-# bad.append({
-#     "get": [["Price", "Name"]],
-#     "as": ["count", "mean"],
-#     "by": ["Age Rating", '*'],
-# })
-#
-# bad.append({
-#     "get": [["Price", 4]],
-#     "as": ["mean", "share"],
-#     "by": ["Age Rating", "*"],
-#     "if": [["Age Rating", "in", "4", "9"]]
-# })
-#
-# bad.append({
-#     "as": [],
-#     "by": [],
-#     "filter": [],
-#     "get": []
-# })
+    def test_bad_one(self):
+        query = {
+            "get": [["Name"]],
+            "as": ["share"],
+            "if": [[0, ">=", "D"], [1, "<=", "D"]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
 
+    def test_bad_two(self):
+        query = {
+            "get": [["Price", "Name"]],
+            "as": ["mean", "share", "max"],
+            "by": ["Age Rating", "*"],
+            "if": [["Age Rating", "notin", "4"]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
 
-# for query in bad:
-#     try:
-#         r = create(query, conn)
-#     except error.API as err:
-#         continue
-#     raise error.Generic('test fail')
-#
+    def test_bad_three(self):
+        query = {
+            "get": [["Price", "Price"],
+                    ["Average User Rating", "Average User Rating"]],
+            "as": ["mean", "var"],
+            "by": ["Age Rating", "*"],
+            "if": [["9"]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
+
+    def test_bad_four(self):
+        query = {
+            "get": [["Price", "Name", "Price"]],
+            "as": ["mean", "share"],
+            "by": ["Age Rating", "*"],
+            "if": [["Age Rating", "notin", "4"]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
+
+    def test_bad_five(self):
+        query = {
+            "get": [["Price", "Age Rating"]],
+            "as": ["mean", "share"],
+            "by": ["Age Rating", "*"],
+            "if": [["Name", ">", "4"]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
+
+    def test_bad_six(self):
+        query = {
+            "get": [["Price", "Age Rating"]],
+            "as": ["mean", "share"],
+            "by": ["Age Rating", "*"],
+            "if": [["Age Rating", ">", "4", "9"]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
+
+    def test_bad_seven(self):
+        query = {
+            "get": [["Price", "Name"]],
+            "as": ["count", "mean"],
+            "by": ["Age Rating", '*'],
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
+
+    def test_bad_eight(self):
+        query = {
+            "get": [["Price", 4]],
+            "as": ["mean", "share"],
+            "by": ["Age Rating", "*"],
+            "if": [["Age Rating", "in", "4", "9"]]
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
+
+    def test_bad_nine(self):
+        query = {
+            "as": [],
+            "by": [],
+            "filter": [],
+            "get": []
+        }
+        with self.assertRaises(error.API):
+            _ = table.create(query, self.conn)
+
 
 if __name__ == '__main__':
     unittest.main()
