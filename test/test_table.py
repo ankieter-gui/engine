@@ -31,7 +31,10 @@ class TestCase(unittest.TestCase):
             'share Age Rating': [{4: 4467}, {9: 1472}, {4: 4467, 9: 1472}]
         }
         result = table.create(query, self.conn)
-        self.assertEqual(result, expected_result)
+        self.assertEqual(result['share Age Rating'], expected_result['share Age Rating'])
+        self.assertAlmostEqual(result['mean Price'][0], expected_result['mean Price'][0], places=7)
+        self.assertAlmostEqual(result['mean Price'][1], expected_result['mean Price'][1], places=7)
+        self.assertAlmostEqual(result['mean Price'][2], expected_result['mean Price'][2], places=7)
 
     # def test_good_two(self):
     #     query = {
@@ -67,7 +70,11 @@ class TestCase(unittest.TestCase):
                 {0.0: 2497, 0.99: 137, 1.99: 84, 2.99: 133, 3.99: 53, 4.99: 111, 5.99: 12, 6.99: 16, 7.99: 5, 9.99: 36,
                  11.99: 1, 12.99: 3, 14.99: 2, 19.99: 4}]}
         result = table.create(query, self.conn)
-        self.assertEqual(result, expected_result)
+        self.assertEqual(result['share Price'], expected_result['share Price'])
+        self.assertAlmostEqual(result['mean Price'][0], expected_result['mean Price'][0], places=7)
+        self.assertAlmostEqual(result['mean Price'][1], expected_result['mean Price'][1], places=7)
+        self.assertAlmostEqual(result['mean Price'][2], expected_result['mean Price'][2], places=7)
+        self.assertAlmostEqual(result['mean Price'][3], expected_result['mean Price'][3], places=7)
 
     def test_good_four(self):
         query = {
