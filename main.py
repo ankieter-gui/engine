@@ -639,6 +639,12 @@ def logout():
     return redirect(CAS_CLIENT.get_logout_url())
 
 
+@app.route('/docs', defaults={'filename': 'index.html'})
+@app.route('/docs/<path:filename>')
+def get_docs(filename):
+    return send_from_directory('docs/_build/html', filename)
+
+
 @app.route('/bkg/<path:path>', methods=['GET'])
 def get_bkg(path):
     return send_from_directory('bkg', path)
@@ -646,6 +652,7 @@ def get_bkg(path):
 @app.route('/<path:path>', methods=['GET'])
 def get_static_file(path):
     return send_from_directory('static', path)
+
 
 @app.route('/')
 @app.route('/groups')
