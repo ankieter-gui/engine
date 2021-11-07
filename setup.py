@@ -12,11 +12,10 @@ import os
 def get_survey_quest_num(survey: Survey) -> int:
     """Get number of questions for given survey
 
-    Keyword arguments:
-    survey -- Survey object
-
-    Return value:
-    returns number of columns
+    :param survey: survey
+    :type survey: object: Survey
+    :return: number of columns
+    :rtype: int
     """
 
     conn = open_survey(survey)
