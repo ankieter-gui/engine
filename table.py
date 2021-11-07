@@ -103,9 +103,7 @@ def typecheck(query, types):
             if types[col] not in agg.types:
                 raise error.API(f'aggregator "{op}" supports {", ".join(agg.types)}; got {types[col]} (column "{col}")')
 
-    if 'if' in query:
-        if not query['if']:
-            return
+    if 'if' in query and query['if']:
         for iff in query['if']:
             if len(iff) < 2:
                 raise error.API(f'filter "{" ".join(iff)}" is too short')
@@ -125,9 +123,7 @@ def typecheck(query, types):
             if type(col) is str and types[col] not in flt.types:
                 raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
 
-    if 'except' in query:
-        if not query['except']:
-            return
+    if 'except' in query and query['except']:
         for iff in query['except']:
             if len(iff) < 2:
                 raise error.API(f'filter "{" ".join(iff)}" is too short')
