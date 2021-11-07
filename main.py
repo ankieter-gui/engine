@@ -670,7 +670,7 @@ if __name__ == '__main__':
     license = open('LICENSE', 'r')
     print(license.read())
     if DEBUG:
-    	print('debug mode on: accounts can be accessed WITHOUT password')
+        print('debug mode on: accounts can be accessed WITHOUT password')
     print('starting deamon threads')
 
     for d in daemon.LIST:
