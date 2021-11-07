@@ -882,14 +882,14 @@ def get_default_values(survey_id: int):
     result = {}
     questions = ["groupedsingle","single","multi"]
     for b in xml.getroot().iter("questions"):
-        if b[0].tag in questions:
-            header=re.sub('</?\w[^>]*>', '', b[0].find("header").text).strip(' \n')
-            result[header]=set(['9999'])
-            for c in b:
-                if 'defaultValue' in c.attrib:
-                    result[header].add(c.attrib['defaultValue'])
-            result[header]=list(result[header])
-
+        for e in list(b):
+            if e.tag in questions:
+                header=re.sub('</?\w[^>]*>', '', e.find("header").text).strip(' \n') 
+                result[header]=set(['9999'])
+                if 'defaultValue' in e.attrib:
+                    result[header].add(e.attrib['defaultValue'])
+                result[header]=list(result[header])
+    
     return result
 
 
