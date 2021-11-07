@@ -2,10 +2,11 @@ import typing
 import error
 
 REQUEST_TABLE = {
-    'get': [[str]],
-    'as':  [str],
-    'by':  ([str],   'optional'),
-    'if':  ([list], 'optional'),
+    'get':    [[str]],
+    'as':     [str],
+    'by':     ([str],  'optional'),
+    'if':     ([list], 'optional'),
+    'except': ([list], 'optional'),
 }
 
 REQUEST_CREATE_SURVEY = {
