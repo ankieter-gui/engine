@@ -7,6 +7,12 @@ REQUEST_TABLE = {
     'by':     ([str],  'optional'),
     'if':     ([list], 'optional'),
     'except': ([list], 'optional'),
+    'join':   ([
+        {
+            'name': str,
+            'of':   [str],
+        }
+    ], 'optional'),
 }
 
 REQUEST_CREATE_SURVEY = {

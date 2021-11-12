@@ -92,6 +92,25 @@ def typecheck(query, types):
         if agg not in AGGREGATORS:
             raise error.API(f'unknown aggregator "{agg}"')
 
+    # Check if joins are correct, and add their types to 'types'
+    if 'join' in query and query['join']:
+        for join in query['join']:
+            if join['name'] in types:
+                raise error.API(f'cannot join columns into "{join["name"]}" as the name already exists in the dataset')
+            if not join['of']:
+                raise error.API(f'requested to create a new column out of an empty column list')
+
+            maintype = types[join['of'][0]]
+            for of in join['of']:
+                if of not in types:
+                    raise error.API(f'requested to join column "{of}", but it does not exist')
+                if types[of] != maintype:
+                    raise error.API(f'requested to join columns of different types ({types[of]}, {maintype})')
+
+            # If this join is fine, add the missing column types for other checks to succeed
+            types[join['name']] = maintype
+
+
     # Check if values are to be groupped by an existent column
     if 'by' not in query:
         query['by'] = ['*']
@@ -181,10 +200,18 @@ def columns(query, conn: sqlite3.Connection):
     columns = set()
     for get in query['get']:
         columns.update(get)
+
     columns.update([c for c in query['by'] if not c.startswith('*')])
+
+    if 'join' in query:
+        for join in query['join']:
+            columns.discard(join['name'])
+            columns.update(join['of'])
+
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
 
     types = database.get_types(conn)
+
 
     # Create an SQL inclusive filter string
     sql_filters = None
@@ -196,6 +223,7 @@ def columns(query, conn: sqlite3.Connection):
         filters = ["TRUE"]
     inclusive_filters = ' AND '.join(filters)
 
+
     # Create an SQL exclusive filter string
     sql_filters = None
     if 'except' in query and query['except']:
@@ -206,9 +234,25 @@ def columns(query, conn: sqlite3.Connection):
         filters = ["FALSE"]
     exclusive_filters = ' AND '.join(filters)
 
+
     # Gather the data from the database
     sql = f'SELECT {columns_to_select} FROM data WHERE ({inclusive_filters}) AND NOT ({exclusive_filters});'
-    df = read_sql_query(sql, conn)
+    src = read_sql_query(sql, conn)
+
+    group_names = [c for c in query['by'] if not c.startswith('*')]
+    groups = src[group_names]
+    dst = src[group_names]
+    dst.columns = [f'group {c}' for c in group_names]
+
+    # Perform joins on columns
+    if 'join' in query and query['join']:
+        for join in query['join']:
+            # Append the column with data from source columns
+            for column in join['of']:
+                part = src[[column]]
+                part.columns = [join['name']]
+                part = part.join(groups)
+                dst = dst.append(part)
 
     # Apply column-specific filters
     # Obtain column filter list
@@ -221,17 +265,18 @@ def columns(query, conn: sqlite3.Connection):
 
     for get in query['get']:
         for i, column in enumerate(get):
-            c = df[[column]]
+            if column in src:
+                series = src[column]
+            else:
+                series = dst[column]
 
             name = f'{query["as"][i]} {column}'
-            c.columns = [name]
 
             if i in filters:
                 for f in filters[i]:
-                    c[name] = c[name].apply(get_pandas_filter_of(f, types[column]))
-            df = df.join(c)
-
-    return df
+                    series = series.apply(get_pandas_filter_of(f, types[column]))
+            dst[name] = series
+    return dst
 
 
 def aggregate(query, data):
@@ -251,6 +296,7 @@ def aggregate(query, data):
             aggr_name = query['as'][i]
             aggr = AGGREGATORS[aggr_name]
             col_name = f'{aggr_name} {column}'
+
             if col_name not in columns:
                 columns[col_name] = []
             columns[col_name].append(aggr.func)
@@ -258,8 +304,10 @@ def aggregate(query, data):
     if 'by' not in query or not query['by']:
         query['by'] = ['*']
 
+    groups = [(g if g.startswith('*') else f'group {g}') for g in query['by']]
+
     result = None
-    for group in query['by']:
+    for group in groups:
         name = None
 
         if group.startswith('*'):
