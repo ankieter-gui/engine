@@ -73,27 +73,33 @@ def typecheck(query, types):
     types -- column types
     """
 
+    # Check the query grammar
     grammar.check(grammar.REQUEST_TABLE, query)
 
+    # Check if the query is not empty
     if len(query['get']) == 0 or len(query['get'][0]) == 0:
         raise error.API(f'no columns were requested')
 
+    # Check if the number of requested columns equals the number of aggregations
     for i, get in enumerate(query['get']):
         if len(get) != len(query['as']):
             if len(get) != 1:
                 raise error.API(f'the number of columns requested by "get" does not equal the number of filters in "as" clause')
             query['get'][i] = get * len(query['as'])
 
+    # Check if all requested aggregations are known
     for agg in query['as']:
         if agg not in AGGREGATORS:
             raise error.API(f'unknown aggregator "{agg}"')
 
+    # Check if values are to be groupped by an existent column
     if 'by' not in query:
         query['by'] = ['*']
     for by in query['by']:
         if not by.startswith('*') and by not in types:
             raise error.API(f'cannot group by "{by}" as there is no such column')
 
+    # Check if requested column types are appropriate for requested aggregators
     for get in query['get']:
         for i, col in enumerate(get):
             op = query['as'][i]
@@ -103,6 +109,7 @@ def typecheck(query, types):
             if types[col] not in agg.types:
                 raise error.API(f'aggregator "{op}" supports {", ".join(agg.types)}; got {types[col]} (column "{col}")')
 
+    # Check if 'except' and 'if' filter types have appropriate types and number of arguments
     for cond in ['if', 'except']:
         if cond in query and query[cond]:
             for iff in query[cond]:
