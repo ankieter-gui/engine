@@ -877,8 +877,8 @@ def get_columns(conn: sqlite3.Connection) -> List[str]:
     return columns
 
 
-def get_default_values(survey_id: int):
-    xml = ET.parse(f"./survey/{survey_id}.xml")
+def get_default_values(survey: Survey):
+    xml = ET.parse(f"survey/{survey.id}.xml")
     result = {}
     questions = ["groupedsingle","single","multi"]
     for b in xml.getroot().iter("questions"):
@@ -951,7 +951,13 @@ def csv_to_db(survey: Survey, filename: str):
         for column in df.filter(regex="czas wypełniania").columns:
             df.drop(column, axis=1, inplace=True)
 
+        defValues=get_default_values(survey)
         columns = df.columns.values
+        for k,v in defValues.items():
+            for c in columns:
+                if re.search(k,c):
+                    df[c]=df[c].replace([int(x) for x in v],9999)
+                    
         repeats = df.filter(regex=r'\.\d+$').columns.values
         uniques = [c for c in columns if c not in repeats]
 
