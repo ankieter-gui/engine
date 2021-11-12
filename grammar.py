@@ -50,11 +50,14 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
     returns message after analyze
     """
 
+    # Check if obj is of the desired type
     if type(tp) is type:
         if type(obj) is tp:
             return ''
         else:
             return f'expected {tp.__name__}, got {type(obj).__name__}'
+
+    # If the desired type is a list, check types of each of its elements
     if type(tp) is list:
         if type(obj) is not list:
             return f'expected {type(tp).__name__}, got {type(obj).__name__}'
@@ -62,6 +65,8 @@ def analyze(tp: typing.Any, obj: typing.Any) -> str:
             if msg := analyze(tp[0], o):
                 return f'in element [{i}]: {msg}'
         return ''
+
+    # If the desired type is a dict, check types of values under each key
     if type(tp) is dict:
         if type(obj) is not dict:
             return f'expected {type(tp).__name__}, got {type(obj).__name__}'
