@@ -185,7 +185,7 @@ def get_pandas_filter_of(json_filter, ctype):
     return result
 
 
-def columns(query, conn: sqlite3.Connection):
+def columns(query, types, conn: sqlite3.Connection):
     """Obtain dataframe required to compute the query
 
     Keyword arguments:
@@ -210,8 +210,7 @@ def columns(query, conn: sqlite3.Connection):
 
     columns_to_select = ', '.join([f'"{elem}"' for elem in columns])
 
-    types = database.get_types(conn)
-
+    # types = database.get_types(conn)
 
     # Create an SQL inclusive filter string
     sql_filters = None
@@ -361,7 +360,7 @@ def create(query, conn: sqlite3.Connection):
     try:
         types = database.get_types(conn)
         typecheck(query, types)
-        data = columns(query, conn)
+        data = columns(query, types, conn)
         data = aggregate(query, data)
         table = reorder(data)
     except error.API as err:
