@@ -92,6 +92,13 @@ def typecheck(query, types):
         if agg not in AGGREGATORS:
             raise error.API(f'unknown aggregator "{agg}"')
 
+    # Check if values are to be groupped by an existent column
+    if 'by' not in query:
+        query['by'] = ['*']
+    for by in query['by']:
+        if not by.startswith('*') and by not in types:
+            raise error.API(f'cannot group by "{by}" as there is no such column')
+
     # Check if joins are correct, and add their types to 'types'
     if 'join' in query and query['join']:
         for join in query['join']:
@@ -109,14 +116,6 @@ def typecheck(query, types):
 
             # If this join is fine, add the missing column types for other checks to succeed
             types[join['name']] = maintype
-
-
-    # Check if values are to be groupped by an existent column
-    if 'by' not in query:
-        query['by'] = ['*']
-    for by in query['by']:
-        if not by.startswith('*') and by not in types:
-            raise error.API(f'cannot group by "{by}" as there is no such column')
 
     # Check if requested column types are appropriate for requested aggregators
     for get in query['get']:
@@ -312,7 +311,7 @@ def aggregate(query, data):
         if group.startswith('*'):
             if len(group) > 1:
                 name = group[1:]
-            group = [True]*len(data)
+            group = [True]*data.shape[0]
 
         ingroups = data.copy().groupby(group).aggregate(columns)
 
