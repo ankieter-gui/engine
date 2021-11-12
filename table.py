@@ -103,45 +103,26 @@ def typecheck(query, types):
             if types[col] not in agg.types:
                 raise error.API(f'aggregator "{op}" supports {", ".join(agg.types)}; got {types[col]} (column "{col}")')
 
-    if 'if' in query and query['if']:
-        for iff in query['if']:
-            if len(iff) < 2:
-                raise error.API(f'filter "{" ".join(iff)}" is too short')
+    for cond in ['if', 'except']:
+        if cond in query and query[cond]:
+            for iff in query[cond]:
+                if len(iff) < 2:
+                    raise error.API(f'filter "{" ".join(iff)}" is too short')
 
-            col, op, *args = iff
-            flt = FILTERS.get(op, None)
-            if flt is None:
-                raise error.API(f'unknown filter {op}')
-            if type(col) is int and col >= len(query['get'][0]):
-                raise error.API(f'cannot filter "{col}" as there\'s no column of that number')
-            if type(col) is str and col not in types:
-                raise error.API(f'cannot filter by "{col}" as there\'s no such column')
-            if flt.arity is not None and len(args) != flt.arity:
-                raise error.API(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
-            if type(col) is int and types[query['get'][0][col]] not in flt.types:
-                raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[query["get"][0][col]]} (column no. {col})')
-            if type(col) is str and types[col] not in flt.types:
-                raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
-
-    if 'except' in query and query['except']:
-        for iff in query['except']:
-            if len(iff) < 2:
-                raise error.API(f'filter "{" ".join(iff)}" is too short')
-
-            col, op, *args = iff
-            flt = FILTERS.get(op, None)
-            if flt is None:
-                raise error.API(f'unknown filter {op}')
-            if type(col) is int and col >= len(query['get'][0]):
-                raise error.API(f'cannot filter "{col}" as there\'s no column of that number')
-            if type(col) is str and col not in types:
-                raise error.API(f'cannot filter by "{col}" as there\'s no such column')
-            if flt.arity is not None and len(args) != flt.arity:
-                raise error.API(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
-            if type(col) is int and types[query['get'][0][col]] not in flt.types:
-                raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[query["get"][0][col]]} (column no. {col})')
-            if type(col) is str and types[col] not in flt.types:
-                raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
+                col, op, *args = iff
+                flt = FILTERS.get(op, None)
+                if flt is None:
+                    raise error.API(f'unknown filter {op}')
+                if type(col) is int and col >= len(query['get'][0]):
+                    raise error.API(f'cannot filter "{col}" as there\'s no column of that number')
+                if type(col) is str and col not in types:
+                    raise error.API(f'cannot filter by "{col}" as there\'s no such column')
+                if flt.arity is not None and len(args) != flt.arity:
+                    raise error.API(f'filter "{op}" expects {flt.arity} arguments; got {len(args)}')
+                if type(col) is int and types[query['get'][0][col]] not in flt.types:
+                    raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[query["get"][0][col]]} (column no. {col})')
+                if type(col) is str and types[col] not in flt.types:
+                    raise error.API(f'filter "{op}" supports {", ".join(flt.types)}; got {types[col]} (column "{col}")')
 
 
 def get_sql_filter_of(json_filter, types):
