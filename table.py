@@ -32,7 +32,16 @@ def filter_in(*c): return lambda n: n if pandas.notna(n) and n in c     else pan
 def filter_ni(*c): return lambda n: n if pandas.notna(n) and n not in c else pandas.NA
 
 def rows(s):  return len(s)
-def share(s): return s.value_counts().to_dict()
+def share(s):
+    s = s.value_counts().to_dict()
+
+    # Sometimes, if the original series contained a numeric type, the same type
+    # will be used for count values. Here they're converted back to ints,
+    # as the rest of the software expects.
+    for k, v in s.items():
+        s[k] = int(v)
+
+    return s
 def mode(s):
     s = s.value_counts().to_dict()
     return max(s, key=s.get)
