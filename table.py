@@ -1,4 +1,6 @@
-from pandas import concat, read_sql_query, DataFrame, NA
+from pandas import concat, read_sql_query, NA
+import pandas
+import numpy
 import sqlite3
 import database
 import grammar
@@ -21,15 +23,14 @@ class Aggregator:
         self.types = set(types)
 
 
-def filter_gt(c):  return lambda n: n if n is not NA and n > c      else NA
-def filter_lt(c):  return lambda n: n if n is not NA and n < c      else NA
-def filter_le(c):  return lambda n: n if n is not NA and n <= c     else NA
-def filter_ge(c):  return lambda n: n if n is not NA and n >= c     else NA
-def filter_eq(c):  return lambda n: n if n is not NA and n == c     else NA
-def filter_ne(c):  return lambda n: n if n is not NA and n != c     else NA
-def filter_in(*c): return lambda n: n if n is not NA and n in c     else NA
-def filter_ni(*c): return lambda n: n if n is not NA and n not in c else NA
-
+def filter_gt(c):  return lambda n: n if not pandas.isna(n) and n > c      else pandas.NA
+def filter_lt(c):  return lambda n: n if not pandas.isna(n) and n < c      else pandas.NA
+def filter_le(c):  return lambda n: n if not pandas.isna(n) and n <= c     else pandas.NA
+def filter_ge(c):  return lambda n: n if not pandas.isna(n) and n >= c     else pandas.NA
+def filter_eq(c):  return lambda n: n if not pandas.isna(n) and n == c     else pandas.NA
+def filter_ne(c):  return lambda n: n if not pandas.isna(n) and n != c     else pandas.NA
+def filter_in(*c): return lambda n: n if not pandas.isna(n) and n in c     else pandas.NA
+def filter_ni(*c): return lambda n: n if not pandas.isna(n) and n not in c else pandas.NA
 
 def rows(s):  return len(s)
 def share(s): return s.value_counts().to_dict()
@@ -235,7 +236,7 @@ def columns(query, types, conn: sqlite3.Connection):
 
     # Gather the data from the database
     sql = f'SELECT {columns_to_select} FROM data WHERE ({inclusive_filters}) AND NOT ({exclusive_filters});'
-    src = read_sql_query(sql, conn)
+    src = pandas.read_sql_query(sql, conn)
 
     group_names = [c for c in query['by'] if not c.startswith('*')]
     groups = src[group_names]
@@ -249,8 +250,12 @@ def columns(query, types, conn: sqlite3.Connection):
             for column in join['of']:
                 part = src[[column]]
                 part.columns = [join['name']]
-                part = part.join(groups)
-                dst = dst.append(part)
+                if join['name'] in dst:
+                    part = part.join(groups)
+                    dst = dst.append(part, ignore_index=True)
+                else:
+                    # If no such column yet, it has to be created, not appended
+                    dst = dst.join(part)
 
     # Apply column-specific filters
     # Obtain column filter list
@@ -273,7 +278,10 @@ def columns(query, types, conn: sqlite3.Connection):
             if i in filters:
                 for f in filters[i]:
                     series = series.apply(get_pandas_filter_of(f, types[column]))
-            dst[name] = series
+            dst = dst.assign(**{name: series})
+
+    dst.fillna(pandas.NA, inplace=True)
+
     return dst
 
 
@@ -311,7 +319,7 @@ def aggregate(query, data):
         if group.startswith('*'):
             if len(group) > 1:
                 name = group[1:]
-            group = [True]*data.shape[0]
+            group = lambda x: True
 
         ingroups = data.copy().groupby(group).aggregate(columns)
 
@@ -320,7 +328,7 @@ def aggregate(query, data):
         if result is None:
             result = ingroups
         else:
-            result = concat([result, ingroups])
+            result = pandas.concat([result, ingroups])
     return result
 
 
