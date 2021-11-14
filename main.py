@@ -642,7 +642,7 @@ def logout():
 @app.route('/docs', defaults={'filename': 'index.html'})
 @app.route('/docs/<path:filename>')
 def get_docs(filename):
-    return send_from_directory('docs/_build/html', filename)
+    return send_from_directory('static', filename)
 
 
 @app.route('/bkg/<path:path>', methods=['GET'])
