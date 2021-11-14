@@ -889,7 +889,7 @@ def get_default_values(survey: Survey):
                 if header not in result:
                     result[header] = {'9999'}
                 if 'defaultValue' in e.attrib:
-                    result[header].add(e.attrib['defaultValue'])
+                    result[header].add(str(e.attrib['defaultValue']))
 
     return result
 
@@ -941,10 +941,15 @@ def csv_to_db(survey: Survey, filename: str, defaults: dict = {}):
 
     def nodefaults(group):
         def f(vals):
+            # Excluding this case noticeably speeds up processing
+            if len(vals) == 1:
+                return vals[0]
+
             if group not in defaults:
                 return shame(vals)
+
             for v in vals:
-                if v not in defaults[group]:
+                if str(v) not in defaults[group]:
                     return v
             return vals[0]
         return f
@@ -977,7 +982,7 @@ def csv_to_db(survey: Survey, filename: str, defaults: dict = {}):
             esc = re.escape(u)
             group = list(df.filter(regex=esc+'\.\d+$').columns.values)
             group.append(u)
-            df[u] = df[group].aggregate(dropdefaults(u), axis='columns')
+            df[u] = df[group].aggregate(nodefaults(u), axis='columns')
             df = df.drop(group[:-1], axis='columns')
 
         df.to_sql("data", conn, if_exists="replace")
