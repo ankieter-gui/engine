@@ -879,17 +879,18 @@ def get_columns(conn: sqlite3.Connection) -> List[str]:
 
 def get_default_values(survey: Survey):
     xml = ET.parse(f"survey/{survey.id}.xml")
-    result = {}
     questions = ["groupedsingle","single","multi"]
+
+    result = {}
     for b in xml.getroot().iter("questions"):
         for e in list(b):
             if e.tag in questions:
-                header=re.sub('</?\w[^>]*>', '', e.find("header").text).strip(' \n') 
-                result[header]=set(['9999'])
+                header = re.sub('</?\w[^>]*>', '', e.find("header").text).strip(' \n')
+                if header not in result:
+                    result[header] = {'9999'}
                 if 'defaultValue' in e.attrib:
                     result[header].add(e.attrib['defaultValue'])
-                result[header]=list(result[header])
-    
+
     return result
 
 
@@ -920,12 +921,13 @@ def detect_csv_sep(filename: str) -> str:
     return sep
 
 
-def csv_to_db(survey: Survey, filename: str):
+def csv_to_db(survey: Survey, filename: str, defaults: dict = {}):
     """Convert csv file to database
 
     Keyword arguments:
-    survey -- Survey object
+    survey -- Survey objectct
     filename -- name of a csv file
+    defaults -- a dict with default value for each column name
     """
 
     def shame(vals):
@@ -936,6 +938,16 @@ def csv_to_db(survey: Survey, filename: str):
         if len(counts) == 0:
             return None
         return min(counts, key=counts.get)
+
+    def nodefaults(group):
+        def f(vals):
+            if group not in defaults:
+                return shame(vals)
+            for v in vals:
+                if v not in defaults[group]:
+                    return v
+            return vals[0]
+        return f
 
     try:
         conn = open_survey(survey)
@@ -951,13 +963,13 @@ def csv_to_db(survey: Survey, filename: str):
         for column in df.filter(regex="czas wypełniania").columns:
             df.drop(column, axis=1, inplace=True)
 
-        defValues=get_default_values(survey)
+        defValues = get_default_values(survey)
         columns = df.columns.values
         for k,v in defValues.items():
             for c in columns:
                 if re.search(k,c):
-                    df[c]=df[c].replace([int(x) for x in v],9999)
-                    
+                    df[c] = df[c].replace([int(x) for x in v], 9999)
+
         repeats = df.filter(regex=r'\.\d+$').columns.values
         uniques = [c for c in columns if c not in repeats]
 
@@ -965,7 +977,7 @@ def csv_to_db(survey: Survey, filename: str):
             esc = re.escape(u)
             group = list(df.filter(regex=esc+'\.\d+$').columns.values)
             group.append(u)
-            df[u] = df[group].aggregate(shame, axis='columns')
+            df[u] = df[group].aggregate(dropdefaults(u), axis='columns')
             df = df.drop(group[:-1], axis='columns')
 
         df.to_sql("data", conn, if_exists="replace")
@@ -976,4 +988,3 @@ def csv_to_db(survey: Survey, filename: str):
         return err
     except Exception as e:
         raise error.API(str(e) + ' while parsing csv/xlsx')
-

@@ -521,12 +521,14 @@ def upload_results(survey_id):
 
     if survey_id:
         survey = database.get_survey(survey_id)
+        defaults = database.get_default_values(survey)
     else:
         survey = database.create_survey(user, name)
+        defaults = {}
 
-    file.save(os.path.join(ABSOLUTE_DIR_PATH, "raw/", f"{survey.id}.{ext}"))
+    file.save(f"raw/{survey.id}.{ext}")
 
-    database.csv_to_db(survey, f"{survey.id}.{ext}")
+    database.csv_to_db(survey, f"{survey.id}.{ext}", defaults)
     conn = database.open_survey(survey)
     survey.QuestionCount = len(database.get_columns(conn))
     conn.close()
@@ -682,4 +684,3 @@ if __name__ == '__main__':
         app.run()
     else:
         app.run(ssl_context=SSL_CONTEXT, port=APP_PORT, host='0.0.0.0')
-
