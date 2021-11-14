@@ -31,6 +31,15 @@ def filter_ne(c):  return lambda n: n if pandas.notna(n) and n != c     else pan
 def filter_in(*c): return lambda n: n if pandas.notna(n) and n in c     else pandas.NA
 def filter_ni(*c): return lambda n: n if pandas.notna(n) and n not in c else pandas.NA
 
+def tobasetypes(s):
+    if isinstance(s.dtype, pandas.core.arrays.string_.StringDtype):
+        s = s.astype('string')
+    if isinstance(s.dtype, pandas.core.arrays.floating.Float64Dtype):
+        s = s.astype('float')
+    if isinstance(s.dtype, pandas.core.arrays.integer.Int64Dtype):
+        s = s.astype('int')
+    return s
+
 def rows(s):  return len(s)
 def share(s):
     s = s.value_counts().to_dict()
@@ -356,7 +365,7 @@ def reorder(data):
     returns survey reordered data
     """
 
-    data = data.fillna('nd.')
+    data = data.apply(tobasetypes)
 
     data.columns = [f'{label}' for label, aggr in data.columns]
 
