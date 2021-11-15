@@ -167,10 +167,11 @@ def create_user(cas_login: str, pesel: str, role: str) -> User:
 
 
 def delete_user(user: User):
-    """Delete user.
+    """Delete user from Users database and his permission
+    from SurveyPermissions and ReportPermissions.
 
-    Keyword arguments:
-    user -- User object
+    :param user:
+    :type user: User
     """
 
     sur_perms = SurveyPermission.query.filter_by(UserId=user.id).all()
@@ -186,17 +187,17 @@ def delete_user(user: User):
     db.session.commit()
 
 
-def get_survey(id: int) -> Survey:
+def get_survey(survey_id: int) -> Survey:
     """Get survey by given id.
 
-    Keyword arguments:
-    id -- id of a survey
-
-    Return value:
-    returns Survey object
+    :param survey_id: survey's id
+    :type survey_id: int
+    :raises error.API: no such survey
+    :return: returns survey
+    :rtype: Survey
     """
 
-    survey = Survey.query.filter_by(id=id).first()
+    survey = Survey.query.filter_by(id=survey_id).first()
     if survey is None:
         raise error.API('no such survey')
     return survey
