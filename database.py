@@ -365,24 +365,20 @@ def get_groups() -> List[str]:
     return [ug.Group for ug in user_groups]
 
 
-def set_user_group(user: User, group: str) -> UserGroup:
-    """Assign user to a group
+def set_user_group(user: User, group_name: str):
+    """Set group for user. If already exists do nothing.
 
-    Keyword arguments:
-    user -- User object
-    group -- group name
-
-    Return value:
-    returns UserGroup object
+    :param user: User
+    :type user: User
+    :param group_name: Name of a group
+    :type group_name: str
     """
 
-    user_group = UserGroup.query.filter_by(UserId=user.id, Group=group).first()
-    if user_group is not None:
-        return user_group
-    user_group = UserGroup(UserId=user.id, Group=group)
-    db.session.add(user_group)
-    db.session.commit()
-    return user_group
+    user_group = UserGroup.query.filter_by(UserId=user.id, Group=group_name).first()
+    if user_group is None:
+        user_group = UserGroup(UserId=user.id, Group=group_name)
+        db.session.add(user_group)
+        db.session.commit()
 
 
 def unset_user_group(user: User, group: str):

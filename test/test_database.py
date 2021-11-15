@@ -125,12 +125,16 @@ class TestCase(unittest.TestCase):
     def test_get_groups(self):
         result = get_groups()
         expected = ['student', 'wmi']
-        self.assertEqual(result, expected)
+        self.assertListEqual(result, expected)
 
     def test_get_user_groups(self):
         result = get_user_groups(self.user)
         expected = ['student', 'wmi']
-        self.assertEqual(result,expected)
+        self.assertListEqual(result, expected)
+
+    def test_set_user_groups(self):
+        set_user_group(self.user2, 'dyrektor')
+        self.assertListEqual(['dyrektor', 'student'], get_user_groups(self.user2))
 
 
 if __name__ == '__main__':
