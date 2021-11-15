@@ -83,6 +83,37 @@ AGGREGATORS = {
 }
 
 
+def applymacros(query):
+    # Is there a macro at all?
+    if 'macro' not in query:
+        return query
+
+    # Is the macro empty?
+    if type(query['macro']) is not list or not query['macro']:
+        raise error.API('a macro must be a list of strings')
+
+    # Save the macro and its arguments
+    macro, *args = query['macro']
+
+    # Detect macro type
+    if macro == 'count-answers':
+        grammar.check(grammar.REQUEST_TABLE_QUESTION_COUNT, query)
+        if len(args) <= 0:
+            raise error.API(f'the "{macro}" macro requires at least one argument (empty answer value)')
+        if 'except' not in query:
+            query['except'] = []
+        for q in query['get'][0]:
+            query['except'].append([q, 'in', *args])
+
+        # Leave only the first column name
+        query['get'] = [[query['get'][0][0]]]
+        # And aggregate it as rows
+        query['as'] = ['rows']
+    else:
+        raise error.API(f'unknown macro "{macro}"')
+    return query
+
+
 def typecheck(query, types):
     """Check types of survey data
 
@@ -389,6 +420,7 @@ def create(query, conn: sqlite3.Connection):
 
     try:
         types = database.get_types(conn)
+        query = applymacros(query)
         typecheck(query, types)
         data = columns(query, types, conn)
         data = aggregate(query, data)

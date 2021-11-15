@@ -13,6 +13,14 @@ REQUEST_TABLE = {
             'of':   [str],
         }
     ], 'optional'),
+    'macro':  ([str],    'optional'),
+}
+
+REQUEST_TABLE_QUESTION_COUNT = {
+    'get':    [[str]],
+    'if':     ([list], 'optional'),
+    'except': ([list], 'optional'),
+    'macro':  [str],
 }
 
 REQUEST_CREATE_SURVEY = {
