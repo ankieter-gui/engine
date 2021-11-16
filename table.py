@@ -31,7 +31,9 @@ def filter_ne(c):  return lambda n: n if pandas.notna(n) and n != c     else pan
 def filter_in(*c): return lambda n: n if pandas.notna(n) and n in c     else pandas.NA
 def filter_ni(*c): return lambda n: n if pandas.notna(n) and n not in c else pandas.NA
 
-def rows(s):  return len(s)
+
+def rows(s):  return len(s.index.unique())
+def count(s): return len(s.dropna().index.unique())
 def share(s):
     s = s.value_counts().to_dict()
 
@@ -73,7 +75,7 @@ AGGREGATORS = {
     'share':  Aggregator(share,    'INTEGER', 'REAL', 'TEXT'),
     'mode':   Aggregator(mode,     'INTEGER', 'REAL', 'TEXT'),
     'rows':   Aggregator(rows,     'INTEGER', 'REAL', 'TEXT'),
-    'count':  Aggregator('count',  'INTEGER', 'REAL', 'TEXT'),
+    'count':  Aggregator(count,    'INTEGER', 'REAL', 'TEXT'),
     'max':    Aggregator('max',    'INTEGER', 'REAL'),
     'min':    Aggregator('min',    'INTEGER', 'REAL'),
     'mean':   Aggregator('mean',   'INTEGER', 'REAL'),
