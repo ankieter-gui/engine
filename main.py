@@ -127,7 +127,7 @@ def create_survey():
 @on_errors('could not upload survey')
 @for_roles('s', 'u')
 def upload_survey(survey_id):
-    if not request.files['file']:
+    if 'file' not in request not request.files['file']:
         raise error.API('empty survey data')
 
     file = request.files['file']

@@ -35,7 +35,7 @@ def setup(admin, pesel):
     db.drop_all()
     db.create_all()
 
-    for directory in ['data', 'raw', 'report', 'bkg']:
+    for directory in ['data', 'raw', 'report', 'survey', 'bkg']:
         if not os.path.exists(directory):
             os.makedirs(directory)
 
