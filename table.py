@@ -56,6 +56,7 @@ def tobasetypes(s):
         s = s.astype('float')
     if isinstance(s.dtype, pandas.core.arrays.integer.Int64Dtype):
         s = s.astype('int')
+    s = s.apply(lambda x: int(x) if type(x) is float and x.is_integer() else x)
     return s
 
 
