@@ -902,8 +902,11 @@ def get_answers_count(survey: Survey) -> int:
 
     conn = open_survey(survey)
     cur = conn.cursor()
-    cur.execute("SELECT * FROM data")
-    n = len(cur.fetchall())
+    try:
+        cur.execute("SELECT * FROM data")
+        n = len(cur.fetchall())
+    except:
+        n = 0
     conn.close()
     return n
 
