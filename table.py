@@ -31,15 +31,6 @@ def filter_ne(c):  return lambda n: n if pandas.notna(n) and n != c     else pan
 def filter_in(*c): return lambda n: n if pandas.notna(n) and n in c     else pandas.NA
 def filter_ni(*c): return lambda n: n if pandas.notna(n) and n not in c else pandas.NA
 
-def tobasetypes(s):
-    if isinstance(s.dtype, pandas.core.arrays.string_.StringDtype):
-        s = s.astype('string')
-    if isinstance(s.dtype, pandas.core.arrays.floating.Float64Dtype):
-        s = s.astype('float')
-    if isinstance(s.dtype, pandas.core.arrays.integer.Int64Dtype):
-        s = s.astype('int')
-    return s
-
 def rows(s):  return len(s)
 def share(s):
     s = s.value_counts().to_dict()
@@ -54,6 +45,16 @@ def share(s):
 def mode(s):
     s = s.value_counts().to_dict()
     return max(s, key=s.get)
+
+
+def tobasetypes(s):
+    if isinstance(s.dtype, pandas.core.arrays.string_.StringDtype):
+        s = s.astype('string')
+    if isinstance(s.dtype, pandas.core.arrays.floating.Float64Dtype):
+        s = s.astype('float')
+    if isinstance(s.dtype, pandas.core.arrays.integer.Int64Dtype):
+        s = s.astype('int')
+    return s
 
 
 FILTERS = {
@@ -301,7 +302,7 @@ def columns(query, types, conn: sqlite3.Connection):
                 part.columns = [join['name']]
                 if join['name'] in dst:
                     part = part.join(groups)
-                    dst = dst.append(part, ignore_index=True)
+                    dst = dst.append(part)
                 else:
                     # If no such column yet, it has to be created, not appended
                     dst = dst.join(part)
