@@ -111,13 +111,12 @@ ADMIN.add_view(ModelView(Survey, db.session))
 
 
 def get_user(login: Any = "") -> User:
-    """Get user.
+    """Get a user object from DB.
 
-    Keyword arguments:
-    login -- user's cas login, id or guest if empty string (default: "")
-
-    Return value:
-    returns User object
+    :param login: user's cas login, id or guest if empty string (default: "")
+    :raises error.API: no such user
+    :return: User object
+    :rtype: User
     """
 
     user = None
@@ -146,15 +145,19 @@ def get_user(login: Any = "") -> User:
 
 
 def create_user(cas_login: str, pesel: str, role: str) -> User:
-    """Create new user.
+    """Create a new user.
 
-    Keyword arguments:
-    cas_login -- user's cas login
-    pesel -- user's pesel
-    role -- role of the user (values: 's','u','g')
+    :param cas_login: new user's cas login
+    :type cas_login: str
 
-    Return value:
-    returns User object
+    :param pesel: new user's PESEL number
+    :type pesel: str
+
+    :param role: new user's role (values: 's','u','g')
+    :type role: Role
+
+    :return: the new user's User object
+    :rtype: User
     """
 
     user = User(CasLogin=cas_login, Pesel=pesel, Role=role, FetchData=True)
@@ -164,10 +167,10 @@ def create_user(cas_login: str, pesel: str, role: str) -> User:
 
 
 def delete_user(user: User):
-    """Delete user from Users database and his permission
+    """Delete user from Users database and their permissions
     from SurveyPermissions and ReportPermissions.
 
-    :param user:
+    :param user: object of the user to be deleted
     :type user: User
     """
 
@@ -204,10 +207,11 @@ def get_report(report_id: int) -> Report:
     """Get report by given id.
 
     Keyword arguments:
-    id -- id of a report
-
-    Return value:
-    returns Report object
+    :param id: id of a report
+    :type id: int
+    :raises error.API: no such report
+    :return: returns requested report object
+    :rtype: Report
     """
 
     report = Report.query.filter_by(id=report_id).first()
@@ -217,15 +221,17 @@ def get_report(report_id: int) -> Report:
 
 
 def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], object_id: int) -> str:
-    """Get permission link.
+    """Create and obtain a permission link.
 
-    Keyword arguments:
-    permission -- perrmision type (values: 'o', 'w', 'r', 'n')
-    object_type -- type of an object (values: 's', 'r')
-    object_id -- Id of an object
+    :param permission: permission type (values: 'o', 'w', 'r', 'n')
+    :type permission: Role
+    :param object_type: type of the object shared by the link
+    :type object_type: Literal['s', 'r']
+    :param object_id: id of the object
+    :type object_id: int
 
-    Return value:
-    returns concatenated salt and link id as a string
+    :return: a concatenated salt and link id as a string
+    :rtype: str
     """
 
     link = Link.query.filter_by(PermissionType=permission, ObjectType=object_type, ObjectId=object_id).first()
@@ -251,12 +257,13 @@ def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], 
 def set_permission_link(tag: str, user: User):
     """Set permission using link.
 
-    Keyword arguments:
-    tag -- salt of a link
-    user -- User object
+    :param tag: salt and id string from the link
+    :type tag: str
+    :param user: User that will gain the permission
+    :type user: User
 
-    Return value:
-    returns permission type, object name and object id
+    :return: returns permission type, object name and object id
+    :rtype: Permission, object, int
     """
 
     link = get_link_details(tag)
@@ -287,11 +294,11 @@ def set_permission_link(tag: str, user: User):
 def get_link_details(tag: str) -> Link:
     """Get link details
 
-    Keyword arguments:
-    tag -- salt of a link
+    :param tag: salt and id string from the link
+    :type tag: str
 
-    Return value:
-    returns Link object
+    :return: returns a Link object
+    :rtype: Link
     """
 
     salt = tag[:SALT_LENGTH]
@@ -301,13 +308,13 @@ def get_link_details(tag: str) -> Link:
 
 
 def get_report_users(report: Report) -> dict:
-    """Get users having permission to given report
+    """Get users having permission to the given report
 
-    Keyword arguments:
-    report -- report object
+    :param report: the report
+    :type report: Report
 
-    Return value:
-    returns dictionary with user's ids and permission type
+    :return: returns a dict with user ids as keys and their permissions under them
+    :rtype: dict
     """
 
     perms = ReportPermission.query.filter_by(ReportId=report.id).all()
@@ -320,11 +327,11 @@ def get_report_users(report: Report) -> dict:
 def get_survey_users(survey: Survey) -> dict:
     """Get users having permission to given survey
 
-    Keyword arguments:
-    survey -- Survey object
+    :param survey: the survey
+    :type survey: Survey
 
-    Return value:
-    returns dictionary with user's ids and permission type
+    :return: returns a dict with user ids as keys and their permissions under them
+    :rtype: dict
     """
 
     perms = SurveyPermission.query.filter_by(SurveyId=survey.id).all()
@@ -379,11 +386,12 @@ def set_user_group(user: User, group_name: str):
 
 
 def unset_user_group(user: User, group: str):
-    """Unset user from a group
+    """Unset user from a group.
 
-    Keyword arguments:
-    user -- User object
-    group -- group name
+    :param user: user object
+    :type user: User
+    :param group: group name
+    :type group: str
     """
 
     user_group = UserGroup.query.filter_by(UserId=user.id, Group=group)
@@ -410,13 +418,13 @@ def get_user_groups(user: User) -> List[str]:
 
 def get_user_surveys(user: User) -> List[Survey]:
     """Get surveys for which the user has permissions.
-    For superadmin returns all surveys.
+    For administrators it returns all surveys.
 
-    Keyword arguments:
-    user -- User object
+    :param user: user object
+    :type user: User
 
-    Return value:
-    returns list of Survey objects
+    :return: list of Survey objects
+    :rtype: List[Survey]
     """
 
     if user.Role == 's':
@@ -433,13 +441,13 @@ def get_user_surveys(user: User) -> List[Survey]:
 
 def get_user_reports(user: User) -> List[Report]:
     """Get reports for which the user has permissions.
-    For superadmin returns all reports.
+    For administrators it returns all reports.
 
-    Keyword arguments:
-    user -- User object
+    :param user: user object
+    :type user: User
 
-    Return value:
-    returns List of Report objects
+    :return: list of Report objects
+    :rtype: List[Report]
     """
 
     if user.Role == 's':
@@ -457,11 +465,11 @@ def get_user_reports(user: User) -> List[Report]:
 def get_group_users(group: str) -> List[User]:
     """Get users assigned to given group.
 
-    Keyword arguments:
-    group -- name of a group
+    :param group: Name of a group
+    :rtype group: str
 
-    Return value:
-    returns List of User objects
+    :return: returns List of User objects
+    :rtype: List[User]
     """
 
     user_groups = UserGroup.query.filter_by(Group=group).all()
@@ -474,11 +482,12 @@ def get_group_users(group: str) -> List[User]:
 
 
 def rename_report(report: Report, name: str):
-    """Rename report
+    """Rename report.
 
-    Keyword arguments:
-    report -- Report object
-    name -- new report name
+    :param report: the Report object
+    :type report: Report
+    :param name: new report name
+    :type name: str
     """
 
     report.Name = name
@@ -486,11 +495,12 @@ def rename_report(report: Report, name: str):
 
 
 def rename_survey(survey: Survey, name: str):
-    """Rename survey
+    """Rename survey.
 
-    Keyword arguments:
-    survey -- Survey object
-    name -- new survey name
+    :param survey: the Survey object
+    :type survey: Survey
+    :param name: new survey name
+    :type name: str
     """
 
     survey.Name = name
@@ -498,10 +508,10 @@ def rename_survey(survey: Survey, name: str):
 
 
 def delete_group(group: str):
-    """Delete group
+    """Delete a group
 
-    Keyword arguments:
-    group -- group name
+    :param group: the name of the group
+    :type group: str
     """
 
     UserGroup.query.filter_by(Group=group).delete()
@@ -511,12 +521,13 @@ def delete_group(group: str):
 def create_survey(user: User, name: str) -> Survey:
     """Create survey by given user
 
-    Keyword arguments:
-    user -- User object
-    name -- name of a survey
+    :param user: the creator of the new survey
+    :type user: User
+    :param name: name of a survey
+    :type name: str
 
-    Return value:
-    returns Survey object
+    :return: the object of the new survey
+    :rtype: Survey
     """
 
     backgrounds = os.listdir(path.join(ABSOLUTE_DIR_PATH, 'bkg'))
@@ -529,13 +540,16 @@ def create_survey(user: User, name: str) -> Survey:
 
 # meta = {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
 def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
-    """Add meta information for given survey.
+    """Add meta information of a given survey.
 
-    Keyword arguments:
-    survey -- Survey object
-    name -- name of a survey
-    question_count -- amount of questions
-    meta -- dict {"started_on": DateTime, "ends_on": DateTime, "is_active": int}
+    :param survey: the survey to be modified
+    :type survey: Survey
+    :param name: the new name of a survey
+    :type name: int
+    :param question_count: number of questions
+    :type question_count: int
+    :param meta: other information (started_on, ends_on, is_active)
+    :type meta: dict
     """
 
     if survey is None:
