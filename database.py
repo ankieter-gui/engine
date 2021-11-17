@@ -69,21 +69,18 @@ class UserGroup(db.Model):
     __tablename__ = "UserGroups"
     UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
     Group = db.Column(db.String(25), primary_key=True)
-    #GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
 
 
 class SurveyGroup(db.Model):
     __tablename__ = "SurveyGroups"
     SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True)
     Group = db.Column(db.String(25), primary_key=True)
-    #GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
 
 
 class ReportGroup(db.Model):
     __tablename__ = "ReportGroups"
     ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
     Group = db.Column(db.String(25), primary_key=True)
-    #GroupId = db.Column(db.Integer, db.ForeignKey('Groups.id'), primary_key=True)
 
 
 class SurveyPermission(db.Model):
