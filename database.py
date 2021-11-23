@@ -206,7 +206,6 @@ def get_survey(survey_id: int) -> Survey:
 def get_report(report_id: int) -> Report:
     """Get report by given id.
 
-    Keyword arguments:
     :param id: Id of a report
     :type id: int
     :raises error.API: no such report
@@ -949,7 +948,6 @@ def detect_csv_sep(filename: str) -> str:
 def csv_to_db(survey: Survey, filename: str, defaults: dict = {}):
     """Read the source CSV file and save it to a new database
 
-    Keyword arguments:
     :param survey: The Survey
     :type survey: Survey
     :param filename: Name of the source CSV file in the raw/ directory
