@@ -24,11 +24,11 @@ PERMISSION_ORDER = ['n', 'r', 'w', 'o']
 
 class User(db.Model):
     __tablename__ = "Users"
-    id = db.Column(db.Integer, primary_key=True)
-    CasLogin = db.Column(db.String(80), unique=True, nullable=False)
-    Pesel = db.Column(db.String(11), nullable=True)
-    FetchData = db.Column(db.Boolean, nullable=False)
-    Role = db.Column(db.String, default='g', nullable=False)
+    id = db.Column(db.Integer, primary_key=True) #: User Id
+    CasLogin = db.Column(db.String(80), unique=True, nullable=False) #: CAS Login
+    Pesel = db.Column(db.String(11), nullable=True) #: PESEL number of the user
+    FetchData = db.Column(db.Boolean, nullable=False) #: No use of this value is implemented yet
+    Role = db.Column(db.String, default='g', nullable=False) #: The user's role in the system
 
     def as_dict(self):
         ud = {
@@ -45,24 +45,24 @@ class User(db.Model):
 
 class Survey(db.Model):
     __tablename__ = "Surveys"
-    id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.String(80), nullable=False)
-    AnkieterId = db.Column(db.Integer, unique=True)
-    StartedOn = db.Column(db.DateTime, nullable=True)
-    EndsOn = db.Column(db.DateTime, nullable=True)
-    IsActive = db.Column(db.Integer, nullable=True)
-    QuestionCount = db.Column(db.Integer, nullable=True)
-    BackgroundImg = db.Column(db.String(50), default=None)
-    AuthorId = db.Column(db.Integer, db.ForeignKey('Users.id'))
+    id = db.Column(db.Integer, primary_key=True) #: Survey Id
+    Name = db.Column(db.String(80), nullable=False) #: Title of the survey
+    AnkieterId = db.Column(db.Integer, unique=True) #: Id of the Survey in USOS Ankieter
+    StartedOn = db.Column(db.DateTime, nullable=True) #: Start date of the survey
+    EndsOn = db.Column(db.DateTime, nullable=True) #: End date of the survey
+    IsActive = db.Column(db.Integer, nullable=True) #: No use of this value is implemented yet
+    QuestionCount = db.Column(db.Integer, nullable=True) #: Number of questions in the survey
+    BackgroundImg = db.Column(db.String(50), default=None) #: Filename of the survey's backgroun image in the menu
+    AuthorId = db.Column(db.Integer, db.ForeignKey('Users.id')) #: Id of the user who created the survey
 
 
 class Report(db.Model):
     __tablename__ = "Reports"
-    id = db.Column(db.Integer, primary_key=True)
-    Name = db.Column(db.String(80), nullable=False)
-    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), nullable=False)
-    BackgroundImg = db.Column(db.String(50))
-    AuthorId = db.Column(db.Integer, db.ForeignKey('Users.id'))
+    id = db.Column(db.Integer, primary_key=True) #: Report Id
+    Name = db.Column(db.String(80), nullable=False) #: Title of the report
+    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), nullable=False) #: Id of the source survey
+    BackgroundImg = db.Column(db.String(50)) #: Filename of the report's background image in the menu
+    AuthorId = db.Column(db.Integer, db.ForeignKey('Users.id')) #: Id of the user who created the report
 
 
 class UserGroup(db.Model):
@@ -73,37 +73,37 @@ class UserGroup(db.Model):
 
 class SurveyGroup(db.Model):
     __tablename__ = "SurveyGroups"
-    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True)
-    Group = db.Column(db.String(25), primary_key=True)
+    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True) #: Id of the survey that belongs to a group
+    Group = db.Column(db.String(25), primary_key=True) #: The name of the group
 
 
 class ReportGroup(db.Model):
     __tablename__ = "ReportGroups"
-    ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
-    Group = db.Column(db.String(25), primary_key=True)
+    ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True) #: Id of the report that belongs to a group
+    Group = db.Column(db.String(25), primary_key=True) #: The name of the group
 
 
 class SurveyPermission(db.Model):
     __tablename__ = "SurveyPermissions"
-    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True)
-    UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
-    Type = db.Column(db.String, default='r', nullable=False)
+    SurveyId = db.Column(db.Integer, db.ForeignKey('Surveys.id'), primary_key=True) #: The Id of the survey the permission is to
+    UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True) #: The Id of the user that holds the permission
+    Type = db.Column(db.String, default='r', nullable=False) #: The type of the permission
 
 
 class ReportPermission(db.Model):
     __tablename__ = "ReportPermissions"
-    ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True)
-    UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True)
-    Type = db.Column(db.String, default='r', nullable=False)
+    ReportId = db.Column(db.Integer, db.ForeignKey('Reports.id'), primary_key=True) #: The Id of the report the permission is to
+    UserId = db.Column(db.Integer, db.ForeignKey('Users.id'), primary_key=True) #: The Id of the user that holds the permission
+    Type = db.Column(db.String, default='r', nullable=False) #: The type of the permission
 
 
 class Link(db.Model):
     __tablename__ = "Links"
-    id = db.Column(db.Integer, primary_key=True)
-    Salt = db.Column(db.String(SALT_LENGTH))
-    PermissionType = db.Column(db.String, default='r', nullable=False)
-    ObjectType = db.Column(db.String, nullable=False)
-    ObjectId = db.Column(db.Integer, nullable=False)
+    id = db.Column(db.Integer, primary_key=True) #: Link Id
+    Salt = db.Column(db.String(SALT_LENGTH)) #: The salt of the link
+    PermissionType = db.Column(db.String, default='r', nullable=False) #: Perission granted by the link
+    ObjectType = db.Column(db.String, nullable=False) #: Type of the object the permission is to
+    ObjectId = db.Column(db.Integer, nullable=False) #: Id of the object the permission is to
 
 
 ADMIN.add_view(ModelView(User, db.session))
