@@ -113,7 +113,7 @@ ADMIN.add_view(ModelView(Survey, db.session))
 def get_user(login: Any = "") -> User:
     """Get a user object from DB.
 
-    :param login: user's cas login, id or guest if empty string (default: "")
+    :param login: User's CAS login, id or guest if empty string (default: "")
     :raises error.API: no such user
     :return: User object
     :rtype: User
@@ -147,16 +147,16 @@ def get_user(login: Any = "") -> User:
 def create_user(cas_login: str, pesel: str, role: str) -> User:
     """Create a new user.
 
-    :param cas_login: new user's cas login
+    :param cas_login: New user's cas login
     :type cas_login: str
 
-    :param pesel: new user's PESEL number
+    :param pesel: New user's PESEL number
     :type pesel: str
 
-    :param role: new user's role (values: 's','u','g')
+    :param role: New user's role (values: 's','u','g')
     :type role: Role
 
-    :return: the new user's User object
+    :return: The new user's User object
     :rtype: User
     """
 
@@ -170,7 +170,7 @@ def delete_user(user: User):
     """Delete user from Users database and their permissions
     from SurveyPermissions and ReportPermissions.
 
-    :param user: object of the user to be deleted
+    :param user: The user to be deleted
     :type user: User
     """
 
@@ -190,10 +190,10 @@ def delete_user(user: User):
 def get_survey(survey_id: int) -> Survey:
     """Get survey by given id.
 
-    :param survey_id: survey's id
+    :param survey_id: Survey's id
     :type survey_id: int
     :raises error.API: no such survey
-    :return: returns survey
+    :return: Returns survey
     :rtype: Survey
     """
 
@@ -207,10 +207,10 @@ def get_report(report_id: int) -> Report:
     """Get report by given id.
 
     Keyword arguments:
-    :param id: id of a report
+    :param id: Id of a report
     :type id: int
     :raises error.API: no such report
-    :return: returns requested report object
+    :return: Requested report object
     :rtype: Report
     """
 
@@ -223,14 +223,14 @@ def get_report(report_id: int) -> Report:
 def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], object_id: int) -> str:
     """Create and obtain a permission link.
 
-    :param permission: permission type (values: 'o', 'w', 'r', 'n')
+    :param permission: Permission type (values: 'o', 'w', 'r', 'n')
     :type permission: Role
-    :param object_type: type of the object shared by the link
+    :param object_type: Type of the object shared by the link
     :type object_type: Literal['s', 'r']
-    :param object_id: id of the object
+    :param object_id: Id of the object
     :type object_id: int
 
-    :return: a concatenated salt and link id as a string
+    :return: A concatenated salt and link id as a string
     :rtype: str
     """
 
@@ -257,12 +257,12 @@ def get_permission_link(permission: Permission, object_type: Literal['s', 'r'], 
 def set_permission_link(tag: str, user: User):
     """Set permission using link.
 
-    :param tag: salt and id string from the link
+    :param tag: Salt and id string from the link
     :type tag: str
     :param user: User that will gain the permission
     :type user: User
 
-    :return: returns permission type, object name and object id
+    :return: Returns permission type, object name and object id
     :rtype: Permission, object, int
     """
 
@@ -294,10 +294,10 @@ def set_permission_link(tag: str, user: User):
 def get_link_details(tag: str) -> Link:
     """Get link details
 
-    :param tag: salt and id string from the link
+    :param tag: Salt and id string from the link
     :type tag: str
 
-    :return: returns a Link object
+    :return: Returns a Link object
     :rtype: Link
     """
 
@@ -310,10 +310,10 @@ def get_link_details(tag: str) -> Link:
 def get_report_users(report: Report) -> dict:
     """Get users having permission to the given report
 
-    :param report: the report
+    :param report: The report
     :type report: Report
 
-    :return: returns a dict with user ids as keys and their permissions under them
+    :return: Returns a dict with user ids as keys and their permissions under them
     :rtype: dict
     """
 
@@ -327,10 +327,10 @@ def get_report_users(report: Report) -> dict:
 def get_survey_users(survey: Survey) -> dict:
     """Get users having permission to given survey
 
-    :param survey: the survey
+    :param survey: The survey
     :type survey: Survey
 
-    :return: returns a dict with user ids as keys and their permissions under them
+    :return: Returns a dict with user ids as keys and their permissions under them
     :rtype: dict
     """
 
@@ -388,9 +388,9 @@ def set_user_group(user: User, group_name: str):
 def unset_user_group(user: User, group: str):
     """Unset user from a group.
 
-    :param user: user object
+    :param user: User object
     :type user: User
-    :param group: group name
+    :param group: Group name
     :type group: str
     """
 
@@ -404,7 +404,7 @@ def unset_user_group(user: User, group: str):
 def get_user_groups(user: User) -> List[str]:
     """Get all groups for given user
 
-    :param user: given user
+    :param user: Given user
     :type user: User
     :return: List of user's groups names
     :rtype: List
@@ -420,10 +420,10 @@ def get_user_surveys(user: User) -> List[Survey]:
     """Get surveys for which the user has permissions.
     For administrators it returns all surveys.
 
-    :param user: user object
+    :param user: User object
     :type user: User
 
-    :return: list of Survey objects
+    :return: List of Survey objects
     :rtype: List[Survey]
     """
 
@@ -443,10 +443,10 @@ def get_user_reports(user: User) -> List[Report]:
     """Get reports for which the user has permissions.
     For administrators it returns all reports.
 
-    :param user: user object
+    :param user: User object
     :type user: User
 
-    :return: list of Report objects
+    :return: List of Report objects
     :rtype: List[Report]
     """
 
@@ -468,7 +468,7 @@ def get_group_users(group: str) -> List[User]:
     :param group: Name of a group
     :rtype group: str
 
-    :return: returns List of User objects
+    :return: Returns List of User objects
     :rtype: List[User]
     """
 
@@ -484,9 +484,9 @@ def get_group_users(group: str) -> List[User]:
 def rename_report(report: Report, name: str):
     """Rename report.
 
-    :param report: the Report object
+    :param report: The Report object
     :type report: Report
-    :param name: new report name
+    :param name: New report name
     :type name: str
     """
 
@@ -497,9 +497,9 @@ def rename_report(report: Report, name: str):
 def rename_survey(survey: Survey, name: str):
     """Rename survey.
 
-    :param survey: the Survey object
+    :param survey: The Survey object
     :type survey: Survey
-    :param name: new survey name
+    :param name: New survey name
     :type name: str
     """
 
@@ -510,7 +510,7 @@ def rename_survey(survey: Survey, name: str):
 def delete_group(group: str):
     """Delete a group
 
-    :param group: the name of the group
+    :param group: The name of the group
     :type group: str
     """
 
@@ -521,12 +521,12 @@ def delete_group(group: str):
 def create_survey(user: User, name: str) -> Survey:
     """Create survey by given user
 
-    :param user: the creator of the new survey
+    :param user: The creator of the new survey
     :type user: User
-    :param name: name of a survey
+    :param name: Name of a survey
     :type name: str
 
-    :return: the object of the new survey
+    :return: The object of the new survey
     :rtype: Survey
     """
 
@@ -542,13 +542,13 @@ def create_survey(user: User, name: str) -> Survey:
 def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
     """Add meta information of a given survey.
 
-    :param survey: the survey to be modified
+    :param survey: The survey to be modified
     :type survey: Survey
-    :param name: the new name of a survey
+    :param name: The new name of a survey
     :type name: int
-    :param question_count: number of questions
+    :param question_count: Number of questions
     :type question_count: int
-    :param meta: other information (started_on, ends_on, is_active)
+    :param meta: Other information (started_on, ends_on, is_active)
     :type meta: dict
     """
 
@@ -572,14 +572,14 @@ def set_survey_meta(survey: Survey, name: str, question_count: int, meta: dict):
 
 
 def get_survey_permission(survey: Survey, user: User) -> Permission:
-    """Get permission of given survey for user.
+    """Get permission of given user for the survey.
 
-    Keyword arguments:
-    survey -- Survey object
-    user -- User object
-
-    Return value:
-    returns permission type (values: 'o', 'w', 'r', 'n')
+    :param survey: The survey
+    :type survey: Survey
+    :param user: The user whose permissions are to be checked
+    :type user: User
+    :return: The user's permissions for the survey
+    :rtype: Permission
     """
 
     if 'surveys' in session and str(survey.id) in session['surveys']:
@@ -594,18 +594,20 @@ def get_survey_permission(survey: Survey, user: User) -> Permission:
 
 
 def set_survey_permission(survey: Survey, user: User, permission: Permission, bylink=False):
-    """Set permission of given survey for user.
+    """Set permission of given user for survey.
 
-    Keyword arguments:
-    survey -- Survey object
-    user -- User object
-    permission -- permission type (values: 'o', 'w', 'r', 'n')
-    bylink -- is set by link (default: False)
-
-    Return value:
-    returns permission type (values: 'o', 'w', 'r', 'n')
+    :param survey: The survey
+    :type survey: Survey
+    :param user: The user whose permissions are to be set
+    :type user: User
+    :param permission: The user's permissions for the survey
+    :type permission: Permission
+    :param bylink: Is the permission set because of a link? (default: False)
+    :type belink: bool
     """
 
+    # If the permission is set because of a link, and the user is a guest
+    # then set it only temporarily, in their session.
     if bylink and user.Role == 'g':
         if 'surveys' not in session:
             session['surveys'] = {}
@@ -625,13 +627,12 @@ def set_survey_permission(survey: Survey, user: User, permission: Permission, by
 
 
 def get_report_survey(report: Report) -> Survey:
-    """Get survey assigned to given report
+    """Get survey assigned to the given report
 
-    Keyword arguments:
-    report -- Report object
-
-    Return value:
-    returns Survey object
+    :param report: Report object
+    :type report: Report
+    :return: The source survey of the report
+    :rtype: Survey
     """
 
     if report is None:
@@ -641,14 +642,14 @@ def get_report_survey(report: Report) -> Survey:
 
 
 def get_report_permission(report: Report, user: User) -> Permission:
-    """Get permission of given report for user.
+    """Get permission of given user for the report.
 
-    Keyword arguments:
-    report -- Report object
-    user -- User object
-
-    Return value:
-    returns permission type (values: 'o', 'w', 'r', 'n')
+    :param report: The report
+    :type report: Report
+    :param user: The user whose permissions are to be checked
+    :type user: User
+    :return: The user's permissions for the report
+    :rtype: Permission
     """
 
     if 'reports' in session and str(report.id) in session['reports']:
@@ -663,18 +664,20 @@ def get_report_permission(report: Report, user: User) -> Permission:
 
 
 def set_report_permission(report: Report, user: User, permission: Permission, bylink=False):
-    """Set permission of given report for user.
+    """Set permission of given user for report.
 
-    Keyword arguments:
-    report -- Report object
-    user -- User object
-    permission -- permission type (values: 'o', 'w', 'r', 'n')
-    bylink -- is set by link (default: False)
-
-    Return value:
-    returns permission type (values: 'o', 'w', 'r', 'n')
+    :param report: The report
+    :type report: Report
+    :param user: The user whose permissions are to be set
+    :type user: User
+    :param permission: The user's permissions for the report
+    :type permission: Permission
+    :param bylink: Is the permission set because of a link? (default: False)
+    :type belink: bool
     """
 
+    # If the permission is set because of a link, and the user is a guest
+    # then set it only temporarily, in their session.
     if bylink and user.Role == 'g':
         if 'reports' not in session:
             session['reports'] = {}
@@ -694,16 +697,18 @@ def set_report_permission(report: Report, user: User, permission: Permission, by
 
 
 def create_report(user: User, survey: Survey, name: str, author: int) -> Report:
-    """Create report by given user
+    """Create report for a given user
 
-    Keyword arguments:
-    user -- User object
-    survey -- Survey object to be assigned to Report
-    name -- report name
-    author -- id of an user
-
-    Return value:
-    returns Report object
+    :param user: The creator of the report
+    :type user: User
+    :param survey: The source survey of the report
+    :type survey: Survey
+    :param name: The name of the new report
+    :type name: str
+    :param author: The database id of the creator
+    :type author: int
+    :return: The newly created report
+    :rtype: Report
     """
 
     report = Report(Name=name, SurveyId=survey.id, AuthorId=author)
@@ -717,8 +722,8 @@ def create_report(user: User, survey: Survey, name: str, author: int) -> Report:
 def delete_survey(survey: Survey):
     """Delete survey
 
-    Keyword arguments:
-    survey -- Survey object
+    :param survey: The survey to be deleted
+    :type survey: Survey
     """
 
     # db_path = 'data/' + str(survey.id) + '.db'
@@ -736,8 +741,8 @@ def delete_survey(survey: Survey):
 def delete_report(report: Report):
     """Delete report
 
-    Keyword arguments:
-    report -- Report object
+    :param report: The report to be deleted
+    :type report: Report
     """
 
     ReportPermission.query.filter_by(ReportId=report.id).delete()
@@ -747,13 +752,12 @@ def delete_report(report: Report):
 
 
 def open_survey(survey: Survey) -> sqlite3.Connection:
-    """Connect to the survey
+    """Open an SQLite3 connection to the survey database
 
-    Keyword arguments:
-    survey -- Survey object
-
-    Return value:
-    returns sqlite3.Connection
+    :param survey: The survey
+    :type survey: Survey
+    :return: A connection to the DB of the survey
+    :rtype: sqlite3.Connection
     """
 
     return sqlite3.connect(f"data/{survey.id}.db")
@@ -762,11 +766,10 @@ def open_survey(survey: Survey) -> sqlite3.Connection:
 def get_answers(survey_id: int) -> Dict:
     """Get answers for given survey
 
-    Keyword arguments:
-    survey_id -- id of na Survey
-
-    Return value:
-    returns dictionary with answers
+    :param survey_id: Id of the survey
+    :type survey: Survey
+    :return: Answers in the survey
+    :rtype: Dict
     """
 
     xml = ET.parse(os.path.join(ABSOLUTE_DIR_PATH, f"survey/{survey_id}.xml"))
@@ -802,8 +805,8 @@ def get_answers(survey_id: int) -> Dict:
 def get_dashboard() -> Dict:
     """Get dashboard for user
 
-    Return value:
-    returns dictionary with surveys and reports
+    :return: Returns dictionary with surveys and reports
+    :rtype: Dict
     """
 
     user = get_user()
@@ -847,13 +850,12 @@ def get_dashboard() -> Dict:
 
 
 def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
-    """Get column types of answers
+    """Get types for each column in the database.
 
-    Keyword arguments:
-    conn -- sqlite3.Connection
-
-    Return value:
-    returns dictionary with types
+    :param conn: Connection to the database
+    :type conn: sqlite3.Connection
+    :return: A dictionary mapping names of columns to SQL names of their types
+    :rtype: Dict[str, str]
     """
 
     types = {}
@@ -866,13 +868,12 @@ def get_types(conn: sqlite3.Connection) -> Dict[str, str]:
 
 
 def get_columns(conn: sqlite3.Connection) -> List[str]:
-    """Get column names
+    """Get column names in the order just like it is returned from the DB.
 
-    Keyword arguments:
-    conn -- sqlite3.Connection
-
-    Return value:
-    returns list of column names
+    :param conn: Connection to the database
+    :type conn: sqlite3.Connection
+    :return: A list of column names in the database.
+    :rtype: Lis[str]
     """
 
     columns = []
@@ -884,7 +885,15 @@ def get_columns(conn: sqlite3.Connection) -> List[str]:
     return columns
 
 
-def get_default_values(survey: Survey):
+def get_default_values(survey: Survey) -> Dict:
+    """Get default value string for every question in the survey database
+
+    :param survey: The survey
+    :type survey: Survey
+    :return: A dict from question name to a set of its defaults
+    :rtype: Dict
+    """
+
     xml = ET.parse(f"survey/{survey.id}.xml")
     questions = ["groupedsingle","single","multi"]
 
@@ -897,18 +906,16 @@ def get_default_values(survey: Survey):
                     result[header] = {'9999'}
                 if 'defaultValue' in e.attrib:
                     result[header].add(str(e.attrib['defaultValue']))
-
     return result
 
 
 def get_answers_count(survey: Survey) -> int:
-    """Get answers amount for survey
+    """Get number of answers in the database for a given survey.
 
-    Keyword arguments:
-    survey -- Survey object
-
-    Return value:
-    returns amount of answers
+    :param survey: The survey
+    :type survey: Survey
+    :return: The number of answers
+    :rtype: int
     """
 
     conn = open_survey(survey)
@@ -923,6 +930,14 @@ def get_answers_count(survey: Survey) -> int:
 
 
 def detect_csv_sep(filename: str) -> str:
+    """Detect the separator used in a raw source CSV file.
+
+    :param filename: The name of the raw CSV in the raw/ directory
+    :type filename: str
+    :return: The separator string
+    :rtype: str
+    """
+
     sep = ''
     with open(f'raw/{filename}',"r") as csv_file:
         res = csv.Sniffer().sniff(csv_file.read(1024))
@@ -932,12 +947,15 @@ def detect_csv_sep(filename: str) -> str:
 
 
 def csv_to_db(survey: Survey, filename: str, defaults: dict = {}):
-    """Convert csv file to database
+    """Read the source CSV file and save it to a new database
 
     Keyword arguments:
-    survey -- Survey objectct
-    filename -- name of a csv file
-    defaults -- a dict with default value for each column name
+    :param survey: The Survey
+    :type survey: Survey
+    :param filename: Name of the source CSV file in the raw/ directory
+    :type filename: str
+    :param defaults: A dict with default values set for each column name
+    :type defaults: Dict
     """
 
     def shame(vals):
