@@ -7,6 +7,7 @@ import os
 import functools
 import threading
 import database
+import convert
 import grammar
 import daemon
 import table
@@ -528,7 +529,7 @@ def upload_results(survey_id):
 
     file.save(f"raw/{survey.id}.{ext}")
 
-    database.csv_to_db(survey, f"{survey.id}.{ext}", defaults)
+    convert.csv_to_db(survey, f"{survey.id}.{ext}", defaults)
     conn = database.open_survey(survey)
     survey.QuestionCount = len(database.get_columns(conn))
     conn.close()
