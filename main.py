@@ -140,13 +140,23 @@ def upload_survey(survey_id):
 
 
 @app.route('/api/survey/<int:survey_id>/download/csv', methods=['GET'])
-@on_errors('could not download survey')
+@on_errors('could not download survey csv')
 @for_roles('s', 'u')
 def download_survey_csv(survey_id):
     if not exists(f'raw/{survey_id}.csv'):
         raise error.API(f'file raw/{survey_id}.csv does not exists')
 
-    return send_file(f'raw/{survey_id}.csv')
+    return send_file(f'raw/{survey_id}.csv', as_attachment=True)
+
+
+@app.route('/api/survey/<int:survey_id>/download/xml', methods=['GET'])
+@on_errors('could not download survey xml')
+@for_roles('s', 'u')
+def download_survey_xml(survey_id):
+    if not exists(f'survey/{survey_id}.xml'):
+        raise error.API(f'file survey/{survey_id}.xml does not exists')
+
+    return send_file(f'survey/{survey_id}.xml', as_attachment=True)
 
 
 @app.route('/api/survey/<int:survey_id>/share', methods=['POST'])
