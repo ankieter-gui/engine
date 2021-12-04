@@ -1,7 +1,4 @@
-import os
-import sys
 
-sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from database import *
 from globals import app
 from datetime import datetime
