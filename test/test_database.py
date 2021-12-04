@@ -1,4 +1,3 @@
-
 from database import *
 from globals import app
 from datetime import datetime

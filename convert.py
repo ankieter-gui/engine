@@ -1,18 +1,12 @@
-from typing import Literal, Any, List, Dict
-from flask_sqlalchemy import SQLAlchemy
-from base64 import b32encode
+from typing import Dict
 from pandas import read_csv, read_excel
-from flask import session
 from globals import *
 import xml.etree.ElementTree as ET
 import database
 import sqlite3
-import secrets
-import random
 import error
 import csv
 import re
-import os
 
 
 def get_default_values(survey: database.Survey) -> Dict:
