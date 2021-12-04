@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
-from flask import send_from_directory, redirect, url_for, request, session, g, render_template
+from flask import send_from_directory, redirect, url_for, request, session, g, render_template, send_file
+from os.path import exists
 from globals import *
 import json
 import os
@@ -132,13 +133,20 @@ def upload_survey(survey_id):
         raise error.API('empty survey data')
 
     file = request.files['file']
-    name, ext = file.filename.rsplit('.', 1)
-    # if ext.lower() != 'xml':
-    #     raise error.API('expected a XML file')
     file.save(f'survey/{survey_id}.xml')
     return {
         "id": survey_id
     }
+
+
+@app.route('/api/survey/<int:survey_id>/download/csv', methods=['GET'])
+@on_errors('could not download survey')
+@for_roles('s', 'u')
+def download_survey_csv(survey_id):
+    if not exists(f'raw/{survey_id}.csv'):
+        raise error.API(f'file raw/{survey_id}.csv does not exists')
+
+    return send_file(f'raw/{survey_id}.csv')
 
 
 @app.route('/api/survey/<int:survey_id>/share', methods=['POST'])
