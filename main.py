@@ -62,7 +62,7 @@ def get_all_users():
 @for_roles('s')
 def create_user():
     data = request.json
-    user = database.create_user(data["casLogin"],data['pesel'], data["role"])
+    user = database.create_user(data["casLogin"], data['pesel'], data["role"])
     return {"id": user.id}
 
 
@@ -143,6 +143,12 @@ def upload_survey(survey_id):
 @on_errors('could not download survey csv')
 @for_roles('s', 'u')
 def download_survey_csv(survey_id):
+    survey = database.get_survey(survey_id)
+    user = database.get_user()
+    perm = database.get_report_permission(survey, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the survey')
+
     if not exists(f'raw/{survey_id}.csv'):
         raise error.API(f'file raw/{survey_id}.csv does not exists')
 
@@ -153,6 +159,12 @@ def download_survey_csv(survey_id):
 @on_errors('could not download survey xml')
 @for_roles('s', 'u')
 def download_survey_xml(survey_id):
+    survey = database.get_survey(survey_id)
+    user = database.get_user()
+    perm = database.get_report_permission(survey, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the survey')
+
     if not exists(f'survey/{survey_id}.xml'):
         raise error.API(f'file survey/{survey_id}.xml does not exists')
 
@@ -250,6 +262,22 @@ def create_report():
     return {
         "reportId": report.id
     }
+
+
+@app.route('/api/report/<int:report_id>/download', methods=['GET'])
+@on_errors('could not download report')
+@for_roles('s', 'u')
+def download_report(report_id):
+    report = database.get_report(report_id)
+    user = database.get_user()
+    perm = database.get_report_permission(report, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the report')
+
+    if not exists(f'report/{report_id}.json'):
+        raise error.API(f'file report/{report_id}.json does not exists')
+
+    return send_file(f'report/{report_id}.json', as_attachment=True)
 
 
 @app.route('/api/report/<int:report_id>/users', methods=['GET'])
