@@ -522,7 +522,7 @@ def upload_results(survey_id):
 
     if survey_id:
         survey = database.get_survey(survey_id)
-        defaults = database.get_default_values(survey)
+        defaults = convert.get_default_values(survey)
     else:
         survey = database.create_survey(user, name)
         defaults = {}
