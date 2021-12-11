@@ -132,6 +132,10 @@ class TestCase(unittest.TestCase):
         set_user_group(self.user2, 'dyrektor')
         self.assertListEqual(['dyrektor', 'student'], get_user_groups(self.user2))
 
+    def test_unset_user_group(self):
+        unset_user_group(self.user2, 'dyrektor')
+        self.assertListEqual(['student'], get_user_groups(self.user2))
+
 
 if __name__ == '__main__':
     unittest.main()

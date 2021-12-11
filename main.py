@@ -139,23 +139,22 @@ def upload_survey(survey_id):
     }
 
 
-@app.route('/api/survey/<int:survey_id>/download/csv', methods=['GET'])
+@app.route('/api/data/<int:survey_id>/download', methods=['GET'])
 @on_errors('could not download survey csv')
 @for_roles('s', 'u')
 def download_survey_csv(survey_id):
     survey = database.get_survey(survey_id)
     user = database.get_user()
     perm = database.get_report_permission(survey, user)
-    if perm not in ['r', 'w', 'o']:
+    if perm not in ['o']:
         raise error.API('no access to the survey')
 
-    if not exists(f'raw/{survey_id}.csv'):
-        raise error.API(f'file raw/{survey_id}.csv does not exists')
+    convert.db_to_csv(survey_id)
 
-    return send_file(f'raw/{survey_id}.csv', as_attachment=True)
+    return send_file(f'temp/{survey_id}.csv', as_attachment=True)
 
 
-@app.route('/api/survey/<int:survey_id>/download/xml', methods=['GET'])
+@app.route('/api/survey/<int:survey_id>/download', methods=['GET'])
 @on_errors('could not download survey xml')
 @for_roles('s', 'u')
 def download_survey_xml(survey_id):
