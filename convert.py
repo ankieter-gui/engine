@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Tuple
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import database
@@ -62,7 +62,7 @@ def get_default_values(survey: database.Survey) -> Dict:
     """Get default value string for every question in the survey database
 
     :param survey: The survey
-    :type survey: Survey
+    :type survey: database.Survey
     :return: A dict from question names to a set of its defaults
     :rtype: Dict
     """
@@ -80,6 +80,34 @@ def get_default_values(survey: database.Survey) -> Dict:
                 if 'defaultValue' in e.attrib:
                     result[header].add(str(e.attrib['defaultValue']))
     return result
+
+
+def get_column_mismatches(survey: database.Survey, df: pandas.DataFrame) -> tuple:
+    """Check which columns in the schema are not present in the data, and also
+    which columns in the data are not present in the schema.
+
+    :param survey: Survey object for which the data was gathered
+    :type survey: database.Survey
+    :param df: DataFrame containing the compacted data
+    :type df: pandas.DataFrame
+    :return: A pair of lists of columns that the data lacks, and the extra ones
+    :rtype: tuple
+    """
+
+    lacking = []
+    extra = []
+
+    answers = database.get_answers(survey.id)
+
+    for question, v in answers.items():
+        if question not in df.columns.values:
+            lacking.append(question)
+
+    for question in df.columns.values:
+        if question not in answers:
+            extra.append(question)
+
+    return lacking, extra
 
 
 def detect_csv_sep(filename: str) -> str:
@@ -114,13 +142,21 @@ def raw_to_compact(survey: database.Survey, df: pandas.DataFrame, defaults: Dict
     :rtype: pandas.DataFrame
     """
 
+    # remove XML tags in question names
+    df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
+
+    # remove all "czas wypełniania" columns
+    for column in df.filter(regex="czas wypełniania").columns:
+        df.drop(column, axis=1, inplace=True)
+
+
     # Get all columns with \.\d+ prefixes, this is how Pandas marks repeated
     # column names
     repeats = df.filter(regex=r'\.\d+$').columns.values
 
     # Get all column names which are not in 'repeats', these are base names
     # of every column
-    uniques = [c for c in columns if c not in repeats]
+    uniques = [c for c in df.columns.values if c not in repeats]
 
     # Now join repeated columns into one named by their base names
     for u in uniques:
@@ -151,7 +187,6 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: Dict = {}):
     """
 
     try:
-        conn = database.open_survey(survey)
         name, ext = filename.rsplit('.', 1)
         if ext != "csv":
             file = pandas.read_excel(f'raw/{name}.{ext}')
@@ -160,23 +195,30 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: Dict = {}):
         separator = detect_csv_sep(filename)
         df = pandas.read_csv(f"raw/{filename}", sep=separator)
 
-        # remove XML tags in question names
-        df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
-
-        # remove all "czas wypełniania" columns
-        for column in df.filter(regex="czas wypełniania").columns:
-            df.drop(column, axis=1, inplace=True)
-
         # convert the data to a format suitable for data analysis
         df = raw_to_compact(survey, df, defaults)
 
+        # if defaults is not empty, there exists an XML to which the data must be adjusted
+        if defaults:
+            lacking, extra = get_column_mismatches(survey, df)
+            if lacking or extra:
+                err = error.API('the data is incompatible with survey schema')
+                err.data['lacking'] = lacking
+                err.data['extra'] = extra
+                raise err
+
+        conn = database.open_survey(survey)
         df.to_sql("data", conn, if_exists="replace")
         conn.close()
         return True
+    except error.API as err:
+        err.add_details('could not save save the data')
+        print(str(err))
+        raise
     except sqlite3.Error as err:
-        return err
-    except Exception as e:
-        raise error.API(str(e) + ' while parsing csv/xlsx')
+        raise error.API(str(err))
+    except Exception as err:
+        raise error.API(str(err) + ' while parsing csv/xlsx')
 
 
 def db_to_csv(survey: database.Survey):

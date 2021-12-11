@@ -125,6 +125,7 @@ def create_survey():
     }
 
 
+@app.route('/api/survey/<int:survey_id>', methods=['POST'])
 @app.route('/api/survey/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not upload survey')
 @for_roles('s', 'u')
@@ -137,21 +138,6 @@ def upload_survey(survey_id):
     return {
         "id": survey_id
     }
-
-
-@app.route('/api/data/<int:survey_id>/download', methods=['GET'])
-@on_errors('could not download survey csv')
-@for_roles('s', 'u')
-def download_survey_csv(survey_id):
-    survey = database.get_survey(survey_id)
-    user = database.get_user()
-    perm = database.get_report_permission(survey, user)
-    if perm not in ['o']:
-        raise error.API('no access to the survey')
-
-    convert.db_to_csv(survey)
-
-    return send_file(f'temp/{survey_id}.csv', as_attachment=True)
 
 
 @app.route('/api/survey/<int:survey_id>/download', methods=['GET'])
@@ -549,6 +535,7 @@ def delete_group():
 
 @app.route('/api/data/new', methods=['POST'], defaults={'survey_id': None})
 @app.route('/api/data/new/<int:survey_id>', methods=['POST'])
+@app.route('/api/data/<int:survey_id>/upload', methods=['POST'])
 @on_errors('could not save survey data')
 @for_roles('s', 'u')
 def upload_results(survey_id):
@@ -579,10 +566,25 @@ def upload_results(survey_id):
     survey.QuestionCount = len(database.get_columns(conn))
     conn.close()
 
-    return {
+    result = {
         "id": survey.id,
         "name": name
     }
+
+
+@app.route('/api/data/<int:survey_id>/download', methods=['GET'])
+@on_errors('could not download survey csv')
+@for_roles('s', 'u')
+def download_survey_csv(survey_id):
+    survey = database.get_survey(survey_id)
+    user = database.get_user()
+    perm = database.get_report_permission(survey, user)
+    if perm not in ['o']:
+        raise error.API('only the owner can download survey results')
+
+    convert.db_to_csv(survey)
+
+    return send_file(f'temp/{survey_id}.csv', as_attachment=True)
 
 
 @app.route('/api/data/<int:survey_id>/types', methods=['GET'])

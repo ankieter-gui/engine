@@ -1,6 +1,7 @@
 class Generic(Exception):
     def __init__(self, message: str):
         self.message = message
+        self.data = {}
 
     def add_details(self, message: str):
         """Add details to the error message.
@@ -24,4 +25,7 @@ class API(Generic):
         returns dict object
         """
 
-        return {'error': self.message}
+        err = {**self.data}
+        err['error'] = self.message
+        print(err)
+        return err
