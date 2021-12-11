@@ -149,7 +149,7 @@ def download_survey_csv(survey_id):
     if perm not in ['o']:
         raise error.API('no access to the survey')
 
-    convert.db_to_csv(survey_id)
+    convert.db_to_csv(survey)
 
     return send_file(f'temp/{survey_id}.csv', as_attachment=True)
 

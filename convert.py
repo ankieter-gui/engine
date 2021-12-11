@@ -126,11 +126,18 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: dict = {}):
         raise error.API(str(e) + ' while parsing csv/xlsx')
 
 
-def db_to_csv(survey_id: int):
+def db_to_csv(survey: database.Survey):
+    """Convert db data to csv and write csv file into temp directory
+
+    :param survey: The Survey
+    :type survey: Survey
+    """
+
     try:
-        conn = sqlite3.connect(f'data/{survey_id}.db')
+        conn = database.open_survey(survey)
         df = read_sql_query("SELECT * FROM data", conn, index_col='index')
         Path("temp").mkdir(parents=True, exist_ok=True)
-        df.to_csv(f"temp/{survey_id}.csv", encoding='utf-8', index=False)
+        df.to_csv(f"temp/{survey.id}.csv", encoding='utf-8', index=False)
+        conn.close()
     except Exception as e:
         raise error.API(str(e) + ' while parsing db to csv')
