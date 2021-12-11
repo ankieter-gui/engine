@@ -52,6 +52,8 @@ def nodefaults(defaults: Dict, name: str):
         for v in vals:
             if str(v) not in defaults[name]:
                 return v
+
+        # if no result could be chosen, return the value from the first column
         return vals[0]
     return f
 
@@ -61,7 +63,7 @@ def get_default_values(survey: database.Survey) -> Dict:
 
     :param survey: The survey
     :type survey: Survey
-    :return: A dict from question name to a set of its defaults
+    :return: A dict from question names to a set of its defaults
     :rtype: Dict
     """
 
@@ -97,7 +99,47 @@ def detect_csv_sep(filename: str) -> str:
     return sep
 
 
-def csv_to_db(survey: database.Survey, filename: str, defaults: dict = {}):
+def raw_to_compact(survey: database.Survey, df: pandas.DataFrame, defaults: Dict = {}) -> pandas.DataFrame:
+    """Convert a raw Ankieter DataFrame into a compact format suitable for
+    data analysis. The change is mainly about joining separate columns that
+    in fact represent the same question.
+
+    :param survey: Survey object for which the data was gathered
+    :type survey: database.Survey
+    :param df: DataFrame containing the raw data
+    :type df: pandas.DataFrame
+    :param defaults: A dict with default values set for each column name
+    :type defaults: Dict
+    :return: The compacted data
+    :rtype: pandas.DataFrame
+    """
+
+    # Get all columns with \.\d+ prefixes, this is how Pandas marks repeated
+    # column names
+    repeats = df.filter(regex=r'\.\d+$').columns.values
+
+    # Get all column names which are not in 'repeats', these are base names
+    # of every column
+    uniques = [c for c in columns if c not in repeats]
+
+    # Now join repeated columns into one named by their base names
+    for u in uniques:
+        esc = re.escape(u)
+        group = list(df.filter(regex=esc+'\.\d+$').columns.values)
+        group.append(u)
+        df[u] = df[group].aggregate(nodefaults(defaults, u), axis='columns')
+        df = df.drop(group[:-1], axis='columns')
+
+    # Convert all remaining defaults to the standard 9999
+    for k, v in defaults.items():
+        for c in df.columns.values:
+            if re.search(k, c):
+                df[c] = df[c].replace([int(x) for x in v], 9999)
+
+    return df
+
+
+def csv_to_db(survey: database.Survey, filename: str, defaults: Dict = {}):
     """Read the source CSV file and save it to a new database
 
     :param survey: The Survey
@@ -117,30 +159,18 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: dict = {}):
             filename = f'{name}.csv'
         separator = detect_csv_sep(filename)
         df = pandas.read_csv(f"raw/{filename}", sep=separator)
+
+        # remove XML tags in question names
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
+        # remove all "czas wypełniania" columns
         for column in df.filter(regex="czas wypełniania").columns:
             df.drop(column, axis=1, inplace=True)
 
-        def_values = get_default_values(survey)
-        columns = df.columns.values
-        for k,v in def_values.items():
-            for c in columns:
-                if re.search(k,c):
-                    df[c] = df[c].replace([int(x) for x in v], 9999)
-
-        repeats = df.filter(regex=r'\.\d+$').columns.values
-        uniques = [c for c in columns if c not in repeats]
-
-        for u in uniques:
-            esc = re.escape(u)
-            group = list(df.filter(regex=esc+'\.\d+$').columns.values)
-            group.append(u)
-            df[u] = df[group].aggregate(nodefaults(defaults, u), axis='columns')
-            df = df.drop(group[:-1], axis='columns')
+        # convert the data to a format suitable for data analysis
+        df = raw_to_compact(survey, df, defaults)
 
         df.to_sql("data", conn, if_exists="replace")
-        print(f"Database for survey {survey.id} created succesfully")
         conn.close()
         return True
     except sqlite3.Error as err:
