@@ -1,5 +1,5 @@
 from typing import Dict
-from pandas import read_csv, read_excel, read_sql_query
+from pandas import read_csv, read_excel, read_sql_query, Series
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import database
@@ -7,6 +7,53 @@ import sqlite3
 import error
 import csv
 import re
+
+def antimode(vals: Series):
+    """Return one of the rarest of the values in a series.
+
+    :param vals: The series
+    :type vals: Series
+    :return: One of the rarest values
+    """
+
+    counts = {}
+    for v in vals:
+        c = counts.get(v, 0)
+        counts[v] = c+1
+    if len(counts) == 0:
+        return None
+    return min(counts, key=counts.get)
+
+
+def nodefaults(defaults: Dict, name: str):
+    """Creates a pandas row aggregator that skips default column values and
+    leaves a value from the first column with a non-default. It's used when
+    a few columns represent the same variable, in that case the value chosen
+    by the user is saved in one column, and the others contain defaults.
+    Such a group of columns can be joined into one columns with a use of
+    aggregator functions returned by this function.
+
+    :param defaults: Default column values as returned from get_default_values
+    :type defaults: Dict
+    :param name: A name of the group of columns column to be aggregated
+    :type name: str
+    :return: A pandas row aggregator
+    :rtype: function
+    """
+
+    def f(vals):
+        # Excluding this case noticeably speeds up processing
+        if len(vals) == 1:
+            return vals[0]
+
+        if name not in defaults:
+            return antimode(vals)
+
+        for v in vals:
+            if str(v) not in defaults[name]:
+                return v
+        return vals[0]
+    return f
 
 
 def get_default_values(survey: database.Survey) -> Dict:
@@ -61,30 +108,6 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: dict = {}):
     :type defaults: Dict
     """
 
-    def shame(vals):
-        counts = {}
-        for v in vals:
-            c = counts.get(v, 0)
-            counts[v] = c+1
-        if len(counts) == 0:
-            return None
-        return min(counts, key=counts.get)
-
-    def nodefaults(group):
-        def f(vals):
-            # Excluding this case noticeably speeds up processing
-            if len(vals) == 1:
-                return vals[0]
-
-            if group not in defaults:
-                return shame(vals)
-
-            for v in vals:
-                if str(v) not in defaults[group]:
-                    return v
-            return vals[0]
-        return f
-
     try:
         conn = database.open_survey(survey)
         name, ext = filename.rsplit('.', 1)
@@ -113,7 +136,7 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: dict = {}):
             esc = re.escape(u)
             group = list(df.filter(regex=esc+'\.\d+$').columns.values)
             group.append(u)
-            df[u] = df[group].aggregate(nodefaults(u), axis='columns')
+            df[u] = df[group].aggregate(nodefaults(defaults, u), axis='columns')
             df = df.drop(group[:-1], axis='columns')
 
         df.to_sql("data", conn, if_exists="replace")
