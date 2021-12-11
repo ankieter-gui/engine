@@ -1,18 +1,18 @@
 from typing import Dict
-from pandas import read_csv, read_excel, read_sql_query, Series
 from pathlib import Path
 import xml.etree.ElementTree as ET
 import database
 import sqlite3
+import pandas
 import error
 import csv
 import re
 
-def antimode(vals: Series):
+def antimode(vals: pandas.Series):
     """Return one of the rarest of the values in a series.
 
     :param vals: The series
-    :type vals: Series
+    :type vals: pandas.Series
     :return: One of the rarest values
     """
 
@@ -112,11 +112,11 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: dict = {}):
         conn = database.open_survey(survey)
         name, ext = filename.rsplit('.', 1)
         if ext != "csv":
-            file = read_excel(f'raw/{name}.{ext}')
+            file = pandas.read_excel(f'raw/{name}.{ext}')
             file.to_csv(f'raw/{name}.csv',encoding='utf-8')
             filename = f'{name}.csv'
         separator = detect_csv_sep(filename)
-        df = read_csv(f"raw/{filename}", sep=separator)
+        df = pandas.read_csv(f"raw/{filename}", sep=separator)
         df.columns = df.columns.str.replace('</?\w[^>]*>', '', regex=True)
 
         for column in df.filter(regex="czas wypełniania").columns:
@@ -158,7 +158,7 @@ def db_to_csv(survey: database.Survey):
 
     try:
         conn = database.open_survey(survey)
-        df = read_sql_query("SELECT * FROM data", conn, index_col='index')
+        df = pandas.read_sql_query("SELECT * FROM data", conn, index_col='index')
         Path("temp").mkdir(parents=True, exist_ok=True)
         df.to_csv(f"temp/{survey.id}.csv", encoding='utf-8', index=False)
         conn.close()
