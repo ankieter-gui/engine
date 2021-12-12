@@ -5,6 +5,7 @@ import database
 import sqlite3
 import pandas
 import error
+import json
 import csv
 import re
 
@@ -236,3 +237,77 @@ def db_to_csv(survey: database.Survey):
         conn.close()
     except Exception as e:
         raise error.API(str(e) + ' while parsing db to csv')
+
+
+
+def json_to_xml(survey: database.Survey, survey_json):
+    def write_condition(condition,i):
+        c=""
+        if i>len(condition):
+            return "\n"
+        if "value" in condition[i-1]["element"]:
+            e=condition[i-1]["element"]
+            v=condition[i-1]["element"]["value"]
+            a=e["aid"]
+            c=f'{(i+2)*" "}<condition aid="{a}" value="{v}"/>'
+        t=condition[i-1]["type"]
+        return f'{(i+1)*" "}<{t}>\n{c}\n{write_condition(condition,i+1)}\n{(i+1)*" "}</{t}>'
+        
+    def write_question(question,p=""):
+        id=""
+        if "id" in question:
+            id=question["id"]
+        type=question["questionType"]
+        required=str(question["commonAttributes"]["required"]).lower()
+        collapsed=str(question["commonAttributes"]["collapsed"]).lower()
+        defaultVal="9999"
+        if question["commonAttributes"]["overrideDefaultValue"]:
+            defaultVal=question["commonAttributes"]["defaultValue"]
+        question_line=f'{type}'
+        if type in ["groupedsingle","single"]:
+            question_line+=f' required="{required}" collapsed="{collapsed}" defaultValue="{defaultVal}"'
+        if type=="multi":
+            question_line+=f' maxAnswers="{question["maxAnswers"]}" required="{required}" defaultValue="{defaultVal}"'
+        print(f'{p}<{question_line} id="{id}">', file=xml_out)
+        print(f'{p}  <header><![CDATA[{question["header"]}]]></header>',file=xml_out)
+        cond=""
+        if "condition" in question:
+            cond=write_condition(question["condition"],1)
+            print(f'{p}  <filter>\n{cond}\n{p}  </filter>',file=xml_out)
+        if type in ["multi","single"]:
+            answers = el["options"]
+            print(f'{p}   <answers>',file=xml_out)
+            for ans in answers:
+                print(f'{p}    <textitem code="{ans["code"]}" value="{ans["value"]}" rotate="{str(ans["rotate"]).lower()}"/>',file=xml_out)
+            print(f'{p}   </answers>',file=xml_out)
+        if type == "groupedsingle":
+            items=question["questions"]
+            answers=question["options"]
+            print(f'{p}   <items>',file=xml_out)
+            for item in items:
+                print(f'{p}    <textitem code="{item["code"]}" value="{item["value"]}" rotate="{str(item["rotate"]).lower()}"/>',file=xml_out)
+            print(f'{p}   </items>',file=xml_out)
+            print(f'{p}   <answers>',file=xml_out)
+            for ans in answers:
+                print(f'{p}    <textitem code="{ans["code"]}" value="{ans["value"]}" rotate="{str(ans["rotate"]).lower()}"/>',file=xml_out)
+            print(f'{p}   </answers>',file=xml_out)
+        print(f'{p}</{type}>\n',file=xml_out)
+
+    with open('surveys/{survey.id}.xml', "w+") as xml_out:
+        print('<?xml version="1.0" encoding="UTF-8"?>\n<questionnaire xsi:noNamespaceSchemaLocation="questionnaire.xsd"\nxmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n',file=xml_out)
+        for elem in survey_json["elements"]:
+            el=elem
+            type=el["questionType"]
+            if type=="page":
+                el=elem["elements"]
+                print('<page id="">',file=xml_out)
+                print(f'<header><![CDATA[<b>{elem["header"]}</b>]]></header>',file=xml_out)
+                print(' <questions>',file=xml_out)
+                for q in el:
+                    write_question(q," ")
+            else:
+                write_question(el)
+            if type=="page":
+                print(' </questions>',file=xml_out)
+                print('</page>\n', file=xml_out)
+        print('</questionnaire>',file=xml_out)
