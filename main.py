@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from flask import send_from_directory, redirect, url_for, request, session, g, render_template, send_file
+from flask_restx import Resource, Api
 from os.path import exists
 from globals import *
 import json
@@ -13,6 +14,7 @@ import grammar
 import daemon
 import table
 import error
+
 
 
 def on_errors(details):
@@ -572,19 +574,26 @@ def upload_results(survey_id):
     }
 
 
-@app.route('/api/data/<int:survey_id>/download', methods=['GET'])
-@on_errors('could not download survey csv')
-@for_roles('s', 'u')
-def download_survey_csv(survey_id):
-    survey = database.get_survey(survey_id)
-    user = database.get_user()
-    perm = database.get_report_permission(survey, user)
-    if perm not in ['o']:
-        raise error.API('only the owner can download survey results')
 
-    convert.db_to_csv(survey)
+ns = api.namespace('Data', description='Data example description')
 
-    return send_file(f'temp/{survey_id}.csv', as_attachment=True)
+
+@ns.route('/api/data/<int:survey_id>/download')
+@ns.param('survey_id', 'The task identifier')
+# @app.route('/api/data/<int:survey_id>/download', methods=['GET'])
+class DownloadSurvey(Resource):
+    @on_errors('could not download survey csv')
+    @for_roles('s', 'u')
+    def get(self, survey_id):
+        survey = database.get_survey(survey_id)
+        user = database.get_user()
+        perm = database.get_report_permission(survey, user)
+        if perm not in ['o']:
+            raise error.API('only the owner can download survey results')
+
+        convert.db_to_csv(survey)
+
+        return send_file(f'temp/{survey_id}.csv', as_attachment=True)
 
 
 @app.route('/api/data/<int:survey_id>/types', methods=['GET'])

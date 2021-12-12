@@ -1,10 +1,12 @@
-from flask import Flask, redirect, url_for, request, session, g
+from flask import Flask, redirect, url_for, request, session, g, Blueprint
 from flask_admin.contrib.sqla import ModelView
 from flask_admin import Admin
 from flask_cors import CORS
 from cas import CASClient
 from os.path import dirname, realpath
 from os import urandom, path, chdir
+from flask_restx import Api
+
 
 try:
     # Import the config
@@ -70,6 +72,9 @@ popen = lambda p, mode: open(pabs(p), mode)
 pabs = lambda p: path.join(ABSOLUTE_DIR_PATH, p)
 
 app = Flask(__name__)
+blueprint = Blueprint('api', __name__, url_prefix='/api/docs')
+api = Api(blueprint)
+app.register_blueprint(blueprint)
 app.config.from_mapping(
     SECRET_KEY=urandom(SALT_LENGTH) if not DEBUG else 'sTzMzxFX8BcJt3wuvNvDeQ',
     FLASK_ADMIN_SWATCH='cerulean',
