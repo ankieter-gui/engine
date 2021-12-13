@@ -293,15 +293,15 @@ def json_to_xml(survey: database.Survey, survey_json):
             print(f'{p}   </answers>',file=xml_out)
         print(f'{p}</{type}>\n',file=xml_out)
 
-    with open('surveys/{survey.id}.xml', "w+") as xml_out:
+    with open('survey/{survey.id}.xml', "w+") as xml_out:
         print('<?xml version="1.0" encoding="UTF-8"?>\n<questionnaire xsi:noNamespaceSchemaLocation="questionnaire.xsd"\nxmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n',file=xml_out)
         for elem in survey_json["elements"]:
             el=elem
             type=el["questionType"]
             if type=="page":
                 el=elem["elements"]
-                print('<page id="">',file=xml_out)
-                print(f'<header><![CDATA[<b>{elem["header"]}</b>]]></header>',file=xml_out)
+                print(f'<page id="{elem["id"]}">',file=xml_out)
+                print(f'<header><![CDATA[{elem["header"]}]]></header>',file=xml_out)
                 print(' <questions>',file=xml_out)
                 for q in el:
                     write_question(q," ")
@@ -311,3 +311,101 @@ def json_to_xml(survey: database.Survey, survey_json):
                 print(' </questions>',file=xml_out)
                 print('</page>\n', file=xml_out)
         print('</questionnaire>',file=xml_out)
+
+
+
+def xml_to_json(survey: database.Survey):
+    
+    def write_element(question, res):
+        res["header"] = question.find("header").text
+        res["id"] = question.get("id","")
+        res["questionType"] = question.tag
+        res["maxLength"]=int(question.get("maxLength",250))
+        res["commonAttributes"] = {
+            "showId": True if question.get("showID") == "true" else False,
+            "showTip": False,
+            "overrideDefaultValue": True if question.get("defaultValue") else False,
+            "defaultValue": question.get("defaultValue","9999"),
+            "tip": True if question.get("tip") == "true" else False,
+            "required": True if question.get("required") == "true" else False,
+            "orientation": True if question.get("orientation") == "true" else False,
+            "collapsed": True if question.get("collapsed") == "true" else False,
+            "showTextField": True if question.get("showTextField") == "true" else False,
+            "naLabel": True if question.get("naLabel") == "true" else False,
+        }
+        if question.tag == "multi":
+            res["maxAnswers"] = question.get("maxAnswers", "1")
+            res["minAnswers"] = question.get("minAnswers", "1")
+            res["showAutoTip"] = True if question.get("showAutoTip")=="true" else False
+            res["blocking"] = True if question.get("blocking")=="true" else False
+        
+        answers = question.find("answers")
+        if answers:
+            res["options"] = []
+            for answer in answers:
+                res["options"].append({
+                    "code": answer.get("code", ""),
+                    "value": answer.get("value", ""),
+                    "rotate": True if answer.get("rotate") == "true" else False
+                })
+        items = question.find("items")
+        if items:
+            res["questions"] = []
+            for item in items:
+                res["questions"].append({
+                    "code": item.get("code", ""),
+                    "value": item.get("value", ""),
+                    "rotate": True if item.get("rotate") == "true" else False
+                })
+
+            
+        conditions = question.find("filter")
+        if conditions:
+            res["condition"]=[]
+            for cond in conditions:
+                for c in cond.iter():
+                    if c.tag in ["and","or","not"]:
+                        c_r = {
+                            "type": c.tag,
+                            "element": {} if len(c)==0 else {
+                                "value": c[0].get("value",""),
+                                "aid": c[0].get("aid", ""),
+                                "invert": True if c[0].get("invert") == "true" else False,
+                                "relation": c[0].get("relation","=")
+                            }
+                        }
+                        if "value" in c_r["element"]:
+                            if c_r["element"]["value"]=="":
+                                del c_r["element"]["value"]
+                        res["condition"].append(c_r)
+                        
+
+        return res
+
+    json_out={"elements": [], "title": ""}
+
+    xml = ET.parse(f"survey/{survey.id}.xml")
+    questions = ["page","text","information","groupedsingle","single","multi"]
+    for child in xml.getroot():
+        result={}
+        if child.tag=="title":
+            json_out["title"]=child.text
+        if child.tag in questions:
+            if child.tag == "page":
+                result["header"] = ""
+                if child.find("header").text:
+                    result["header"] = child.find("header").text
+                result["id"] = child.get("id","")
+                result["elements"]=[]
+                result["maxLength"]=int(child.get("maxLength",250))
+                result["questionType"] = child.tag
+                for q in child[1]:
+                    sub_question={}
+                    result["elements"].append(write_element(q, sub_question))
+            else:
+                result = write_element(child,result)
+
+            json_out["elements"].append(result)
+        
+    json_format=json.dumps(json_out)
+    return json_format
