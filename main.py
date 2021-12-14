@@ -147,7 +147,7 @@ def upload_survey(survey_id):
         "id": survey_id
     }
 
-@app.route('/api/survey/<int:survey_id>', methods=['POST'])
+@app.route('/api/survey/<int:survey_id>', methods=['GET'])
 @on_errors('could not download survey')
 @for_roles('s', 'u')
 def get_survey(survey_id):
