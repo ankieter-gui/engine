@@ -148,7 +148,7 @@ def upload_survey(survey_id):
     }
 
 @app.route('/api/survey/<int:survey_id>', methods=['POST'])
-@on_errors('could not upload survey')
+@on_errors('could not download survey')
 @for_roles('s', 'u')
 def get_survey(survey_id):
     survey = database.get_survey(survey_id)
