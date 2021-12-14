@@ -137,6 +137,7 @@ def upload_survey(survey_id):
         raise error.API('no access to the survey')
 
     if 'file' in request.files and request.files['file']:
+        file = request.files['file']
         if not file.filename.endswith('.xml'):
             raise error.API('expected an XML file')
         file.save(f'survey/{survey.id}.xml')
