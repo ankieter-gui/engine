@@ -130,14 +130,40 @@ def create_survey():
 @on_errors('could not upload survey')
 @for_roles('s', 'u')
 def upload_survey(survey_id):
-    if 'file' not in request.files or not request.files['file']:
-        raise error.API('empty survey data')
+    survey = database.get_survey(survey_id)
+    user = database.get_user()
+    perm = database.get_report_permission(survey, user)
+    if perm not in ['w', 'o']:
+        raise error.API('no access to the survey')
 
-    file = request.files['file']
-    file.save(f'survey/{survey_id}.xml')
+    if 'file' in request.files and request.files['file']:
+        file = request.files['file']
+        if not file.filename.endswith('.xml'):
+            raise error.API('expected an XML file')
+        file.save(f'survey/{survey.id}.xml')
+    else:
+        convert.json_to_xml(survey, request.json)
+
     return {
         "id": survey_id
     }
+
+@app.route('/api/survey/<int:survey_id>', methods=['GET'])
+@on_errors('could not download survey')
+@for_roles('s', 'u')
+def get_survey(survey_id):
+    survey = database.get_survey(survey_id)
+    user = database.get_user()
+    perm = database.get_report_permission(survey, user)
+    if perm not in ['r', 'w', 'o']:
+        raise error.API('no access to the survey')
+
+    if not exists(f'survey/{survey.id}.xml'):
+        raise error.API('survey file does not exist')
+
+    json = convert.xml_to_json(survey)
+
+    return json
 
 
 @app.route('/api/survey/<int:survey_id>/download', methods=['GET'])
