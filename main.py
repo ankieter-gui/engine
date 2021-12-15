@@ -136,7 +136,10 @@ def upload_survey(survey_id):
     if perm not in ['w', 'o']:
         raise error.API('no access to the survey')
 
-    if 'file' in request.files and request.files['file']:
+    if 'file' in request.files:
+        if not request.files['file']:
+            raise error.API('the uploaded file is empty')
+        file = request.files['file']
         if not file.filename.endswith('.xml'):
             raise error.API('expected an XML file')
         file.save(f'survey/{survey.id}.xml')
