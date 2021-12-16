@@ -132,7 +132,7 @@ def create_survey():
 def upload_survey(survey_id):
     survey = database.get_survey(survey_id)
     user = database.get_user()
-    perm = database.get_report_permission(survey, user)
+    perm = database.get_survey_permission(survey, user)
     if perm not in ['w', 'o']:
         raise error.API('no access to the survey')
 
@@ -156,7 +156,7 @@ def upload_survey(survey_id):
 def get_survey(survey_id):
     survey = database.get_survey(survey_id)
     user = database.get_user()
-    perm = database.get_report_permission(survey, user)
+    perm = database.get_survey_permission(survey, user)
     if perm not in ['r', 'w', 'o']:
         raise error.API('no access to the survey')
 
@@ -174,7 +174,7 @@ def get_survey(survey_id):
 def download_survey_xml(survey_id):
     survey = database.get_survey(survey_id)
     user = database.get_user()
-    perm = database.get_report_permission(survey, user)
+    perm = database.get_survey_permission(survey, user)
     if perm not in ['r', 'w', 'o']:
         raise error.API('no access to the survey')
 
@@ -606,7 +606,7 @@ def upload_results(survey_id):
 def download_survey_csv(survey_id):
     survey = database.get_survey(survey_id)
     user = database.get_user()
-    perm = database.get_report_permission(survey, user)
+    perm = database.get_survey_permission(survey, user)
     if perm not in ['o']:
         raise error.API('only the owner can download survey results')
 
