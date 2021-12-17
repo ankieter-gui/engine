@@ -252,7 +252,7 @@ def json_to_xml(survey: database.Survey, survey_json):
             c=f'{(i+2)*" "}<condition aid="{a}" value="{v}"/>'
         t=condition[i-1]["type"]
         return f'{(i+1)*" "}<{t}>\n{c}\n{write_condition(condition,i+1)}\n{(i+1)*" "}</{t}>'
-        
+
     def write_question(question,p=""):
         id=""
         if "id" in question:
@@ -293,7 +293,7 @@ def json_to_xml(survey: database.Survey, survey_json):
             print(f'{p}   </answers>',file=xml_out)
         print(f'{p}</{type}>\n',file=xml_out)
 
-    with open('survey/{survey.id}.xml', "w+") as xml_out:
+    with open(f'survey/{survey.id}.xml', "w+") as xml_out:
         print('<?xml version="1.0" encoding="UTF-8"?>\n<questionnaire xsi:noNamespaceSchemaLocation="questionnaire.xsd"\nxmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n',file=xml_out)
         for elem in survey_json["elements"]:
             el=elem
@@ -315,7 +315,7 @@ def json_to_xml(survey: database.Survey, survey_json):
 
 
 def xml_to_json(survey: database.Survey):
-    
+
     def write_element(question, res):
         res["header"] = question.find("header").text
         res["id"] = question.get("id","")
@@ -338,7 +338,7 @@ def xml_to_json(survey: database.Survey):
             res["minAnswers"] = question.get("minAnswers", "1")
             res["showAutoTip"] = True if question.get("showAutoTip")=="true" else False
             res["blocking"] = True if question.get("blocking")=="true" else False
-        
+
         answers = question.find("answers")
         if answers:
             res["options"] = []
@@ -358,7 +358,7 @@ def xml_to_json(survey: database.Survey):
                     "rotate": True if item.get("rotate") == "true" else False
                 })
 
-            
+
         conditions = question.find("filter")
         if conditions:
             res["condition"]=[]
@@ -378,7 +378,7 @@ def xml_to_json(survey: database.Survey):
                             if c_r["element"]["value"]=="":
                                 del c_r["element"]["value"]
                         res["condition"].append(c_r)
-                        
+
 
         return res
 
@@ -406,6 +406,6 @@ def xml_to_json(survey: database.Survey):
                 result = write_element(child,result)
 
             json_out["elements"].append(result)
-        
+
     json_format=json.dumps(json_out)
     return json_format
