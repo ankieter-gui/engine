@@ -246,8 +246,8 @@ def json_to_xml(survey: database.Survey, survey_json):
         if i>len(condition):
             return "\n"
         if "value" in condition[i-1]["element"]:
-            e=condition[i-1]["element"]
-            v=condition[i-1]["element"]["value"]
+            e=condition[i-1]
+            v=e["value"]
             a=e["aid"]
             c=f'{(i+2)*" "}<condition aid="{a}" value="{v}"/>'
         t=condition[i-1]["type"]
