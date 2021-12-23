@@ -293,7 +293,7 @@ def json_to_xml(survey: database.Survey, survey_json):
             print(f'{p}   </answers>',file=xml_out)
         print(f'{p}</{type}>\n',file=xml_out)
 
-    with open(f'survey/{survey.id}.xml', "w+") as xml_out:
+    with open(f'survey/{survey.id}.xml', "w+", encoding='utf-8') as xml_out:
         print('<?xml version="1.0" encoding="UTF-8"?>\n<questionnaire xsi:noNamespaceSchemaLocation="questionnaire.xsd"\nxmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n',file=xml_out)
         for elem in survey_json["elements"]:
             el=elem
