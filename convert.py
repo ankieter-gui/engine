@@ -246,7 +246,7 @@ def json_to_xml(survey: database.Survey, survey_json):
         if i>len(condition):
             return "\n"
         if "value" in condition[i-1]["element"]:
-            e=condition[i-1]
+            e=condition[i-1]["element"]
             v=e["value"]
             a=e["aid"]
             c=f'{(i+2)*" "}<condition aid="{a}" value="{v}"/>'
@@ -275,7 +275,7 @@ def json_to_xml(survey: database.Survey, survey_json):
             cond=write_condition(question["condition"],1)
             print(f'{p}  <filter>\n{cond}\n{p}  </filter>',file=xml_out)
         if type in ["multi","single"]:
-            answers = el["options"]
+            answers = question["options"]
             print(f'{p}   <answers>',file=xml_out)
             for ans in answers:
                 print(f'{p}    <textitem code="{ans["code"]}" value="{ans["value"]}" rotate="{str(ans["rotate"]).lower()}"/>',file=xml_out)
