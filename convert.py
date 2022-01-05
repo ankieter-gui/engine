@@ -272,8 +272,9 @@ def json_to_xml(survey: database.Survey, survey_json):
         print(f'{p}  <header><![CDATA[{question["header"]}]]></header>',file=xml_out)
         cond=""
         if "condition" in question:
-            cond=write_condition(question["condition"],1)
-            print(f'{p}  <filter>\n{cond}\n{p}  </filter>',file=xml_out)
+            if len(question["condition"])>0:
+                cond=write_condition(question["condition"],1)
+                print(f'{p}  <filter>\n{cond}\n{p}  </filter>',file=xml_out)
         if type in ["multi","single"]:
             answers = question["options"]
             print(f'{p}   <answers>',file=xml_out)
