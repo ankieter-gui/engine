@@ -825,6 +825,7 @@ def get_dashboard() -> Dict:
             'userId': user.id,
             'answersCount': get_answers_count(survey),
             'authorId': author.id,
+            'authorName':author.CasLogin
         })
     user_reports = get_user_reports(user)
     for report in user_reports:
@@ -842,6 +843,7 @@ def get_dashboard() -> Dict:
             'backgroundImg': report.BackgroundImg,
             'userId': user.id,
             'authorId': author.id,
+            'authorName': author.CasLogin
         })
     return {"objects": result}
 
