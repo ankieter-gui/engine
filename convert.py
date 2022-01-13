@@ -241,6 +241,14 @@ def db_to_csv(survey: database.Survey):
 
 
 def json_to_xml(survey: database.Survey, survey_json):
+    """Convert survey from JSON format to Ankieter xml format.
+
+    :param survey: The Survey that is edited or created
+    :type survey: Survey 
+    :param survey_json: Survey JSON to be converted
+    :type survey_json: Dict
+    """
+    
     def write_condition(condition,i):
         c=""
         if i>len(condition):
