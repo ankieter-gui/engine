@@ -245,9 +245,9 @@ def json_to_xml(survey: database.Survey, survey_json):
         c=""
         if i>len(condition):
             return "\n"
-        if "value" in condition[i-1]["element"]:
-            e=condition[i-1]["element"]
-            v=condition[i-1]["element"]["value"]
+        if "value" in condition[i-1]:
+            e=condition[i-1]
+            v=e["value"]
             a=e["aid"]
             c=f'{(i+2)*" "}<condition aid="{a}" value="{v}"/>'
         t=condition[i-1]["type"]
@@ -272,10 +272,11 @@ def json_to_xml(survey: database.Survey, survey_json):
         print(f'{p}  <header><![CDATA[{question["header"]}]]></header>',file=xml_out)
         cond=""
         if "condition" in question:
-            cond=write_condition(question["condition"],1)
-            print(f'{p}  <filter>\n{cond}\n{p}  </filter>',file=xml_out)
+            if len(question["condition"])>0:
+                cond=write_condition(question["condition"],1)
+                print(f'{p}  <filter>\n{cond}\n{p}  </filter>',file=xml_out)
         if type in ["multi","single"]:
-            answers = el["options"]
+            answers = question["options"]
             print(f'{p}   <answers>',file=xml_out)
             for ans in answers:
                 print(f'{p}    <textitem code="{ans["code"]}" value="{ans["value"]}" rotate="{str(ans["rotate"]).lower()}"/>',file=xml_out)
@@ -293,7 +294,7 @@ def json_to_xml(survey: database.Survey, survey_json):
             print(f'{p}   </answers>',file=xml_out)
         print(f'{p}</{type}>\n',file=xml_out)
 
-    with open(f'survey/{survey.id}.xml', "w+") as xml_out:
+    with open(f'survey/{survey.id}.xml', "w+", encoding='utf-8') as xml_out:
         print('<?xml version="1.0" encoding="UTF-8"?>\n<questionnaire xsi:noNamespaceSchemaLocation="questionnaire.xsd"\nxmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n',file=xml_out)
         for elem in survey_json["elements"]:
             el=elem
@@ -302,6 +303,10 @@ def json_to_xml(survey: database.Survey, survey_json):
                 el=elem["elements"]
                 print(f'<page id="{elem["id"]}">',file=xml_out)
                 print(f'<header><![CDATA[{elem["header"]}]]></header>',file=xml_out)
+                if "condition" in elem:
+                    print(elem["condition"]) 
+                    cond=write_condition(elem["condition"],1)
+                    print(f'  <filter>\n{cond}\n  </filter>',file=xml_out)
                 print(' <questions>',file=xml_out)
                 for q in el:
                     write_question(q," ")
@@ -367,16 +372,14 @@ def xml_to_json(survey: database.Survey):
                     if c.tag in ["and","or","not"]:
                         c_r = {
                             "type": c.tag,
-                            "element": {} if len(c)==0 else {
-                                "value": c[0].get("value",""),
-                                "aid": c[0].get("aid", ""),
-                                "invert": True if c[0].get("invert") == "true" else False,
-                                "relation": c[0].get("relation","=")
-                            }
+                            "value": c[0].get("value",""),
+                            "aid": c[0].get("aid", ""),
+                            "invert": True if c[0].get("invert") == "true" else False,
+                            "relation": c[0].get("relation","=")
                         }
-                        if "value" in c_r["element"]:
-                            if c_r["element"]["value"]=="":
-                                del c_r["element"]["value"]
+                        if "value" in c_r:
+                            if c_r["value"]=="":
+                                del c_r["value"]
                         res["condition"].append(c_r)
 
 

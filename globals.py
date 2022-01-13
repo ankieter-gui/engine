@@ -77,6 +77,7 @@ app.config.from_mapping(
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     DEBUG=DEBUG
 )
+log = app.logger.info
 
 # under class definitions in database.py ADMIN is also later attached to the db
 ADMIN = Admin(app, name='Ankieter+', template_mode='bootstrap3')
