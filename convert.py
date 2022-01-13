@@ -328,7 +328,14 @@ def json_to_xml(survey: database.Survey, survey_json):
 
 
 def xml_to_json(survey: database.Survey):
+    """Convert survey from Ankieter xml format to json format
 
+    :param survey: The Survey that is edited or created
+    :type survey: Survey 
+    :return: The survey in json format
+    :rtype: Dict
+    """
+    
     def write_element(question, res):
         res["header"] = question.find("header").text
         res["id"] = question.get("id","")
