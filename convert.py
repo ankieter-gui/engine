@@ -283,7 +283,7 @@ def json_to_xml(survey: database.Survey, survey_json):
             if len(question["condition"])>0:
                 cond=write_condition(question["condition"],1)
                 print(f'{p}  <filter>\n{cond}\n{p}  </filter>',file=xml_out)
-        if type in ["multi","single"]:
+        if type in ["multi","single"] and "options" in question:
             answers = question["options"]
             print(f'{p}   <answers>',file=xml_out)
             for ans in answers:
@@ -304,6 +304,7 @@ def json_to_xml(survey: database.Survey, survey_json):
 
     with open(f'survey/{survey.id}.xml', "w+", encoding='utf-8') as xml_out:
         print('<?xml version="1.0" encoding="UTF-8"?>\n<questionnaire xsi:noNamespaceSchemaLocation="questionnaire.xsd"\nxmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n',file=xml_out)
+        print(f"<title><![CDATA[{survey_json['title']}]]></title>\n",file=xml_out)
         for elem in survey_json["elements"]:
             el=elem
             type=el["questionType"]
