@@ -417,7 +417,8 @@ def xml_to_json(survey: database.Survey):
                 result["elements"]=[]
                 result["maxLength"]=int(child.get("maxLength",250))
                 result["questionType"] = child.tag
-                for q in child[1]:
+                c = child.find("questions")
+                for q in c:
                     sub_question={}
                     result["elements"].append(write_element(q, sub_question))
             else:
