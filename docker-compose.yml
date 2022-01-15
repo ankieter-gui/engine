@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  flask:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    container_name: flask
+    volumes:
+      - ./:/var/www
+      - /etc/letsencrypt/live/ankieter.projektstudencki.pl/fullchain.pem:/etc/letsencrypt/live/ankieter.projektstudencki.pl/fullchain.pem
+      - /etc/letsencrypt/live/ankieter.projektstudencki.pl/privkey.pem:/etc/letsencrypt/live/ankieter.projektstudencki.pl/privkey.pem
+    ports:
+      - "80:80"
+      - "443:443"
+
