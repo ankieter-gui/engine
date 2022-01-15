@@ -8,5 +8,5 @@ WORKDIR $CONTAINER_HOME
 RUN pip install --upgrade pip \
     && pip install -r $CONTAINER_HOME/requirements.txt
 
- CMD ["gunicorn","--log-level","DEBUG","--bind","0.0.0.0:443","main:app","--workers","4"]
+CMD ["gunicorn","--log-level","DEBUG","--bind","0.0.0.0:443","main:app","--workers","4"]
 
