@@ -46,6 +46,27 @@ def for_roles(*roles):
 @on_errors('could not get dashboard')
 @for_roles('s', 'u', 'g')
 def get_dashboard():
+    """Get dashboard for user
+
+    :Route: /api/dashboard
+    :Methods: GET
+    :Roles: s, u, g
+    :Returns: Dict
+    :Return:
+    :param int answersCount: number of survey answers,
+    :param timestamp startedOn: date when survey started
+    :param timestamp endsOn: date when survey ended,
+    :param int authorId: author's user_id,
+    :param str authorName: author's name,
+    :param str backgroundImg: filename of a background image,
+    :param int id: survey/report id,
+    :param str name: survey/report name,
+    :param dict sharedTo: {user_id: permission_type}
+    :param string type: object type (survey/report)
+    :param int userId: logged user id
+    :param dict connectedSurvey: {survey_id: survey_name}
+    """
+
     return database.get_dashboard()
 
 
@@ -54,6 +75,17 @@ def get_dashboard():
 @on_errors('could not obtain user list')
 @for_roles('s', 'u', 'g')
 def get_all_users():
+    """Get all users
+
+    :Route: /api/user/all, /api/users
+    :Methods: GET
+    :Roles: s, u, g
+    :Returns: Dict
+    :Return:
+    :param str casLogin: cas login
+    :param int id:: user id
+    """
+
     return database.get_all_users()
 
 
@@ -61,6 +93,16 @@ def get_all_users():
 @on_errors('could not create user')
 @for_roles('s')
 def create_user():
+    """Create a new user
+
+    :Route: /api/user/new
+    :Methods: POST
+    :Roles: s
+    :Returns: Dict
+    :Return parameters:
+    :param int id: user id
+    """
+
     data = request.json
     user = database.create_user(data["casLogin"], data['pesel'], data["role"])
     return {"id": user.id}
@@ -70,6 +112,15 @@ def create_user():
 @on_errors('could not obtain user groups')
 @for_roles('s', 'u')
 def get_user_groups(user_id):
+    """Get all user groups with users
+
+    :Route: /api/user/<int:user_id>/group
+    :Methods: GET
+    :Roles: s, u
+    :param int user_id: user id
+    :return: List[group_name]
+    """
+
     result = {}
     user = database.get_user(user_id)
     for group in database.get_user_groups(user):
@@ -83,6 +134,16 @@ def get_user_groups(user_id):
 @on_errors('could not obtain user data')
 @for_roles('s')
 def get_user_id_details(user_id):
+    """Get user details
+
+    :Route: /api/user/<int:user_id>
+    :Methods: GET
+    :Roles: s
+    :param user_id: user id
+    :return: User object
+    :rtype: User
+    """
+
     return database.get_user(user_id).as_dict()
 
 
@@ -90,6 +151,16 @@ def get_user_id_details(user_id):
 @on_errors('could not delete user')
 @for_roles('s')
 def delete_user(user_id):
+    """Delete user from Users database and their permissions
+    from SurveyPermissions and ReportPermissions.
+
+    :Route: /api/user/<int:user_id>
+    :Methods: DELETE
+    :Roles: s
+    :param user_id: user id
+    :return dict: {"delete": user_id}
+    """
+
     user = database.get_user(user_id)
     database.delete_user(user)
     return {"delete": user.id}
@@ -99,6 +170,16 @@ def delete_user(user_id):
 @on_errors('could not obtain user data')
 @for_roles('s', 'u', 'g')
 def get_user_details():
+    """Get logged user details
+
+    :Route: /api/user
+    :Methods: GET
+    :Roles: s
+    :param user_id: user id
+    :return: User object
+    :rtype: User
+    """
+
     return database.get_user().as_dict()
 
 
@@ -106,6 +187,15 @@ def get_user_details():
 @on_errors('could not get dictionary')
 @for_roles('s', 'u', 'g')
 def get_dictionary():
+    """Returns dictionary with labels
+
+    :Route: /api/dictionary
+    :Methods: GET
+    :Roles: s, u, g
+    :return: id and label
+    :rtype: dict
+    """
+
     with open(os.path.join(ABSOLUTE_DIR_PATH, "dictionary.json")) as json_file:
         result = json.load(json_file)
     return result
@@ -115,6 +205,15 @@ def get_dictionary():
 @on_errors('could not create survey')
 @for_roles('s', 'u')
 def create_survey():
+    """Create survey
+
+    :Route: /api/survey/new
+    :Methods: POST
+    :Roles: s, u
+    :return: {"id": survey_id}
+    :rtype: Dict
+    """
+
     user = database.get_user()
     r = request.json
     if 'name' not in r or not r["name"]:
@@ -130,6 +229,16 @@ def create_survey():
 @on_errors('could not upload survey')
 @for_roles('s', 'u')
 def upload_survey(survey_id):
+    """Upload survey
+
+    :Route: /api/survey/<int:survey_id>, /api/survey/<int:survey_id>/upload
+    :Methods: POST
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :return: {"id": survey_id}
+    :rtype: Dict
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
     perm = database.get_survey_permission(survey, user)
@@ -154,6 +263,16 @@ def upload_survey(survey_id):
 @on_errors('could not download survey')
 @for_roles('s', 'u')
 def get_survey(survey_id):
+    """Get survey json by given id
+
+    :Route: /api/survey/<int:survey_id>
+    :Methods: GET
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :return: survey json
+    :rtype: dict
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
     perm = database.get_survey_permission(survey, user)
@@ -172,6 +291,16 @@ def get_survey(survey_id):
 @on_errors('could not download survey xml')
 @for_roles('s', 'u')
 def download_survey_xml(survey_id):
+    """Get survey schema xml
+
+    :Route: /api/survey/<int:survey_id>/download
+    :Methods: GET
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :Returns: xml file witch survey schema
+    :rtype: File
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
     perm = database.get_survey_permission(survey, user)
@@ -188,6 +317,16 @@ def download_survey_xml(survey_id):
 @on_errors('could not share survey')
 @for_roles('s', 'u')
 def share_survey(survey_id):
+    """Share survey for given users
+
+    :Route: /api/survey/<int:survey_id>/share
+    :Methods: POST
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :return: {"message": "permissions added"}
+    :rtype: str
+    """
+
     json = request.json
     survey = database.get_survey(survey_id)
     perm = database.get_survey_permission(survey, database.get_user())
@@ -205,6 +344,16 @@ def share_survey(survey_id):
 @on_errors('could not rename survey')
 @for_roles('s', 'u')
 def rename_survey(survey_id):
+    """Rename survey
+
+    :Route: /api/survey/<int:survey_id>/rename
+    :Methods: POST
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :return: {'message': 'survey name has been changed', 'surveyId': survey.id, 'title': new_name}
+    :rtype: dict
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
     perm = database.get_survey_permission(survey, user)
@@ -225,6 +374,16 @@ def rename_survey(survey_id):
 @on_errors('could not create link to survey')
 @for_roles('s', 'u')
 def link_to_survey(survey_id):
+    """Get permission link to survey
+
+    :Route: /api/survey/<int:survey_id>/link
+    :Methods: POST
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :return: {'link': link}
+    :rtype: dict
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
     perm = database.get_survey_permission(survey, user)
@@ -243,6 +402,16 @@ def link_to_survey(survey_id):
 @on_errors('could not delete survey')
 @for_roles('s', 'u')
 def delete_survey(survey_id):
+    """Get dashboard for user
+
+    :Route: /api/survey/<int:survey_id>
+    :Methods: DELETE
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :rtype: Dict
+    :return: {'message': 'survey has been deleted','surveyId': survey_id}
+    """
+
     survey = database.get_survey(survey_id)
     perm = database.get_survey_permission(survey, database.get_user())
     if perm != 'o':
@@ -250,7 +419,7 @@ def delete_survey(survey_id):
 
     database.delete_survey(survey)
     return {
-        'message': 'report has been deleted',
+        'message': 'survey has been deleted',
         'surveyId': survey_id
     }
 
@@ -259,6 +428,15 @@ def delete_survey(survey_id):
 @on_errors('could not create report')
 @for_roles('s', 'u')
 def create_report():
+    """Create report
+
+    :Route: /api/report/new
+    :Methods: POST
+    :Roles: s, u
+    :return: {"reportId": report.id}
+    :rtype: dict
+    """
+
     grammar.check(grammar.REQUEST_CREATE_SURVEY, request.json)
 
     data = request.json
@@ -281,6 +459,16 @@ def create_report():
 @on_errors('could not download report')
 @for_roles('s', 'u')
 def download_report(report_id):
+    """Download report as json
+
+    :Route: /api/report/<int:report_id>/download
+    :Methods: GET
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: json file
+    :rtype: File
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
     perm = database.get_report_permission(report, user)
@@ -297,6 +485,16 @@ def download_report(report_id):
 @on_errors('could not get the report users')
 @for_roles('s', 'u')
 def get_report_users(report_id):
+    """Get dashboard for user
+
+    :Route: /api/report/<int:report_id>/users
+    :Methods: GET
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: Returns a dict with user ids as keys and their permissions under them
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -311,6 +509,16 @@ def get_report_users(report_id):
 @on_errors('could not get report answers')
 @for_roles('s', 'u', 'g')
 def get_report_answers(report_id):
+    """Get answers for Report's survey
+
+    :Route: /api/report/<int:report_id>/answers
+    :Methods: GET
+    :Roles: s, u, g
+    :param int report_id: Report's id
+    :return: Answers in the survey
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -327,6 +535,16 @@ def get_report_answers(report_id):
 @on_errors('could not find the source survey')
 @for_roles('s', 'u', 'g')
 def get_report_survey(report_id):
+    """Get survey assigned to the given report
+
+    :Route: /api/report/<int:report_id>/survey
+    :Methods: GET
+    :Roles: s, u, g
+    :param int report_id: Report's id
+    :return: {"surveyId": survey.id }
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -344,6 +562,16 @@ def get_report_survey(report_id):
 @on_errors('could not share report')
 @for_roles('s', 'u')
 def share_report(report_id):
+    """Share report for given users
+
+    :Route: /api/report/<int:report_id>/share
+    :Methods: POST
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: {"message": "permissions added"}
+    :rtype: Dict
+    """
+
     json = request.json
     report = database.get_report(report_id)
     perm = database.get_report_permission(report, database.get_user())
@@ -361,6 +589,16 @@ def share_report(report_id):
 @on_errors('could not rename report')
 @for_roles('s', 'u')
 def rename_report(report_id):
+    """Rename report
+
+    :Route: /api/report/<int:report_id>/rename
+    :Methods: POST
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: {'message': 'report name has been changed', 'reportId': report.id, 'title': new_name}
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -383,6 +621,16 @@ def rename_report(report_id):
 @on_errors('could not create link to report')
 @for_roles('s', 'u')
 def link_to_report(report_id):
+    """Create and obtain a permission link for report
+
+    :Route: /api/report/<int:report_id>/link
+    :Methods: POST
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: {'link': link}
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -402,6 +650,16 @@ def link_to_report(report_id):
 @on_errors('could not obtain survey data for the report')
 @for_roles('s', 'u', 'g')
 def get_report_data(report_id):
+    """Get data for chart
+
+    :Route: /api/report/<int:report_id>/data
+    :Methods: POST
+    :Roles: s, u, g
+    :param int report_id: Report's id
+    :return: Parsed data
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -422,6 +680,16 @@ def get_report_data(report_id):
 @on_errors('could not copy the report')
 @for_roles('s', 'u')
 def copy_report(report_id):
+    """Create new duplicated report
+
+    :Route: /api/report/<int:report_id>/copy
+    :Methods: GET
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: {"reportId": report.id}
+    :rtype: Dict
+    """
+
     data = get_report(report_id)
     if 'error' in data:
         return data
@@ -445,6 +713,16 @@ def copy_report(report_id):
 @on_errors('could not save the report')
 @for_roles('s', 'u')
 def set_report(report_id):
+    """Save report changes
+
+    :Route: /api/report/<int:report_id>
+    :Methods: POST
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: {"reportId": report.id}
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -464,6 +742,16 @@ def set_report(report_id):
 @on_errors('could not open the report')
 @for_roles('s', 'u', 'g')
 def get_report(report_id):
+    """Get report data
+
+    :Route: /api/report/<int:report_id>
+    :Methods: GET
+    :Roles: s, u, g
+    :param int report_id: Report's id
+    :return: report data in json format
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -481,6 +769,16 @@ def get_report(report_id):
 @on_errors('could not delete report')
 @for_roles('s', 'u')
 def delete_report(report_id):
+    """Delete report
+
+    :Route: /api/report/<int:report_id>
+    :Methods: DELETE
+    :Roles: s, u
+    :param int report_id: Report's id
+    :return: {'message': 'report has been deleted','reportId': report_id}
+    :rtype: Dict
+    """
+
     report = database.get_report(report_id)
     user = database.get_user()
 
@@ -500,6 +798,15 @@ def delete_report(report_id):
 @on_errors('could not obtain group users')
 @for_roles('s', 'u')
 def get_group_users():
+    """Get users assigned to given group.
+
+    :Route: /api/group/users
+    :Methods: POST
+    :Roles: s, u
+    :return: Returns dict of user_id
+    :rtype: dict
+    """
+
     grammar.check(grammar.REQUEST_GROUP, request.json)
     users = database.get_group_users(request.json['group'])
     return {
@@ -512,6 +819,15 @@ def get_group_users():
 @on_errors('could not add users to groups')
 @for_roles('s')
 def set_group():
+    """Add users to group
+
+    :Route: /api/group/change
+    :Methods: POST
+    :Roles: s
+    :return: {'message': 'users added to groups'}
+    :rtype: Dict
+    """
+
     for group, ids in request.json.items():
         grammar.check([int], ids)
         for id in ids:
@@ -527,6 +843,15 @@ def set_group():
 @on_errors('could not remove users from groups')
 @for_roles('s')
 def unset_group():
+    """Remove users from groups
+
+    :Route: /api/group/change
+    :Methods: DELETE
+    :Roles: s
+    :return: {'message': 'users removed from groups'}
+    :rtype: Dict
+    """
+
     for group, ids in request.json.items():
         grammar.check([int], ids)
         for id in ids:
@@ -541,6 +866,15 @@ def unset_group():
 @on_errors('could not obtain list of groups')
 @for_roles('s', 'u', 'g')
 def get_groups():
+    """Get list of groups
+
+    :Route: /api/dashboard
+    :Methods: GET
+    :Roles: s, u, g
+    :return:
+    :rtype: Dict
+    """
+
     result = {}
     for group in database.get_groups():
         result[group] = []
@@ -554,6 +888,15 @@ def get_groups():
 @on_errors('could not delete group')
 @for_roles('s')
 def delete_group():
+    """Delete group
+
+    :Route: /api/dashboard
+    :Methods: DELETE
+    :Roles: s
+    :return: {'message': 'group deleted'}
+    :rtype: Dict
+    """
+
     grammar.check(grammar.REQUEST_GROUP, request.json)
     database.delete_group(request.json['group'])
     return {
@@ -567,6 +910,18 @@ def delete_group():
 @on_errors('could not save survey data')
 @for_roles('s', 'u')
 def upload_results(survey_id):
+    """Upload survey results
+
+    :Route: /api/data/new
+    :Route: /api/data/new/<int:survey_id>
+    :Route: /api/data/<int:survey_id>/upload
+    :Methods: POST
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :return: {"id": survey.id,"name": name}
+    :rtype: Dict
+    """
+
     user = database.get_user()
 
     if not request.files['file']:
@@ -604,6 +959,16 @@ def upload_results(survey_id):
 @on_errors('could not download survey csv')
 @for_roles('s', 'u')
 def download_survey_csv(survey_id):
+    """Download survey csv
+
+    :Route: /api/data/<int:survey_id>/download
+    :Methods: GET
+    :Roles: s, u
+    :param int survey_id: Survey's id
+    :return: Survey csv data
+    :rtype: File
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
     perm = database.get_survey_permission(survey, user)
@@ -619,6 +984,16 @@ def download_survey_csv(survey_id):
 @on_errors('could not get question types')
 @for_roles('s', 'u', 'g')
 def get_data_types(survey_id):
+    """Get types for each column in the database.
+
+    :Route: /api/data/<int:survey_id>/types
+    :Methods: GET
+    :Roles: s, u, g
+    :param int survey_id: Survey's id
+    :return: A dictionary mapping names of columns to SQL names of their types
+    :rtype: Dict
+    """
+
     survey = database.get_survey(survey_id)
 
     user = database.get_user()
@@ -637,6 +1012,16 @@ def get_data_types(survey_id):
 @on_errors('could not get question order')
 @for_roles('s', 'u', 'g')
 def get_questions(survey_id):
+    """Get column names in the order just like it is returned from the DB.
+
+    :Route: /api/dashboard
+    :Methods: GET
+    :Roles: s, u, g
+    :param int survey_id: Survey's id
+    :return: A list of column names in the database. {'questions': questions}
+    :rtype: Dict
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
 
@@ -656,6 +1041,16 @@ def get_questions(survey_id):
 @on_errors('could not obtain survey data')
 @for_roles('s', 'u', 'g')
 def get_data(survey_id):
+    """Get survey data
+
+    :Route: /api/data/<int:survey_id>
+    :Methods: POST
+    :Roles: s, u, g
+    :param int survey_id: Survey's id
+    :return:
+    :rtype: Dict
+    """
+
     survey = database.get_survey(survey_id)
     user = database.get_user()
 
@@ -673,6 +1068,16 @@ def get_data(survey_id):
 @on_errors('could not set permission link')
 @for_roles('s', 'u', 'g') # to be tested for 'g'
 def set_permission_link(hash):
+    """Set permission using link.
+
+    :Route: /api/link/<hash>
+    :Methods: GET
+    :Roles: s, u, g
+    :param str hash: Salt and id string from the link
+    :return: {'permission': perm, 'object': object,'id': id,}
+    :rtype: Dict
+    """
+
     perm, object, id = database.set_permission_link(hash, database.get_user())
     return {
         'permission': perm,
@@ -684,6 +1089,12 @@ def set_permission_link(hash):
 @app.route('/api/login', methods=['GET', 'POST'])
 @on_errors('could not log in')
 def login():
+    """Login with cas
+
+    :Route: /api/dashboard
+    :Methods: GET
+    """
+
     ticket = request.args.get('ticket')
     if not ticket:
         return redirect(CAS_CLIENT.get_login_url())
@@ -706,6 +1117,13 @@ if DEBUG:
     @app.route('/api/login/<string:username>', methods=['GET', 'POST'])
     @on_errors('could not log in')
     def debug_login(username):
+        """Login in debug mode without cas
+
+        :Route: /api/login/<string:username>
+        :Methods: GET
+        :param str username: cas login
+        """
+
         session['username'] = username
         return redirect('/')
 
@@ -713,6 +1131,13 @@ if DEBUG:
 @app.route('/api/logout')
 @on_errors('could not log out')
 def logout():
+    """Logout
+
+    :Route: /api/logout
+    :Methods: GET
+    :Roles: s, u, g
+    """
+
     session.clear()
     return redirect(CAS_CLIENT.get_logout_url())
 
@@ -720,11 +1145,25 @@ def logout():
 @app.route('/docs', defaults={'filename': 'index.html'})
 @app.route('/docs/<path:filename>')
 def get_docs(filename):
+    """Redirect to documentation
+
+    :Route: /docs
+    :Methods: GET
+    :param str filename: filename of docs main page, default index,html
+    """
+
     return send_from_directory('static', filename)
 
 
 @app.route('/bkg/<path:path>', methods=['GET'])
 def get_bkg(path):
+    """Get background image
+
+    :Route: /bkg/<path:path>
+    :Methods: GET
+    :param str path: path to the image
+    """
+
     return send_from_directory('bkg', path)
 
 @app.route('/<path:path>', methods=['GET'])
