@@ -304,7 +304,6 @@ def json_to_xml(survey: database.Survey, survey_json):
 
     with open(f'survey/{survey.id}.xml', "w+", encoding='utf-8') as xml_out:
         print('<?xml version="1.0" encoding="UTF-8"?>\n<questionnaire xsi:noNamespaceSchemaLocation="questionnaire.xsd"\nxmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n',file=xml_out)
-        print(f"<title><![CDATA[{survey_json['title']}]]></title>\n",file=xml_out)
         for elem in survey_json["elements"]:
             el=elem
             type=el["questionType"]
@@ -405,10 +404,9 @@ def xml_to_json(survey: database.Survey):
 
     xml = ET.parse(f"survey/{survey.id}.xml")
     questions = ["page","text","information","groupedsingle","single","multi"]
+    json_out["title"]=survey.Name
     for child in xml.getroot():
         result={}
-        if child.tag=="title":
-            json_out["title"]=child.text
         if child.tag in questions:
             if child.tag == "page":
                 result["header"] = ""
