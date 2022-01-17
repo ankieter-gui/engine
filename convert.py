@@ -200,13 +200,13 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: Dict = {}):
         df = raw_to_compact(survey, df, defaults)
 
         # if defaults is not empty, there exists an XML to which the data must be adjusted
-        if defaults:
-            lacking, extra = get_column_mismatches(survey, df)
-            if lacking or extra:
-                err = error.API('the data is incompatible with survey schema')
-                err.data['lacking'] = lacking
-                err.data['extra'] = extra
-                raise err
+        # if defaults:
+        #     lacking, extra = get_column_mismatches(survey, df)
+        #     if lacking or extra:
+        #         err = error.API('the data is incompatible with survey schema')
+        #         err.data['lacking'] = lacking
+        #         err.data['extra'] = extra
+        #         raise err
 
         conn = database.open_survey(survey)
         df.to_sql("data", conn, if_exists="replace")
