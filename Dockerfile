@@ -1,6 +1,7 @@
 FROM python:3.8-slim
 
 ENV CONTAINER_HOME=/var/www
+ENV TZ Europe/Warsaw
 
 COPY . $CONTAINER_HOME
 WORKDIR $CONTAINER_HOME
