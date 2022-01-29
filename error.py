@@ -6,11 +6,8 @@ class Generic(Exception):
     def add_details(self, message: str):
         """Add details to the error message.
 
-        Keyword arguments:
-        message -- details to be concatenated
-
-        Return value:
-        returns self
+        :param str message: details to be concatenated
+        :rtype: self
         """
 
         self.message = f'{message}: {self.message}'
@@ -21,11 +18,9 @@ class API(Generic):
     def as_dict(self) -> dict:
         """Return message as a dict.
 
-        Return value:
-        returns dict object
+        :return: Message as dict
+        :rtype: dict
         """
 
-        err = {**self.data}
-        err['error'] = self.message
-        print(err)
+        err = {**self.data, 'error': self.message}
         return err

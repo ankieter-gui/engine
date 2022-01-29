@@ -276,7 +276,3 @@ class TestCase(unittest.TestCase):
         }
         with self.assertRaises(error.API):
             _ = table.create(query, self.conn)
-
-
-if __name__ == '__main__':
-    unittest.main()
