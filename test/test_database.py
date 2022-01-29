@@ -106,7 +106,6 @@ class TestCase(unittest.TestCase):
         new_user = create_user('test', '9999999997', 'u')
         expected_user = get_user(new_user.id)
         self.assertEqual(new_user, expected_user)
-        delete_user(new_user)
 
     def test_get_all_users(self):
         result_json = get_all_users()

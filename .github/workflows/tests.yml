@@ -20,14 +20,6 @@ jobs:
         python -m pip install --upgrade pip
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Run tests
-      run: |
-        touch results.log
-        for test in test/*.py; do
-          echo Logs for $test: |& tee -a results.log
-          python3 $test |& tee -a results.log
-        done
-
     - name: Test
       run: python -m unittest discover test
 
