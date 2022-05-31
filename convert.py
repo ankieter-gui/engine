@@ -192,10 +192,10 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: Dict = {}):
         name, ext = filename.rsplit('.', 1)
         if ext != "csv":
             file = pandas.read_excel(f'raw/{name}.{ext}')
-            file.to_csv(f'raw/{name}.csv',encoding='utf-8')
+            file.to_csv(f'raw/{name}.csv', encoding='utf-8')
             filename = f'{name}.csv'
         separator = detect_csv_sep(filename)
-        df = pandas.read_csv(f"raw/{filename}", sep=separator)
+        df = pandas.read_csv(f"raw/{filename}", sep=separator, encoding='utf-8')
 
         # convert the data to a format suitable for data analysis
         df = raw_to_compact(survey, df, defaults)
