@@ -239,16 +239,15 @@ def db_to_csv(survey: database.Survey):
         raise error.API(str(e) + ' while parsing db to csv')
 
 
-
 def json_to_xml(survey: database.Survey, survey_json):
     """Convert survey from JSON format to Ankieter xml format.
 
     :param survey: The Survey that is edited or created
-    :type survey: Survey 
+    :type survey: Survey
     :param survey_json: Survey JSON to be converted
     :type survey_json: Dict
     """
-    
+
     def write_condition(condition,i):
         c=""
         if i>len(condition):
@@ -312,7 +311,7 @@ def json_to_xml(survey: database.Survey, survey_json):
                 print(f'<page id="{elem["id"]}">',file=xml_out)
                 print(f'<header><![CDATA[{elem["header"]}]]></header>',file=xml_out)
                 if "condition" in elem:
-                    print(elem["condition"]) 
+                    print(elem["condition"])
                     cond=write_condition(elem["condition"],1)
                     print(f'  <filter>\n{cond}\n  </filter>',file=xml_out)
                 print(' <questions>',file=xml_out)
@@ -326,16 +325,15 @@ def json_to_xml(survey: database.Survey, survey_json):
         print('</questionnaire>',file=xml_out)
 
 
-
 def xml_to_json(survey: database.Survey):
     """Convert survey from Ankieter xml format to json format
 
     :param survey: The Survey that is edited or created
-    :type survey: Survey 
+    :type survey: Survey
     :return: The survey in json format
     :rtype: Dict
     """
-    
+
     def write_element(question, res):
         res["header"] = question.find("header").text
         res["id"] = question.get("id","")
