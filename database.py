@@ -104,10 +104,6 @@ class Link(db.Model):
     ObjectId = db.Column(db.Integer, nullable=False) #: Id of the object the permission is to
 
 
-ADMIN.add_view(ModelView(User, db.session))
-ADMIN.add_view(ModelView(Survey, db.session))
-
-
 def get_user(login: Any = "") -> User:
     """Get a user object from DB.
 
