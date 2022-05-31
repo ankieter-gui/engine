@@ -83,6 +83,7 @@ def get_default_values(survey: database.Survey) -> Dict:
     return result
 
 
+# DEBUG: this function is too strict for practical use or it has a bug
 def get_column_mismatches(survey: database.Survey, df: pandas.DataFrame) -> tuple:
     """Check which columns in the schema are not present in the data, and also
     which columns in the data are not present in the schema.
