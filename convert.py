@@ -122,7 +122,7 @@ def detect_csv_sep(filename: str) -> str:
     """
 
     sep = ''
-    with open(f'raw/{filename}',"r") as csv_file:
+    with open(f'raw/{filename}',"r", encoding='utf-8-sig') as csv_file:
         res = csv.Sniffer().sniff(csv_file.read(1024))
         csv_file.seek(0)
         sep = res.delimiter
@@ -195,7 +195,7 @@ def csv_to_db(survey: database.Survey, filename: str, defaults: Dict = {}):
             file.to_csv(f'raw/{name}.csv', encoding='utf-8')
             filename = f'{name}.csv'
         separator = detect_csv_sep(filename)
-        df = pandas.read_csv(f"raw/{filename}", sep=separator, encoding='utf-8')
+        df = pandas.read_csv(f"raw/{filename}", sep=separator, encoding='utf-8-sig')
 
         # convert the data to a format suitable for data analysis
         df = raw_to_compact(survey, df, defaults)
