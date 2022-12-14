@@ -670,8 +670,6 @@ def get_report_data(report_id):
 
     survey = database.get_report_survey(report)
 
-    conn = database.open_survey(survey)
-    result = table.create(request.json, conn)
     survey_xml = report.SurveyId
     survey_datatype = database.get_answers(survey_xml)
     #flatten grouped single
@@ -681,14 +679,11 @@ def get_report_data(report_id):
             for sub_question in survey_datatype_iteration_copy[question]['sub_questions']:
                 survey_datatype[question +" - "+ sub_question] = {"values": survey_datatype_iteration_copy[question]['values']}
 
-    for aggregation in result.keys():
-        if "share" in aggregation:
-            question_name = aggregation.replace("share ", "")
-            possible_answers = [int(i) for i in survey_datatype[question_name]["values"].keys()]
-            for arr in result[aggregation]:
-                for answer in possible_answers:
-                    if answer not in arr.keys():
-                        arr[answer] = 0
+
+
+    conn = database.open_survey(survey)
+    result = table.create(request.json, conn, survey_datatype)
+
 
     conn.close()
 
@@ -1201,7 +1196,6 @@ def get_static_file(path):
 def index(text=None):
     return render_template('index.html')
 
-LOCALHOST=True
 if __name__ == '__main__':
     license = open('LICENSE', 'r')
     print(license.read())

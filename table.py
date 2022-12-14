@@ -412,7 +412,7 @@ def reorder(data):
     return result
 
 
-def create(query, conn: sqlite3.Connection):
+def create(query, conn: sqlite3.Connection, survey_datatype:dict=None):
     """Create data from survey
 
     Keyword arguments:
@@ -430,6 +430,15 @@ def create(query, conn: sqlite3.Connection):
         data = columns(query, types, conn)
         data = aggregate(query, data)
         table = reorder(data)
+        if survey_datatype is not None:
+            for aggregation in table.keys():
+                if "share" in aggregation:
+                    question_name = aggregation.replace("share ", "")
+                    possible_answers = [int(i) for i in survey_datatype[question_name]["values"].keys()]
+                    for arr in table[aggregation]:
+                        for answer in possible_answers:
+                            if answer not in arr.keys() and answer not in ["9999","999"]:
+                                arr[answer] = 0
     except error.API as err:
         err.add_details('could not create table')
         raise
