@@ -430,6 +430,8 @@ def create(query, conn: sqlite3.Connection, survey_datatype:dict=None):
         data = columns(query, types, conn)
         data = aggregate(query, data)
         table = reorder(data)
+
+        all_notin = sum([x[2:] for x in query['if'] if x[1]=='notin'], [])
         if survey_datatype is not None:
             for aggregation in table.keys():
                 if "share" in aggregation:
@@ -437,7 +439,7 @@ def create(query, conn: sqlite3.Connection, survey_datatype:dict=None):
                     possible_answers = [int(i) for i in survey_datatype[question_name]["values"].keys()]
                     for arr in table[aggregation]:
                         for answer in possible_answers:
-                            if answer not in arr.keys() and answer not in ["9999","999"]:
+                            if answer not in arr.keys() and answer not in all_notin:
                                 arr[answer] = 0
     except error.API as err:
         err.add_details('could not create table')
